@@ -1,8 +1,10 @@
 double calcularMontoTotalMovimientos(List<Map<String, dynamic>> movimientos) {
-  return movimientos.fold<double>(
-    0.0,
-    (sum, m) => sum + (m['monto'] as num).toDouble(),
-  );
+  double montoTotal = 0.0;
+  for (var i = 0; i < movimientos.length; i++) {
+    final montoActual = movimientos[i]['monto'] as num;
+    montoTotal = montoTotal + montoActual.toDouble();
+  }
+  return montoTotal;
 }
 
 // Aplica busqueda y filtros sobre una lista de movimientos

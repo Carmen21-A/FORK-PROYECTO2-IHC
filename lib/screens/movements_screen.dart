@@ -105,7 +105,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
     return null;
   }
 
-  // Cambia el periodo; si es "rango" abre el selector de fechas
   Future<void> _cambiarPeriodo(String valor) async {
     if (valor != 'rango') {
       setState(() => _filtroPeriodo = valor);
@@ -339,7 +338,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     final controller = TextEditingController(
       text: _limiteMensual != null ? _limiteMensual.toString() : '',
     );
-    final formKey = GlobalKey<FormState>();
+    final formularioId = GlobalKey<FormState>();
     final mesActual =
         '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
     final gastoActual = calcularGastoTotalMes(_movimientos, mesActual);
@@ -350,7 +349,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           (ctx) => AlertDialog(
             title: const Text('Limite mensual de gastos'),
             content: Form(
-              key: formKey,
+              key: formularioId,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -359,18 +358,18 @@ class _MovementsScreenState extends State<MovementsScreen> {
                     controller: controller,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Nuevo limite (Bs)',
+                      labelText: 'Nuevo limite',
                       hintText: 'Ej: 500',
                     ),
-                    validator: (valor) {
+                    validator: (monto) {
                       // Que no este vacio, sin letras y solo numeros
-                      final errorFormato = validarMontoLimite(valor);
+                      final errorFormato = validarMontoLimite(monto);
                       if (errorFormato != null) return errorFormato;
 
                       // Verifica que no sea menor a lo ya gastado
-                      final n = double.parse(valor!);
+                      final n = double.parse(monto!);
                       if (esLimiteMenorAGasto(n, gastoActual)) {
-                        return 'No puede ser menor a lo ya gastado ($gastoActual Bs)';
+                        return 'No puede ser menor a lo ya gastado "$gastoActual Bs"';
                       }
                       return null;
                     },
@@ -379,19 +378,19 @@ class _MovementsScreenState extends State<MovementsScreen> {
               ),
             ),
             actions: [
-              TextButton(
+              OutlinedButton(
                 onPressed: () => Navigator.pop(ctx),
                 child: const Text('Cancelar'),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  if (!formKey.currentState!.validate()) return;
+                  if (!formularioId.currentState!.validate()) return;
                   final nuevoLimite = double.parse(controller.text);
                   await _limitesService.saveMonthLimit(
                     mes: mesActual,
                     limite: nuevoLimite,
                   );
-                  if (mounted) {
+                  if (ctx.mounted) {
                     Navigator.pop(ctx);
                     _load();
                   }
@@ -403,7 +402,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     );
   }
 
-  Future<bool> _validateOverLimit(double monto) async {
+  Future<bool> _validarSiExcedioLimiteMensual(double monto) async {
     if (_tipo != 'gasto') return false;
 
     final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
@@ -428,7 +427,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: Colors.red,
+            backgroundColor: ColorStyles.errorDefault,
             content: Text(
               'No se puede registrar, porque supera tu limite mensual de $limite bs (llevas gastando $gastoActual bs)',
             ),
@@ -445,7 +444,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (!_formularioId.currentState!.validate()) return;
     final monto = double.tryParse(_montoController.text) ?? 0;
 
-    final excede = await _validateOverLimit(monto);
+    final excede = await _validarSiExcedioLimiteMensual(monto);
     if (excede) return;
 
     try {
@@ -513,7 +512,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
               '¿Estas seguro que quieres eliminar este movimiento?',
             ),
             actions: [
-              TextButton(
+              OutlinedButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: const Text('Cancelar'),
               ),

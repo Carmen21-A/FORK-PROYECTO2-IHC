@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 import 'package:presupuesto_estudiantil/design_system/app_text_style.dart';
 
@@ -106,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               : null,
                 ),
 
-                TextButton(
+                OutlinedButton(
                   onPressed: () => context.push('/reset-password'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 52),

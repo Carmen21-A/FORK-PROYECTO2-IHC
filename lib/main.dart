@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:presupuesto_estudiantil/global/initial_route.dart';
 import 'package:presupuesto_estudiantil/theme/app_theme.dart';
@@ -15,18 +16,6 @@ Future<void> main() async {
     publishableKey: Env.supabasePublishableKey,
   );
 
-  // // obtener code dela url
-  // final codigo = Uri.base.queryParameters['code'];
-  // if (codigo != null) {
-  //   try {
-  //     // inicio de sesión temporal
-  //     await Supabase.instance.client.auth.exchangeCodeForSession(codigo);
-  //     initialRoute = '/change-password';
-  //     print("Se configuro /change-password");
-  //   } catch (e) {
-  //     print('Error canjeando code: $e');
-  //   }
-  // }
   final uri = Uri.base;
   final tokenHash = uri.queryParameters['token_hash'];
   final type = uri.queryParameters['type'];
@@ -39,7 +28,9 @@ Future<void> main() async {
       );
       initialRoute = '/change-password';
     } catch (e) {
-      print('Error verificando OTP: $e');
+      if (kDebugMode) {
+        print('Error verificando OTP: $e');
+      }
     }
   }
   runApp(const StudShieldApp());
