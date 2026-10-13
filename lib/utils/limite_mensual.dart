@@ -1,6 +1,6 @@
 String? validarMontoLimite(String? texto) {
   if (texto == null || texto.trim().isEmpty) {
-    return "El límite no puede estar vacío";
+    return "El límite no debe estar vacio";
   }
 
   // Si es letra devolvera null
