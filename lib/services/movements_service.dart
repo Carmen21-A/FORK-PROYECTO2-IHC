@@ -24,6 +24,7 @@ class MovementsService {
     required double monto,
     required String categoria,
     required DateTime fecha,
+    required String descripcion,
   }) async {
     final user = _db.auth.currentUser;
     if (user == null) return;
@@ -33,6 +34,7 @@ class MovementsService {
       'tipo': tipo,
       'monto': monto,
       'categoria': categoria,
+      'descripcion': descripcion,
       'estado': _estadoInicial,
       'fecha': fecha.toIso8601String().split('T').first,
     });
@@ -52,6 +54,7 @@ class MovementsService {
     required double monto,
     required String categoria,
     required DateTime fecha,
+    required String descripcion,
   }) async {
     await _db
         .from('movimientos')
@@ -59,6 +62,7 @@ class MovementsService {
           'tipo': tipo,
           'monto': monto,
           'categoria': categoria,
+          'descripcion': descripcion,
           'fecha': fecha.toIso8601String().split('T').first,
         })
         .eq('id', id);

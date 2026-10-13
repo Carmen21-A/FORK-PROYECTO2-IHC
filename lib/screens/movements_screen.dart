@@ -15,6 +15,7 @@ class MovementsScreen extends StatefulWidget {
 class _MovementsScreenState extends State<MovementsScreen> {
   final _formularioId = GlobalKey<FormState>();
   final _montoController = TextEditingController();
+  final _descripcionController = TextEditingController();
   final _service = MovementsService();
   final _limitesService = LimitesService();
 
@@ -35,6 +36,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   @override
   void dispose() {
     _montoController.dispose();
+    _descripcionController.dispose();
     super.dispose();
   }
 
@@ -223,6 +225,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           monto: monto,
           categoria: _categoria,
           fecha: _fecha,
+          descripcion: _descripcionController.text.trim(),
         );
       } else {
         // Se esta editando uno movimiento existente
@@ -232,6 +235,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           monto: monto,
           categoria: _categoria,
           fecha: _fecha,
+          descripcion: _descripcionController.text.trim(),
         );
         _editingId = null;
         _editingState = null;
@@ -244,6 +248,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     } catch (_) {}
 
     _montoController.text = "";
+    _descripcionController.text = "";
   }
 
   Future<void> _delete(String id) async {
@@ -259,6 +264,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     setState(() {
       _editingId = m['id'] as String;
       _montoController.text = m['monto'].toString();
+      _descripcionController.text = (m['descripcion'] ?? '').toString();
       _tipo = m['tipo'] as String;
       _categoria = m['categoria'] as String;
       _fecha = DateTime.parse(m['fecha'] as String);
@@ -347,11 +353,15 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   final tipo = m['tipo'] as String;
                   final monto = m['monto'];
                   final categoria = m['categoria'];
+                  final descripcion = (m['descripcion'] ?? '').toString();
                   final fecha = _fechaTexto(m['fecha'] as String);
                   final etiqueta = tipo == 'gasto' ? 'Gasto' : 'Ingreso';
 
                   return ListTile(
                     title: Text('$etiqueta - $monto Bs - $categoria - $fecha'),
+                    subtitle: Text(
+                      descripcion.isEmpty ? 'Sin descripcion' : descripcion,
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -413,6 +423,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                         _editingId = null;
                                         _editingState = null;
                                         _montoController.clear();
+                                        _descripcionController.clear();
                                       });
                                     },
                                     child: const Text('Cancelar'),
@@ -495,6 +506,12 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                   ],
                                 ),
                               ],
+                            ),
+                          ),
+                          TextFormField(
+                            controller: _descripcionController,
+                            decoration: InputDecoration(
+                              hintText: 'Descripcion (opcional)',
                             ),
                           ),
                           TextFormField(

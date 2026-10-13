@@ -24,6 +24,7 @@ void main() {
       'tipo': 'gasto',
       'monto': 25.0,
       'categoria': 'Transporte',
+      'descripcion': 'Pasaje pal taxi',
       'fecha': '2025-10-01',
       'estado': 'pendiente',
     };
@@ -36,6 +37,7 @@ void main() {
     expect(copia['tipo'], 'gasto');
     expect(copia['monto'], 25.0);
     expect(copia['categoria'], 'Transporte');
+    expect(copia['descripcion'], 'Pasaje pal taxi');
     expect(copia['fecha'], '2025-10-01');
     expect(copia['estado'], 'pagado');
   });

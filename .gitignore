@@ -52,3 +52,6 @@ docs1/
 # Archivo que contiene las claves de supabase
 .env
 
+# Carpeta ignorada para apuntes e imagenes
+.ignore/**
+
