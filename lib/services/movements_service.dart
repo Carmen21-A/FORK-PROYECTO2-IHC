@@ -17,6 +17,55 @@ class MovementsService {
     return List<Map<String, dynamic>>.from(data);
   }
 
+  // Combina busqueda y filtros en una sola consulta a Supabase
+  Future<List<Map<String, dynamic>>> buscarConFiltros({
+    String? texto,
+    String? tipo,
+    String? categoria,
+    String? estado,
+    DateTime? desde,
+    DateTime? hasta,
+  }) async {
+    final user = _db.auth.currentUser;
+    if (user == null) return [];
+
+    var consulta = _db.from('movimientos').select().eq('user_id', user.id);
+
+    // Busqueda por descripcion con coincidencia parcial
+    if (texto != null && texto.trim().isNotEmpty) {
+      consulta = consulta.ilike('descripcion', '%${texto.trim()}%');
+    }
+
+    if (tipo != null) {
+      consulta = consulta.eq('tipo', tipo);
+    }
+    if (categoria != null) {
+      consulta = consulta.eq('categoria', categoria);
+    }
+    if (estado != null) {
+      consulta = consulta.eq('estado', estado);
+    }
+
+    if (desde != null) {
+      consulta = consulta.gte(
+        'fecha',
+        desde.toIso8601String().split('T').first,
+      );
+    }
+    if (hasta != null) {
+      consulta = consulta.lte(
+        'fecha',
+        hasta.toIso8601String().split('T').first,
+      );
+    }
+
+    final data = await consulta
+        .order('fecha', ascending: true)
+        .order('created_at', ascending: true);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
   final String _estadoInicial = 'pendiente';
 
   Future<void> create({
