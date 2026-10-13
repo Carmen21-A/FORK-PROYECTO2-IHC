@@ -250,7 +250,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.orange.shade50,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -610,7 +609,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                     ),
                                   ),
 
-                                  TextButton(
+                                  OutlinedButton(
                                     onPressed: () {
                                       setState(() {
                                         _editingId = null;
