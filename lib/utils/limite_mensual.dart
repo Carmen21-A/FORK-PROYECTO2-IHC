@@ -1,3 +1,5 @@
+import 'package:presupuesto_estudiantil/utils/movimientos_filtros.dart';
+
 String? validarMontoLimite(String? texto) {
   if (texto == null || texto.trim().isEmpty) {
     return "El límite no debe estar vacio";
@@ -55,15 +57,15 @@ double calcularGastoTotalMes(
   String mes,
 ) {
   // No admite cancelados
-  final movimientosMes = movimientos.where(
-    (m) =>
-        m['fecha'].toString().startsWith(mes) &&
-        m['tipo'] == 'gasto' &&
-        m['estado'] != 'cancelado',
-  );
+  final movimientosMes =
+      movimientos
+          .where(
+            (m) =>
+                m['fecha'].toString().startsWith(mes) &&
+                m['tipo'] == 'gasto' &&
+                m['estado'] != 'cancelado',
+          )
+          .toList();
 
-  return movimientosMes.fold<double>(
-    0.0,
-    (sum, m) => sum + (m['monto'] as num).toDouble(),
-  );
+  return calcularMontoTotalMovimientos(movimientosMes);
 }

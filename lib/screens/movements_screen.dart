@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:presupuesto_estudiantil/design_system/color_styles.dart';
 import 'package:presupuesto_estudiantil/utils/estado_movimiento.dart';
 import 'package:presupuesto_estudiantil/widgets/app_drawer.dart';
 import '../services/movements_service.dart';
 import 'package:presupuesto_estudiantil/utils/limite_mensual.dart';
+import 'package:presupuesto_estudiantil/utils/movimientos_filtros.dart';
 import 'package:presupuesto_estudiantil/services/limites_service.dart';
 
 class MovementsScreen extends StatefulWidget {
@@ -198,10 +200,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () => _load(),
-                child: const Text('Buscar'),
-              ),
+              ElevatedButton(onPressed: _load, child: const Text('Buscar')),
             ],
           ),
 
@@ -234,6 +233,9 @@ class _MovementsScreenState extends State<MovementsScreen> {
             ],
           ),
           Wrap(spacing: 8, children: _chipsFiltros()),
+          Text(
+            'Total: ${calcularMontoTotalMovimientos(_movimientosFiltrados)} Bs',
+          ),
         ],
       ),
     );
@@ -268,17 +270,16 @@ class _MovementsScreenState extends State<MovementsScreen> {
                     style: TextStyle(
                       color:
                           (disponible != null && disponible <= 0)
-                              ? Colors.red
-                              : Colors.grey.shade800,
+                              ? ColorStyles.errorDefault
+                              : ColorStyles.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            TextButton.icon(
+            OutlinedButton(
               onPressed: _dialogoCambiarLimite,
-              icon: const Icon(Icons.edit, size: 16),
-              label: Text(limite == null ? 'Definir' : 'Cambiar'),
+              child: Text(limite == null ? 'Definir' : 'Cambiar'),
             ),
           ],
         ),
@@ -577,7 +578,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           child: const Text('Borrar'),
                         ),
 
-                        TextButton(
+                        OutlinedButton(
                           onPressed: () => _prepareEdition(m),
                           child: const Text('Editar'),
                         ),
@@ -678,7 +679,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(_fechaTexto(_fecha.toIso8601String())),
-                                    TextButton(
+                                    OutlinedButton(
                                       onPressed: () async {
                                         final picked = await showDatePicker(
                                           context: context,
