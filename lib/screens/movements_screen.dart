@@ -24,6 +24,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   List<Map<String, dynamic>> _movimientos = [];
   String? _editingId;
   String? _editingState;
+  double? _limiteMensual;
 
   @override
   void initState() {
@@ -37,9 +38,136 @@ class _MovementsScreenState extends State<MovementsScreen> {
     super.dispose();
   }
 
+  // Esto cargara los movimientos y el limite mensual
   Future<void> _load() async {
     final data = await _service.getAll();
-    setState(() => _movimientos = data);
+    final mesActual =
+        '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
+    final limite = await _limitesService.getLimit(mesActual);
+    if (mounted) {
+      setState(() {
+        _movimientos = data;
+        _limiteMensual = limite;
+      });
+    }
+  }
+
+  Widget _tarjetaResumenLimite() {
+    final mesActual =
+        '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
+    final gastoActual = calcularGastoTotalMes(_movimientos, mesActual);
+    final limite = _limiteMensual;
+    final disponible = limite != null ? (limite - gastoActual) : null;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.orange.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Gastado: $gastoActual Bs / Limite: ${limite != null ? "$limite Bs" : "Sin definir"}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    limite != null
+                        ? 'Disponible: ${disponible! >= 0 ? disponible : 0} Bs'
+                        : 'Define un limite para controlar tus gastos',
+                    style: TextStyle(
+                      color:
+                          (disponible != null && disponible <= 0)
+                              ? Colors.red
+                              : Colors.grey.shade800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _dialogoCambiarLimite,
+              icon: const Icon(Icons.edit, size: 16),
+              label: Text(limite == null ? 'Definir' : 'Cambiar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Esto sirve para cambiar el limite mensual
+  Future<void> _dialogoCambiarLimite() async {
+    final controller = TextEditingController(
+      text: _limiteMensual != null ? _limiteMensual.toString() : '',
+    );
+    final formKey = GlobalKey<FormState>();
+    final mesActual =
+        '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
+    final gastoActual = calcularGastoTotalMes(_movimientos, mesActual);
+
+    await showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Limite mensual de gastos'),
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Gasto actual del mes: $gastoActual Bs'),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Nuevo limite (Bs)',
+                      hintText: 'Ej: 500',
+                    ),
+                    validator: (valor) {
+                      // Que no este vacio, sin letras y solo numeros
+                      final errorFormato = validarMontoLimite(valor);
+                      if (errorFormato != null) return errorFormato;
+
+                      // Verifica que no sea menor a lo ya gastado
+                      final n = double.parse(valor!);
+                      if (esLimiteMenorAGasto(n, gastoActual)) {
+                        return 'No puede ser menor a lo ya gastado ($gastoActual Bs)';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (!formKey.currentState!.validate()) return;
+                  final nuevoLimite = double.parse(controller.text);
+                  await _limitesService.saveMonthLimit(
+                    mes: mesActual,
+                    limite: nuevoLimite,
+                  );
+                  if (mounted) {
+                    Navigator.pop(ctx);
+                    _load();
+                  }
+                },
+                child: const Text('Guardar'),
+              ),
+            ],
+          ),
+    );
   }
 
   Future<bool> _validateOverLimit(double monto) async {
@@ -84,7 +212,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (!_formularioId.currentState!.validate()) return;
     final monto = double.tryParse(_montoController.text) ?? 0;
 
-    // Validación de límite delegada
     final excede = await _validateOverLimit(monto);
     if (excede) return;
 
@@ -161,7 +288,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           ),
     );
 
-    // Si eligio "Eliminar" (true), procedemos con el borrado en Supabase
+    // Si se elige Eliminar, se procede con el borrado en Supabase
     if (responder == true) {
       _delete(id);
     }
@@ -212,6 +339,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
       appBar: AppBar(title: const Text('Movimientos')),
       body: Column(
         children: [
+          _tarjetaResumenLimite(),
           Expanded(
             child: ListView(
               children: [
