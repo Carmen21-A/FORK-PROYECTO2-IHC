@@ -35,6 +35,8 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String _filtroCategoria = 'todos';
   String _filtroPeriodo = 'todos';
   String _filtroEstado = 'todos';
+  DateTime? _rangoDesde;
+  DateTime? _rangoHasta;
 
   @override
   void initState() {
@@ -50,7 +52,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     super.dispose();
   }
 
-  // Esto cargara los movimientos, los filtrados y el limite mensual
+  // Carga los movimientos (todos y filtrados) desde Supabase, y el limite
   Future<void> _load() async {
     final data = await _service.getAll();
     final filtrados = await _service.buscarConFiltros(
@@ -82,6 +84,9 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (_filtroPeriodo == 'mes pasado') {
       return DateTime(hoy.year, hoy.month - 1, 1);
     }
+    if (_filtroPeriodo == 'rango') {
+      return _rangoDesde;
+    }
     return null;
   }
 
@@ -94,7 +99,33 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (_filtroPeriodo == 'mes pasado') {
       return DateTime(hoy.year, hoy.month, 0);
     }
+    if (_filtroPeriodo == 'rango') {
+      return _rangoHasta;
+    }
     return null;
+  }
+
+  // Cambia el periodo; si es "rango" abre el selector de fechas
+  Future<void> _cambiarPeriodo(String valor) async {
+    if (valor != 'rango') {
+      setState(() => _filtroPeriodo = valor);
+      _load();
+      return;
+    }
+
+    final rango = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (rango == null) return;
+
+    setState(() {
+      _filtroPeriodo = 'rango';
+      _rangoDesde = rango.start;
+      _rangoHasta = rango.end;
+    });
+    _load();
   }
 
   Widget _dropdownFiltro(
@@ -113,7 +144,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
       onChanged: (v) {
         if (v == null) return;
         alCambiar(v);
-        _load();
       },
     );
   }
@@ -158,9 +188,16 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (_filtroPeriodo != 'todos') {
       chips.add(
         Chip(
-          label: Text('Periodo: $_filtroPeriodo'),
+          label: Text(
+            'Periodo: ${_filtroPeriodo == 'rango' ? '${_fechaCorta(_rangoDesde)} - ${_fechaCorta(_rangoHasta)}' : _filtroPeriodo}',
+          ),
+
           onDeleted: () {
-            setState(() => _filtroPeriodo = 'todos');
+            setState(() {
+              _filtroPeriodo = 'todos';
+              _rangoDesde = null;
+              _rangoHasta = null;
+            });
             _load();
           },
         ),
@@ -208,28 +245,39 @@ class _MovementsScreenState extends State<MovementsScreen> {
             spacing: 16,
             runSpacing: 4,
             children: [
-              _dropdownFiltro('Tipo', _filtroTipo, [
-                'todos',
-                'gasto',
-                'ingreso',
-              ], (v) => setState(() => _filtroTipo = v)),
+              _dropdownFiltro(
+                'Tipo',
+                _filtroTipo,
+                ['todos', 'gasto', 'ingreso'],
+                (v) {
+                  setState(() => _filtroTipo = v);
+                  _load();
+                },
+              ),
               _dropdownFiltro(
                 'Categoria',
                 _filtroCategoria,
                 ['todos', 'Transporte', 'Comida', 'Estudios', 'Ocio', 'Otros'],
-                (v) => setState(() => _filtroCategoria = v),
+                (v) {
+                  setState(() => _filtroCategoria = v);
+                  _load();
+                },
               ),
               _dropdownFiltro('Periodo', _filtroPeriodo, [
                 'todos',
                 'este mes',
                 'mes pasado',
-              ], (v) => setState(() => _filtroPeriodo = v)),
-              _dropdownFiltro('Estado', _filtroEstado, [
-                'todos',
-                'pendiente',
-                'pagado',
-                'cancelado',
-              ], (v) => setState(() => _filtroEstado = v)),
+                'rango',
+              ], (v) => _cambiarPeriodo(v)),
+              _dropdownFiltro(
+                'Estado',
+                _filtroEstado,
+                ['todos', 'pendiente', 'pagado', 'cancelado'],
+                (v) {
+                  setState(() => _filtroEstado = v);
+                  _load();
+                },
+              ),
             ],
           ),
           Wrap(spacing: 8, children: _chipsFiltros()),
@@ -501,6 +549,11 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String _fechaTexto(String iso) {
     final d = DateTime.parse(iso);
     return '${d.day} de ${meses[d.month - 1]}';
+  }
+
+  String _fechaCorta(DateTime? fecha) {
+    if (fecha == null) return '?';
+    return '${fecha.day}/${fecha.month}/${fecha.year}';
   }
 
   Future<void> _cambiarEstado(Map<String, dynamic> m) async {
