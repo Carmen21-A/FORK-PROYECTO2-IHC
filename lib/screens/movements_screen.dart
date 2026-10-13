@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:presupuesto_estudiantil/utils/estado_movimiento.dart';
 import 'package:presupuesto_estudiantil/widgets/app_drawer.dart';
 import '../services/movements_service.dart';
+import 'package:presupuesto_estudiantil/utils/limite_mensual.dart';
+import 'package:presupuesto_estudiantil/services/limites_service.dart';
 
 class MovementsScreen extends StatefulWidget {
   const MovementsScreen({super.key});
@@ -14,6 +16,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   final _formularioId = GlobalKey<FormState>();
   final _montoController = TextEditingController();
   final _service = MovementsService();
+  final _limitesService = LimitesService();
 
   String _tipo = 'gasto';
   String _categoria = 'Transporte';
@@ -39,9 +42,51 @@ class _MovementsScreenState extends State<MovementsScreen> {
     setState(() => _movimientos = data);
   }
 
+  Future<bool> _validateOverLimit(double monto) async {
+    if (_tipo != 'gasto') return false;
+
+    final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
+    final limite = await _limitesService.getLimit(mes);
+    if (limite == null) return false;
+
+    var gastoActual = calcularGastoTotalMes(_movimientos, mes);
+
+    // Si se esta editando, no se cuenta dos veces el monto anterior
+    if (_editingId != null) {
+      final movViejo = _movimientos.firstWhere((m) => m['id'] == _editingId);
+      if (movViejo['tipo'] == 'gasto' && movViejo['estado'] != 'cancelado') {
+        gastoActual -= (movViejo['monto'] as num).toDouble();
+      }
+    }
+
+    if (superaLimiteMensual(
+      gastoActualDelMes: gastoActual,
+      nuevoGasto: monto,
+      limite: limite,
+    )) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text(
+              'No se puede registrar, porque supera tu limite mensual de $limite bs (llevas gastando $gastoActual bs)',
+            ),
+          ),
+        );
+      }
+      return true; // Se excedio
+    }
+
+    return false; // No se excedio
+  }
+
   Future<void> _save() async {
     if (!_formularioId.currentState!.validate()) return;
     final monto = double.tryParse(_montoController.text) ?? 0;
+
+    // Validación de límite delegada
+    final excede = await _validateOverLimit(monto);
+    if (excede) return;
 
     try {
       if (_editingId == null) {
@@ -116,7 +161,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           ),
     );
 
-    // Si eligió "Eliminar" (true), procedemos con el borrado en Supabase
+    // Si eligio "Eliminar" (true), procedemos con el borrado en Supabase
     if (responder == true) {
       _delete(id);
     }
@@ -333,11 +378,11 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             decoration: InputDecoration(hintText: 'Monto (Bs)'),
                             validator: (texto) {
                               if (texto == null || texto.isEmpty) {
-                                return 'El campo no puede estar vacío';
+                                return 'El campo no puede estar vacio';
                               }
                               final n = double.tryParse(texto);
                               if (n == null) {
-                                return 'Formato numérico inválido';
+                                return 'Formato numerico invalido';
                               }
                               if (n <= 0) {
                                 return 'El monto debe ser mayor a 0';
