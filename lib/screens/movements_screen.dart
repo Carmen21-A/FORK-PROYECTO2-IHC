@@ -16,6 +16,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   final _formularioId = GlobalKey<FormState>();
   final _montoController = TextEditingController();
   final _descripcionController = TextEditingController();
+  final _busquedaController = TextEditingController();
   final _service = MovementsService();
   final _limitesService = LimitesService();
 
@@ -23,9 +24,15 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String _categoria = 'Transporte';
   DateTime _fecha = DateTime.now();
   List<Map<String, dynamic>> _movimientos = [];
+  List<Map<String, dynamic>> _movimientosFiltrados = [];
   String? _editingId;
   String? _editingState;
   double? _limiteMensual;
+
+  String _filtroTipo = 'todos';
+  String _filtroCategoria = 'todos';
+  String _filtroPeriodo = 'todos';
+  String _filtroEstado = 'todos';
 
   @override
   void initState() {
@@ -37,21 +44,199 @@ class _MovementsScreenState extends State<MovementsScreen> {
   void dispose() {
     _montoController.dispose();
     _descripcionController.dispose();
+    _busquedaController.dispose();
     super.dispose();
   }
 
-  // Esto cargara los movimientos y el limite mensual
+  // Esto cargara los movimientos, los filtrados y el limite mensual
   Future<void> _load() async {
     final data = await _service.getAll();
+    final filtrados = await _service.buscarConFiltros(
+      texto: _busquedaController.text,
+      tipo: _filtroTipo == 'todos' ? null : _filtroTipo,
+      categoria: _filtroCategoria == 'todos' ? null : _filtroCategoria,
+      estado: _filtroEstado == 'todos' ? null : _filtroEstado,
+      desde: _periodoDesde(),
+      hasta: _periodoHasta(),
+    );
     final mesActual =
         '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
     final limite = await _limitesService.getLimit(mesActual);
     if (mounted) {
       setState(() {
         _movimientos = data;
+        _movimientosFiltrados = filtrados;
         _limiteMensual = limite;
       });
     }
+  }
+
+  // Fecha inicial del periodo seleccionado
+  DateTime? _periodoDesde() {
+    final hoy = DateTime.now();
+    if (_filtroPeriodo == 'este mes') {
+      return DateTime(hoy.year, hoy.month, 1);
+    }
+    if (_filtroPeriodo == 'mes pasado') {
+      return DateTime(hoy.year, hoy.month - 1, 1);
+    }
+    return null;
+  }
+
+  // Fecha final del periodo seleccionado
+  DateTime? _periodoHasta() {
+    final hoy = DateTime.now();
+    if (_filtroPeriodo == 'este mes') {
+      return DateTime(hoy.year, hoy.month + 1, 0);
+    }
+    if (_filtroPeriodo == 'mes pasado') {
+      return DateTime(hoy.year, hoy.month, 0);
+    }
+    return null;
+  }
+
+  Widget _dropdownFiltro(
+    String etiqueta,
+    String valorActual,
+    List<String> opciones,
+    Function(String) alCambiar,
+  ) {
+    return DropdownButton<String>(
+      value: valorActual,
+      hint: Text(etiqueta),
+      items:
+          opciones
+              .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+              .toList(),
+      onChanged: (v) {
+        if (v == null) return;
+        alCambiar(v);
+        _load();
+      },
+    );
+  }
+
+  // Chips de los filtros activos, con opcion de quitarlos
+  List<Widget> _chipsFiltros() {
+    final chips = <Widget>[];
+
+    if (_busquedaController.text.trim().isNotEmpty) {
+      chips.add(
+        Chip(
+          label: Text('Buscar: ${_busquedaController.text.trim()}'),
+          onDeleted: () {
+            _busquedaController.clear();
+            _load();
+          },
+        ),
+      );
+    }
+    if (_filtroTipo != 'todos') {
+      chips.add(
+        Chip(
+          label: Text('Tipo: $_filtroTipo'),
+          onDeleted: () {
+            setState(() => _filtroTipo = 'todos');
+            _load();
+          },
+        ),
+      );
+    }
+    if (_filtroCategoria != 'todos') {
+      chips.add(
+        Chip(
+          label: Text('Categoria: $_filtroCategoria'),
+          onDeleted: () {
+            setState(() => _filtroCategoria = 'todos');
+            _load();
+          },
+        ),
+      );
+    }
+    if (_filtroPeriodo != 'todos') {
+      chips.add(
+        Chip(
+          label: Text('Periodo: $_filtroPeriodo'),
+          onDeleted: () {
+            setState(() => _filtroPeriodo = 'todos');
+            _load();
+          },
+        ),
+      );
+    }
+    if (_filtroEstado != 'todos') {
+      chips.add(
+        Chip(
+          label: Text('Estado: $_filtroEstado'),
+          onDeleted: () {
+            setState(() => _filtroEstado = 'todos');
+            _load();
+          },
+        ),
+      );
+    }
+
+    return chips;
+  }
+
+  Widget _panelFiltros() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _busquedaController,
+                  textInputAction:
+                      TextInputAction.search, // add buton en teclado android
+                  onSubmitted: (_) => _load(),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por descripcion',
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => _load(),
+                child: const Text('Buscar'),
+              ),
+            ],
+          ),
+
+          Wrap(
+            spacing: 16,
+            runSpacing: 4,
+            children: [
+              _dropdownFiltro('Tipo', _filtroTipo, [
+                'todos',
+                'gasto',
+                'ingreso',
+              ], (v) => setState(() => _filtroTipo = v)),
+              _dropdownFiltro(
+                'Categoria',
+                _filtroCategoria,
+                ['todos', 'Transporte', 'Comida', 'Estudios', 'Ocio', 'Otros'],
+                (v) => setState(() => _filtroCategoria = v),
+              ),
+              _dropdownFiltro('Periodo', _filtroPeriodo, [
+                'todos',
+                'este mes',
+                'mes pasado',
+              ], (v) => setState(() => _filtroPeriodo = v)),
+              _dropdownFiltro('Estado', _filtroEstado, [
+                'todos',
+                'pendiente',
+                'pagado',
+                'cancelado',
+              ], (v) => setState(() => _filtroEstado = v)),
+            ],
+          ),
+          Wrap(spacing: 8, children: _chipsFiltros()),
+        ],
+      ),
+    );
   }
 
   Widget _tarjetaResumenLimite() {
@@ -76,7 +261,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
                     'Gastado: $gastoActual Bs / Limite: ${limite != null ? "$limite Bs" : "Sin definir"}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     limite != null
                         ? 'Disponible: ${disponible! >= 0 ? disponible : 0} Bs'
@@ -123,7 +307,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Gasto actual del mes: $gastoActual Bs'),
-                  const SizedBox(height: 10),
                   TextFormField(
                     controller: controller,
                     keyboardType: TextInputType.number,
@@ -346,10 +529,19 @@ class _MovementsScreenState extends State<MovementsScreen> {
       body: Column(
         children: [
           _tarjetaResumenLimite(),
+          _panelFiltros(),
           Expanded(
             child: ListView(
               children: [
-                ..._movimientos.map((m) {
+                if (_movimientosFiltrados.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'No hay movimientos que coincidan con la busqueda',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ..._movimientosFiltrados.map((m) {
                   final tipo = m['tipo'] as String;
                   final monto = m['monto'];
                   final categoria = m['categoria'];
@@ -431,7 +623,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 12),
                           ],
 
                           SizedBox(
@@ -509,12 +700,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             ),
                           ),
                           TextFormField(
-                            controller: _descripcionController,
-                            decoration: InputDecoration(
-                              hintText: 'Descripcion (opcional)',
-                            ),
-                          ),
-                          TextFormField(
                             enabled: puedeEditarMonto(
                               _editingState ?? 'pendiente',
                             ),
@@ -536,10 +721,16 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             },
                           ),
 
+                          TextFormField(
+                            controller: _descripcionController,
+                            decoration: InputDecoration(
+                              hintText: 'Descripcion (opcional)',
+                            ),
+                          ),
+
                           if (!puedeEditarMonto(
                             _editingState ?? 'pendiente',
                           )) ...[
-                            const SizedBox(height: 4),
                             const Text(
                               'No es posible modificar el monto porque el movimiento ya fue pagado',
                               style: TextStyle(color: Colors.red, fontSize: 12),
