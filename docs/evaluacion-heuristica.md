@@ -8,7 +8,7 @@
 
 | # | Heurística | Estado | Severidad |
 |---|------------|:------:|:---------:|
-| H1 | Visibilidad del estado del sistema | ❌ No cumple | 3 (Mayor) |
+| H1 | Visibilidad del estado del sistema | 🛠️ Corregida | 3 (Mayor) |
 | H2 | Relación entre el sistema y el mundo real | ❌ No cumple | 2 (Menor) |
 | H3 | Control y libertad del usuario | ❌ No cumple | 3 (Mayor) |
 | H4 | Consistencia y estándares | ❌ No cumple | 2 (Menor) |
@@ -19,17 +19,17 @@
 | H9 | Reconocer, diagnosticar y recuperarse de errores | ❌ No cumple | 3 (Mayor) |
 | H10 | Ayuda y documentación | ❌ No cumple | 2 (Menor) |
 
-**Resultado:** 1 cumple (H7) y 9 por corregir.
+**Resultado:** 1 cumple (H7), 1 corregida (H1) y 8 por corregir.
 
 ---
 
 ## H1 — Visibilidad del estado del sistema
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → guardar un gasto / definir el límite.
-- **Qué ocurre:** Al presionar "Guardar", la app ejecuta llamadas asíncronas a Supabase (`_service.create` o `saveMonthLimit`) sin activar un indicador de carga (`CircularProgressIndicator`) ni deshabilitar los botones.
-- **Consecuencia:** La persona no sabe si la acción fue recibida o si el sistema se colgó; con latencia tiende a pulsar varias veces y provoca registros duplicados en la base de datos.
-- **Código:** [`_save()`](../lib/screens/movements_screen.dart#L443-L482) · [botón "Guardar"](../lib/screens/movements_screen.dart#L792-L798) · [`_dialogoCambiarLimite()`](../lib/screens/movements_screen.dart#L337-L402) en `movements_screen.dart`.
+- **Qué ocurría:** Al presionar "Guardar", la app ejecutaba llamadas asíncronas a Supabase (`_service.create` o `saveMonthLimit`) sin activar un indicador de carga (`CircularProgressIndicator`) ni deshabilitar los botones. La persona no sabía si la acción fue recibida y podía pulsar varias veces, provocando registros duplicados.
+- **Corrección aplicada:** Se agregó el estado `_guardando`. Mientras se guarda, el botón "Guardar" queda deshabilitado y muestra un `CircularProgressIndicator`, y `_save()` ignora envíos repetidos. El diálogo del límite usa el mismo patrón con `StatefulBuilder`.
+- **Código:** [`_save()`](../lib/screens/movements_screen.dart#L465-L510) · [botón "Guardar"](../lib/screens/movements_screen.dart#L821-L836) · [`_dialogoCambiarLimite()`](../lib/screens/movements_screen.dart#L338-L421) en `movements_screen.dart`.
 - **Severidad:** 3 (Mayor)
 
 **Evidencia — antes**
