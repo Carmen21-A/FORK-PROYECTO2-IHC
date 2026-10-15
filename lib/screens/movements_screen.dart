@@ -114,6 +114,43 @@ class _MovementsScreenState extends State<MovementsScreen> {
     return null;
   }
 
+  // Muestra el limite que esta disponible en el formulario de gasto
+  Widget _indicadorLimiteForm() {
+    if (_tipo != 'gasto') {
+      return const SizedBox.shrink();
+    }
+
+    final limite = _limiteMesForm ?? _limiteMensual;
+    if (limite == null) {
+      return const SizedBox.shrink();
+    }
+
+    final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
+    var gastoActual = calcularGastoTotalMes(_movimientos, mes);
+
+    if (_editingId != null) {
+      final movViejo = _movimientos.firstWhere((m) => m['id'] == _editingId);
+      if (movViejo['tipo'] == 'gasto' && movViejo['estado'] != 'cancelado') {
+        gastoActual -= (movViejo['monto'] as num).toDouble();
+      }
+    }
+
+    final disponible = limite - gastoActual;
+    final disponibleTexto = disponible >= 0 ? '$disponible Bs' : '0 Bs';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 4),
+      child: Text(
+        'Límite disponible: $disponibleTexto de $limite Bs',
+        style: const TextStyle(
+          fontSize: 13,
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
   // Fecha inicial del periodo seleccionado
   DateTime? _periodoDesde() {
     final hoy = DateTime.now();
@@ -880,6 +917,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                               ],
                             ),
                           ),
+                          _indicadorLimiteForm(),
                           TextFormField(
                             enabled: puedeEditarMonto(
                               _editingState ?? 'pendiente',
