@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
 import 'package:presupuesto_estudiantil/design_system/app_text_style.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -29,9 +30,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         context.go('/movements');
       }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.message.contains('User already registered')
+                  ? 'Este correo ya esta registrado, inicia sesion o usa otro correo.'
+                  : e.message,
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (_) {
-      _emailController.text = "";
-      _passwordController.text = "";
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al crear la cuenta, intenta nuevamente.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
