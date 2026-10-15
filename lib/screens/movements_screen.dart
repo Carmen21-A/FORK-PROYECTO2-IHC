@@ -30,6 +30,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String? _editingId;
   String? _editingState;
   double? _limiteMensual;
+  bool _guardando = false;
 
   String _filtroTipo = 'todos';
   String _filtroCategoria = 'todos';
@@ -343,61 +344,82 @@ class _MovementsScreenState extends State<MovementsScreen> {
         '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
     final gastoActual = calcularGastoTotalMes(_movimientos, mesActual);
 
+    var guardando = false;
     await showDialog(
       context: context,
       builder:
-          (ctx) => AlertDialog(
-            title: const Text('Limite mensual de gastos'),
-            content: Form(
-              key: formularioId,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Gasto actual del mes: $gastoActual Bs'),
-                  TextFormField(
-                    controller: controller,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Nuevo limite',
-                      hintText: 'Ej: 500',
-                    ),
-                    validator: (monto) {
-                      // Que no este vacio, sin letras y solo numeros
-                      final errorFormato = validarMontoLimite(monto);
-                      if (errorFormato != null) return errorFormato;
+          (ctx) => StatefulBuilder(
+            builder:
+                (ctx, setDialogState) => AlertDialog(
+                  title: const Text('Limite mensual de gastos'),
+                  content: Form(
+                    key: formularioId,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Gasto actual del mes: $gastoActual Bs'),
+                        TextFormField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Nuevo limite',
+                            hintText: 'Ej: 500',
+                          ),
+                          validator: (monto) {
+                            // Que no este vacio, sin letras y solo numeros
+                            final errorFormato = validarMontoLimite(monto);
+                            if (errorFormato != null) return errorFormato;
 
-                      // Verifica que no sea menor a lo ya gastado
-                      final n = double.parse(monto!);
-                      if (esLimiteMenorAGasto(n, gastoActual)) {
-                        return 'No puede ser menor a lo ya gastado "$gastoActual Bs"';
-                      }
-                      return null;
-                    },
+                            // Verifica que no sea menor a lo ya gastado
+                            final n = double.parse(monto!);
+                            if (esLimiteMenorAGasto(n, gastoActual)) {
+                              return 'No puede ser menor a lo ya gastado "$gastoActual Bs"';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancelar'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (!formularioId.currentState!.validate()) return;
-                  final nuevoLimite = double.parse(controller.text);
-                  await _limitesService.saveMonthLimit(
-                    mes: mesActual,
-                    limite: nuevoLimite,
-                  );
-                  if (ctx.mounted) {
-                    Navigator.pop(ctx);
-                    _load();
-                  }
-                },
-                child: const Text('Guardar'),
-              ),
-            ],
+                  actions: [
+                    OutlinedButton(
+                      onPressed: guardando ? null : () => Navigator.pop(ctx),
+                      child: const Text('Cancelar'),
+                    ),
+                    ElevatedButton(
+                      onPressed:
+                          guardando
+                              ? null
+                              : () async {
+                                if (!formularioId.currentState!.validate()) {
+                                  return;
+                                }
+                                setDialogState(() => guardando = true);
+                                final nuevoLimite = double.parse(
+                                  controller.text,
+                                );
+                                await _limitesService.saveMonthLimit(
+                                  mes: mesActual,
+                                  limite: nuevoLimite,
+                                );
+                                if (ctx.mounted) {
+                                  Navigator.pop(ctx);
+                                  _load();
+                                }
+                              },
+                      child:
+                          guardando
+                              ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text('Guardar'),
+                    ),
+                  ],
+                ),
           ),
     );
   }
@@ -441,12 +463,14 @@ class _MovementsScreenState extends State<MovementsScreen> {
   }
 
   Future<void> _save() async {
+    if (_guardando) return;
     if (!_formularioId.currentState!.validate()) return;
     final monto = double.tryParse(_montoController.text) ?? 0;
 
     final excede = await _validarSiExcedioLimiteMensual(monto);
     if (excede) return;
 
+    setState(() => _guardando = true);
     try {
       if (_editingId == null) {
         //Se esta creando un uno
@@ -475,7 +499,12 @@ class _MovementsScreenState extends State<MovementsScreen> {
         // Se vuevle a cargar la lista
         _load();
       }
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      if (mounted) {
+        setState(() => _guardando = false);
+      }
+    }
 
     _montoController.text = "";
     _descripcionController.text = "";
@@ -790,11 +819,20 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           ],
 
                           ElevatedButton(
-                            onPressed: _save,
+                            onPressed: _guardando ? null : _save,
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size(double.infinity, 52),
                             ),
-                            child: const Text('Guardar'),
+                            child:
+                                _guardando
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Guardar'),
                           ),
                         ],
                       ),
