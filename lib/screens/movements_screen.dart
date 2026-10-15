@@ -720,14 +720,46 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           ),
                           child: Text('${m['estado']}'),
                         ),
-                        ElevatedButton(
-                          onPressed: () => _confirmDeletion(m['id'] as String),
-                          child: const Text('Eliminar'),
-                        ),
-
-                        OutlinedButton(
-                          onPressed: () => _prepareEdition(m),
-                          child: const Text('Editar'),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert),
+                          tooltip: 'Opciones',
+                          onSelected: (opcion) {
+                            if (opcion == 'editar') {
+                              _prepareEdition(m);
+                            } else if (opcion == 'eliminar') {
+                              _confirmDeletion(m['id'] as String);
+                            }
+                          },
+                          itemBuilder:
+                              (context) => [
+                                const PopupMenuItem(
+                                  value: 'editar',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Editar'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'eliminar',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Eliminar',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                         ),
                       ],
                     ),
