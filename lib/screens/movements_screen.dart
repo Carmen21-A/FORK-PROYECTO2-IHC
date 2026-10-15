@@ -282,7 +282,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           ),
           Wrap(spacing: 8, children: _chipsFiltros()),
           Text(
-            'Total: ${calcularMontoTotalMovimientos(_movimientosFiltrados)} Bs',
+            'Total gastos: ${calcularTotalGastos(_movimientosFiltrados)} Bs · Total ingresos: ${calcularTotalIngresos(_movimientosFiltrados)} Bs',
           ),
         ],
       ),
