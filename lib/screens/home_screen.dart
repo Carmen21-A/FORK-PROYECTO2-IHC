@@ -55,7 +55,7 @@ class HomeScreen extends StatelessWidget {
                       minimumSize: const Size(double.infinity, 52),
                     ),
                     child: const Text(
-                      'Iniciar Sesion',
+                      'Iniciar Sesión',
                       style: AppTextStyle.boldBodyMedium,
                     ),
                   ),

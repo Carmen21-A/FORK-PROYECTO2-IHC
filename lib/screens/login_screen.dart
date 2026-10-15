@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: Text(
-                    'Correo electronico',
+                    'Correo electrónico',
                     style: AppTextStyle.boldBodyLarge,
                     textAlign: TextAlign.start,
                   ),
@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator:
                       (texto) =>
                           texto == null || texto.length < 6
-                              ? 'Minimo 6 caracteres'
+                              ? 'Mínimo 6 caracteres'
                               : null,
                 ),
 
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 52),
                   ),
-                  child: const Text('Iniciar Sesion'),
+                  child: const Text('Iniciar Sesión'),
                 ),
               ],
             ),

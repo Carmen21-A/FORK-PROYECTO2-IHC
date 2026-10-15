@@ -11,7 +11,7 @@
 | H1 | Visibilidad del estado del sistema | 🛠️ Corregida | 3 (Mayor) |
 | H2 | Relación entre el sistema y el mundo real | 🛠️ Corregida | 2 (Menor) |
 | H3 | Control y libertad del usuario | 🛠️ Corregida | 3 (Mayor) |
-| H4 | Consistencia y estándares | ❌ No cumple | 2 (Menor) |
+| H4 | Consistencia y estándares | 🛠️ Corregida | 2 (Menor) |
 | H5 | Prevención de errores | ❌ No cumple | 2 (Menor) |
 | H6 | Reconocer antes que recordar | ❌ No cumple | 2 (Menor) |
 | H7 | Flexibilidad y eficiencia de uso | ✅ Cumple | 0 |
@@ -19,7 +19,7 @@
 | H9 | Reconocer, diagnosticar y recuperarse de errores | ❌ No cumple | 3 (Mayor) |
 | H10 | Ayuda y documentación | ❌ No cumple | 2 (Menor) |
 
-**Resultado:** 1 cumple (H7), 3 corregidas (H1, H2, H3) y 6 por corregir.
+**Resultado:** 1 cumple (H7), 4 corregidas (H1–H4) y 5 por corregir.
 
 ---
 
@@ -86,11 +86,11 @@
 
 ## H4 — Consistencia y estándares
 
-- **Estado:** ❌ No cumple
-- **Pantalla / flujo:** Múltiples pantallas (`movements_screen.dart`, `login_screen.dart`).
-- **Qué ocurre:** En la fila del movimiento el botón se titula "Borrar", pero el modal de confirmación pregunta "¿…Eliminar?" con botón "Eliminar". La moneda se escribe "bs" (minúscula) en el aviso del límite y "Bs" en el resto de la interfaz. Hay palabras idénticas escritas con y sin tilde entre pantallas ("Iniciar Sesión"/"Iniciar Sesion", "descripcion", "Categoria", "Limite").
-- **Consecuencia:** Viola la coherencia terminológica estándar de la plataforma, distrae y genera incertidumbre sobre si las acciones corresponden al mismo concepto.
-- **Código:** ["Borrar"](../lib/screens/movements_screen.dart#L629) vs [modal "Eliminar"](../lib/screens/movements_screen.dart#L510-L521) · [SnackBar "bs"](../lib/screens/movements_screen.dart#L432) vs ["Bs"](../lib/screens/movements_screen.dart#L284) · ["Iniciar Sesión"](../lib/screens/login_screen.dart#L47) vs ["Iniciar Sesion"](../lib/screens/login_screen.dart#L121).
+- **Estado:** 🛠️ Corregida
+- **Pantalla / flujo:** Múltiples pantallas (`movements_screen.dart`, `login_screen.dart`, `register_screen.dart`, `reset_password_screen.dart`, `change_password_screen.dart`, `home_screen.dart`).
+- **Qué ocurría:** La misma acción usaba dos términos ("Borrar" en la lista, "Eliminar" en el modal); la moneda aparecía como "bs" y "Bs"; y palabras iguales se escribían con y sin tilde entre pantallas ("Iniciar Sesión"/"Iniciar Sesion", "descripcion", "Categoria", "Limite", "Correo electronico", "vacio", "accion").
+- **Corrección aplicada:** Se unificó: (1) la acción de eliminar → **"Eliminar"** en botón y modal; (2) la moneda → **"Bs"** en todas las pantallas; (3) la ortografía → acentos consistentes en los textos visibles ("Iniciar Sesión", "Correo electrónico", "descripción", "categoría", "límite", "vacío", "acción", "búsqueda", "mínimo", "numérico", "válido").
+- **Código:** [botón "Eliminar"](../lib/screens/movements_screen.dart#L684) y [modal "Eliminar"](../lib/screens/movements_screen.dart#L550) · [SnackBar "Bs"](../lib/screens/movements_screen.dart#L454) · [AppBar "Iniciar Sesión"](../lib/screens/login_screen.dart#L47) y [botón "Iniciar Sesión"](../lib/screens/login_screen.dart#L121).
 - **Severidad:** 2 (Menor)
 
 **Evidencia — antes**
@@ -100,8 +100,8 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H4/despues/`.
-
+![H4 despues 1](evidencias/H4/despues/image1.png)
+![H4 despues 2](evidencias/H4/despues/image2.png)
 ---
 
 ## H5 — Prevención de errores

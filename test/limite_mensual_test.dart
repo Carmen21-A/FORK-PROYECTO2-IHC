@@ -10,18 +10,18 @@ void main() {
     });
 
     test('No debe dejar pasar cadenas vacias o nulas', () {
-      expect(validarMontoLimite(''), equals('El límite no debe estar vacio'));
-      expect(validarMontoLimite(null), equals('El límite no debe estar vacio'));
+      expect(validarMontoLimite(''), equals('El límite no debe estar vacío'));
+      expect(validarMontoLimite(null), equals('El límite no debe estar vacío'));
     });
 
     test('No debe dejar pasar letras o textos mezclados con numeros', () {
       expect(
         validarMontoLimite('abcasdasdsad'),
-        equals('No se permite letras, ingresa un numero valido'),
+        equals('No se permite letras, ingresa un número válido'),
       );
       expect(
         validarMontoLimite('abcasd123213'),
-        equals('No se permite letras, ingresa un numero valido'),
+        equals('No se permite letras, ingresa un número válido'),
       );
     });
 

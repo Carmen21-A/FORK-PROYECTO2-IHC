@@ -2,13 +2,13 @@ import 'package:presupuesto_estudiantil/utils/movimientos_filtros.dart';
 
 String? validarMontoLimite(String? texto) {
   if (texto == null || texto.trim().isEmpty) {
-    return "El límite no debe estar vacio";
+    return "El límite no debe estar vacío";
   }
 
   // Si es letra devolvera null
   final numero = double.tryParse(texto);
   if (numero == null) {
-    return "No se permite letras, ingresa un numero valido";
+    return "No se permite letras, ingresa un número válido";
   }
 
   if (numero <= 0) {

@@ -81,7 +81,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 validator:
                     (texto) =>
                         texto == null || texto.length < 6
-                            ? 'Minimo 6 caracteres'
+                            ? 'Mínimo 6 caracteres'
                             : null,
               ),
               TextFormField(
@@ -103,7 +103,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
                 validator: (texto) {
                   if (texto == null || texto.length < 6) {
-                    return 'Minimo 6 caracteres';
+                    return 'Mínimo 6 caracteres';
                   }
                   if (texto != _passwordController1.text) {
                     return "Las contraseñas no coinciden";

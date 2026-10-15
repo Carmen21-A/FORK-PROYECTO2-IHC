@@ -177,7 +177,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (_filtroCategoria != 'todos') {
       chips.add(
         Chip(
-          label: Text('Categoria: $_filtroCategoria'),
+          label: Text('Categoría: $_filtroCategoria'),
           onDeleted: () {
             setState(() => _filtroCategoria = 'todos');
             _load();
@@ -233,7 +233,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                       TextInputAction.search, // add buton en teclado android
                   onSubmitted: (_) => _load(),
                   decoration: InputDecoration(
-                    hintText: 'Buscar por descripcion',
+                    hintText: 'Buscar por descripción',
                   ),
                 ),
               ),
@@ -255,7 +255,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                 },
               ),
               _dropdownFiltro(
-                'Categoria',
+                'Categoría',
                 _filtroCategoria,
                 ['todos', 'Transporte', 'Comida', 'Estudios', 'Ocio', 'Otros'],
                 (v) {
@@ -307,7 +307,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Gastado: $gastoActual Bs / Limite: ${limite != null ? "$limite Bs" : "Sin definir"}',
+                    'Gastado: $gastoActual Bs / Límite: ${limite != null ? "$limite Bs" : "Sin definir"}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -351,7 +351,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           (ctx) => StatefulBuilder(
             builder:
                 (ctx, setDialogState) => AlertDialog(
-                  title: const Text('Limite mensual de gastos'),
+                  title: const Text('Límite mensual de gastos'),
                   content: Form(
                     key: formularioId,
                     child: Column(
@@ -362,7 +362,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           controller: controller,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: 'Nuevo limite',
+                            labelText: 'Nuevo límite',
                             hintText: 'Ej: 500',
                           ),
                           validator: (monto) {
@@ -451,7 +451,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           SnackBar(
             backgroundColor: ColorStyles.errorDefault,
             content: Text(
-              'No se puede registrar, porque supera tu limite mensual de $limite bs (llevas gastando $gastoActual bs)',
+              'No se puede registrar, porque supera tu límite mensual de $limite Bs (llevas gastando $gastoActual Bs)',
             ),
           ),
         );
@@ -538,7 +538,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           (context) => AlertDialog(
             title: const Text('Confirma que quieres eliminar este movimiento'),
             content: const Text(
-              '¿Estas seguro que quieres eliminar este movimiento?',
+              '¿Estás seguro que quieres eliminar este movimiento?',
             ),
             actions: [
               OutlinedButton(
@@ -597,7 +597,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
             (context) => AlertDialog(
               title: const Text('Confirmar cancelacion'),
               content: const Text(
-                '¿Seguro que quieres cancelar este movimiento? Esta accion no se puede deshacer.',
+                '¿Seguro que quieres cancelar este movimiento? Esta acción no se puede deshacer.',
               ),
               actions: [
                 OutlinedButton(
@@ -644,7 +644,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   const Padding(
                     padding: EdgeInsets.all(24),
                     child: Text(
-                      'No hay movimientos que coincidan con la busqueda',
+                      'No hay movimientos que coincidan con la búsqueda',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -659,7 +659,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   return ListTile(
                     title: Text('$etiqueta - $monto Bs - $categoria - $fecha'),
                     subtitle: Text(
-                      descripcion.isEmpty ? 'Sin descripcion' : descripcion,
+                      descripcion.isEmpty ? 'Sin descripción' : descripcion,
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -681,7 +681,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                         ),
                         ElevatedButton(
                           onPressed: () => _confirmDeletion(m['id'] as String),
-                          child: const Text('Borrar'),
+                          child: const Text('Eliminar'),
                         ),
 
                         OutlinedButton(
@@ -815,11 +815,11 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             decoration: InputDecoration(hintText: 'Monto (Bs)'),
                             validator: (texto) {
                               if (texto == null || texto.isEmpty) {
-                                return 'El campo no puede estar vacio';
+                                return 'El campo no puede estar vacío';
                               }
                               final n = double.tryParse(texto);
                               if (n == null) {
-                                return 'Formato numerico invalido';
+                                return 'Formato numérico inválido';
                               }
                               if (n <= 0) {
                                 return 'El monto debe ser mayor a 0';
@@ -831,7 +831,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           TextFormField(
                             controller: _descripcionController,
                             decoration: InputDecoration(
-                              hintText: 'Descripcion (opcional)',
+                              hintText: 'Descripción (opcional)',
                             ),
                           ),
 
