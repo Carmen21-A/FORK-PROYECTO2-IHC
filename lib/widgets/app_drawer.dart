@@ -36,6 +36,30 @@ class AppDrawer extends StatelessWidget {
               context.go('/change-password');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Ayuda'),
+            onTap: () {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Acerca de la aplicación'),
+                      content: const Text(
+                        'El Presupuesto Estudiantil te ayuda a registrar tus gastos e ingresos y controlar que no superes tu limite mensual.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cerrar'),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
+
           const Divider(),
           ListTile(
             title: const Text('Cerrar sesión'),

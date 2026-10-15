@@ -705,12 +705,77 @@ class _MovementsScreenState extends State<MovementsScreen> {
     return _estadoXColor[entrada]!;
   }
 
+  void _mostrarDialogoAyuda() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.help_outline, color: Colors.blue),
+                SizedBox(width: 8),
+                Text('Ayuda'),
+              ],
+            ),
+            content: const SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Límite:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Este es el monto máximo que tienes planeado gastar en el mes, si intentaras registrar un gasto que supere tu límite, la app lo bloqueará para cuidar tu presupuesto.',
+                  ),
+                  Text(
+                    'Gastos e Ingresos:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '• Gasto: es el dinero que pagas o usas (transporte, comida, estudios, etc.), cada gasto que anotas se descuenta de tu límite del mes.\n'
+                    '• Ingreso: dinero que recibes (mesada, sueldo, etc.) y no consume tu límite.',
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Estados de los movimientos:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '• Pendiente: movimiento registrado.\n'
+                    '• Pagado: dinero ya desembolsado (su monto no se puede cambiar).\n'
+                    '• Cancelado: movimiento anulado.',
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Entendido'),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final avisoMonto = _avisoMontoExcedido();
     return Scaffold(
       drawer: const AppDrawer(),
-      appBar: AppBar(title: const Text('Movimientos')),
+      appBar: AppBar(
+        title: const Text('Movimientos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Ayuda',
+            onPressed: _mostrarDialogoAyuda,
+          ),
+        ],
+      ),
+
       body: Column(
         children: [
           _tarjetaResumenLimite(),
