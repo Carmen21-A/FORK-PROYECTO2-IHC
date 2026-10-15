@@ -110,30 +110,23 @@
 - **Pantalla / flujo:** Movimientos → formulario de gasto, campo de monto.
 - **Qué ocurría:** El formulario permitía escribir un monto superior al límite disponible del mes sin advertirlo; la comprobación se disparaba recién al presionar "Guardar" (bloqueo reactivo con SnackBar).
 - **Corrección aplicada:** Al tipear el monto, `_avisoMontoExcedido()` calcula el disponible del mes y muestra un aviso en rojo debajo del campo ("Supera tu límite mensual. Disponible: X Bs de Y Bs.") antes de guardar. Se mantiene la validación final al guardar.
-- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L851-L883) · [`_avisoMontoExcedido()`](../lib/screens/movements_screen.dart#L91-L115) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/movements_screen.dart#L466-L502).
+- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L851-L883) · [`_avisoMontoExcedido()`](../lib/screens/movements_screen.dart#L91-L115) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/mo## H6 — Reconocer antes que recordar
+
+- **Estado:** 🛠️ Corregida
+- **Pantalla / flujo:** Movimientos → formulario de ingreso de movimiento.
+- **Qué ocurría:** El formulario de creación de gasto no mostraba cuánto límite mensual quedaba disponible, obligando al usuario a desviar la atención a la tarjeta superior o memorizar la cifra disponible antes de ingresar el monto.
+- **Corrección aplicada:** Se implementó `_indicadorLimiteForm()` directamente dentro del formulario (justo encima del campo de monto), mostrando en vivo el texto informativo del límite disponible del mes (`Límite disponible: X Bs de Y Bs`) cada vez que se selecciona el tipo "Gasto".
+- **Código:** [`_indicadorLimiteForm()`](../lib/screens/movements_screen.dart#L117-L153) · [formulario en `movements_screen.dart`](../lib/screens/movements_screen.dart#L900-L960).
 - **Severidad:** 2 (Menor)
 
 **Evidencia — antes**
 
-![H5 antes](evidencias/H5/antes/image.png)
+![H6 antes 1](evidencias/H6/antes/image1.png)
+![H6 antes 2](evidencias/H6/antes/image2.png)
 
 **Evidencia — después**
 
-![H5 despues](evidencias/H5/despues/image.png)
----
-
-## H6 — Reconocer antes que recordar
-
-- **Estado:** ❌ No cumple
-- **Pantalla / flujo:** Movimientos → formulario de ingreso de movimiento.
-- **Qué ocurre:** El formulario de creación de gasto no muestra cuánto límite mensual queda disponible. Como el formulario está al pie de la lista, al hacer scroll la tarjeta superior queda fuera de vista.
-- **Consecuencia:** Obliga a la persona a retener en su memoria la cifra de dinero disponible para calcular mentalmente si el gasto que ingresa será admitido o superará el tope.
-- **Código:** [`_tarjetaResumenLimite()`](../lib/screens/movements_screen.dart#L291-L325) · [formulario de movimiento](../lib/screens/movements_screen.dart#L640-L803).
-- **Severidad:** 2 (Menor)
-
-**Evidencia**
-
-> Pendiente: guardar capturas en `docs/evidencias/H6/` (antes y después).
+![H6 despues](evidencias/H6/despues/Image1.png)
 
 ---
 
@@ -143,71 +136,95 @@
 - **Pantalla / flujo:** Movimientos → búsqueda y filtros.
 - **Comprobación:** La búsqueda se ejecuta directamente con la tecla Enter/Search del teclado; los 4 filtros (tipo, categoría, periodo, estado) se combinan libremente; y cada chip permite quitar un filtro con un toque sin resetear el resto.
 - **Observación (no afecta la heurística):** el formulario al final del scroll resta velocidad a usuarios frecuentes con listas extensas.
-- **Código:** [`_chipsFiltros()`](../lib/screens/movements_screen.dart#L151-L218) · [acción de teclado en búsqueda](../lib/screens/movements_screen.dart#L233) · [`showDateRangePicker`](../lib/screens/movements_screen.dart#L115-L120).
+- **Código:** [`_chipsFiltros()`](../lib/screens/movements_screen.dart#L226-L285) · [acción de teclado en búsqueda](../lib/screens/movements_screen.dart#L288-L305) · [`showDateRangePicker`](../lib/screens/movements_screen.dart#L190-L205).
 - **Severidad:** 0 (Cumple)
 
 **Evidencia**
 
-> Pendiente: guardar capturas en `docs/evidencias/H7/`.
+![H7 cumple 1](evidencias/H7/Hecho/image1.png)
+![H7 cumple 2](evidencias/H7/Hecho/image2.png)
+![H7 cumple 3](evidencias/H7/Hecho/image3.png)
 
 ---
 
 ## H8 — Diseño estético y minimalista
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → elementos de la lista (`ListTile`).
-- **Qué ocurre:** Dentro de `trailing` de cada movimiento se incrustan en fila tres botones completos con texto (`OutlinedButton` de estado, `ElevatedButton` "Borrar" y `OutlinedButton` "Editar").
-- **Consecuencia:** Sobrecarga visual que compite con la información del movimiento. Además, "Borrar" resalta con fondo sólido dándole más peso que "Editar", y en pantallas estrechas comprime el título con riesgo de desbordamiento horizontal.
-- **Código:** [`ListTile`](../lib/screens/movements_screen.dart#L609-L637).
+- **Qué ocurría:** Dentro de `trailing` de cada movimiento se incrustaban en fila tres botones completos con texto (`OutlinedButton` de estado, `ElevatedButton` "Eliminar" y `OutlinedButton` "Editar"), generando sobrecarga visual, jerarquía invertida y riesgo de desbordamiento horizontal.
+- **Corrección aplicada:** Se reemplazaron los botones de texto de "Editar" y "Eliminar" por un menú de opciones emergente `PopupMenuButton` con ícono de tres puntos (`Icons.more_vert`), manteniendo el botón de estado visible y reduciendo drásticamente la carga visual y el riesgo de desbordamiento.
+- **Código:** [`ListTile` en `movements_screen.dart`](../lib/screens/movements_screen.dart#L700-L765).
 - **Severidad:** 2 (Menor)
 
-**Evidencia**
+**Evidencia — antes**
 
-> Pendiente: guardar capturas en `docs/evidencias/H8/` (antes y después).
+![H8 antes](evidencias/H8/antes/image1.png)
+
+**Evidencia — después**
+
+![H8 despues 1](evidencias/H8/despues/image1.png)
+![H8 despues 2](evidencias/H8/despues/image2.png)
 
 ---
 
 ## H9 — Reconocer, diagnosticar y recuperarse de errores
 
-- **Estado:** ❌ No cumple
-- **Pantalla / flujo:** Login y Registro → envío de credenciales incorrectas.
-- **Qué ocurre:** Ambas pantallas capturan los errores con un bloque `catch (_)` que solo vacía los campos (`_emailController.text = ""; _passwordController.text = "";`) sin desplegar ningún mensaje que explique qué falló.
-- **Consecuencia:** El usuario queda sin saber si la contraseña fue errónea, si el usuario no existe o si falló la conexión. No hay diagnóstico ni salida, y además pierde lo tipeado y debe reescribirlo.
-- **Código:** [`_handleLogin()`](../lib/screens/login_screen.dart#L31-L34) · [`_handleRegister()`](../lib/screens/register_screen.dart#L32-L35).
+- **Estado:** 🛠️ Corregida
+- **Pantalla / flujo:** Login y Registro → envío de credenciales incorrectas o correo repetido.
+- **Qué ocurría:** Ambas pantallas capturaban los errores con un bloque `catch (_)` que solo vaciaba los campos (`_emailController.text = ""; _passwordController.text = "";`) sin desplegar ningún mensaje que explique qué falló.
+- **Corrección aplicada:** Se eliminó el vaciado de campos para preservar el correo tipeado y se capturan las excepciones de autenticación (`on AuthException catch (e)` y `catch (_)`), mostrando un `SnackBar` en color rojo con un mensaje claro y constructivo (credenciales incorrectas, correo ya registrado o fallo de conexión).
+- **Código:** [`_handleLogin()`](../lib/screens/login_screen.dart#L21-L58) · [`_handleRegister()`](../lib/screens/register_screen.dart#L21-L57).
 - **Severidad:** 3 (Mayor)
 
-**Evidencia**
+**Evidencia — antes**
 
-> Pendiente: guardar capturas en `docs/evidencias/H9/` (antes y después).
+![H9 antes 1](evidencias/H9/antes/image1.png)
+![H9 antes 2](evidencias/H9/antes/image2.png)
+![H9 antes 3](evidencias/H9/antes/image3.png)
+![H9 antes 4](evidencias/H9/antes/image4.png)
+
+**Evidencia — después**
+
+![H9 despues 1](evidencias/H9/despues/image1.png)
+![H9 despues 2](evidencias/H9/despues/image2.png)
 
 ---
 
 ## H10 — Ayuda y documentación
 
-- **Estado:** ❌ No cumple
-- **Pantalla / flujo:** Movimientos y Menú (`app_drawer.dart`).
-- **Qué ocurre:** En ninguna parte de la interfaz hay un botón de ayuda, `Tooltip` o ícono informativo (`?`) que explique qué es el "Límite mensual", qué pasa al superarlo (bloquea nuevos gastos) o cómo funciona el flujo de estados de los movimientos.
-- **Consecuencia:** El estudiante novato no tiene guía dentro de la app para entender las reglas del límite, y debe descubrirlas por ensayo y error.
-- **Código:** [resumen de límite](../lib/screens/movements_screen.dart#L291-L334) · [`_dialogoCambiarLimite()`](../lib/screens/movements_screen.dart#L337-L402) · [drawer](../lib/widgets/app_drawer.dart#L25-L47).
+- **Estado:** 🛠️ Corregida
+- **Pantalla / flujo:** Movimientos (AppBar) y Menú lateral (`app_drawer.dart`).
+- **Qué ocurría:** En ninguna parte de la interfaz había un botón de ayuda, `Tooltip` o ícono informativo (`?`) que explicara qué es el "Límite mensual", qué pasa al superarlo (bloquea nuevos gastos), qué diferencia un gasto de un ingreso o cómo funciona el flujo de estados de los movimientos.
+- **Corrección aplicada:** Se implementó un botón con ícono de ayuda (`IconButton` con `Icons.help_outline` y `Tooltip: 'Ayuda'`) en el `AppBar` de Movimientos que abre un diálogo modal (`AlertDialog`) con explicaciones concisas sobre gastos e ingresos, el límite mensual y los estados de los movimientos (`pendiente`, `pagado`, `cancelado`). También se añadió un acceso a "Ayuda" en el menú lateral (`AppDrawer`).
+- **Código:** [`_mostrarDialogoAyuda()` y AppBar](../lib/screens/movements_screen.dart#L709-L770) · [Ayuda en `AppDrawer`](../lib/widgets/app_drawer.dart#L39-L61).
 - **Severidad:** 2 (Menor)
 
-**Evidencia**
+**Evidencia — antes**
 
-> Pendiente: guardar capturas en `docs/evidencias/H10/` (antes y después).
+![H10 antes 1](evidencias/H10/antes/image1.png)
+![H10 antes 2](evidencias/H10/antes/image3.png)
+
+**Evidencia — después**
+
+![H10 despues 1](evidencias/H10/despues/image1.png)
+![H10 despues 2](evidencias/H10/despues/image2.png)
+![H10 despues 3](evidencias/H10/despues/image3.png)
+![H10 despues 4](evidencias/H10/despues/image4.png)
 
 ---
 
 ## Evidencias pendientes
 
 | Heurística | Antes | Después |
-|------------|:-----:|:-------:|
-| H1 | ✅ | ⏳ |
-| H2 | ✅ | ⏳ |
-| H3 | ✅ | ⏳ |
-| H4 | ✅ | ⏳ |
-| H5 | ✅ | ⏳ |
-| H6 | ⏳ | ⏳ |
-| H7 | ⏳ | — |
-| H8 | ⏳ | ⏳ |
-| H9 | ⏳ | ⏳ |
-| H10 | ⏳ | ⏳ |
+| ---------- | :---: | :-----: |
+| H1         |   ✅   |    ✅    |
+| H2         |   ✅   |    ✅    |
+| H3         |   ✅   |    ✅    |
+| H4         |   ✅   |    ✅    |
+| H5         |   ✅   |    ✅    |
+| H6         |   ✅   |    ✅    |
+| H7         |   ✅   |    —    |
+| H8         |   ✅   |    ✅    |
+| H9         |   ✅   |    ✅    |
+| H10        |   ✅   |    ✅    |
+
