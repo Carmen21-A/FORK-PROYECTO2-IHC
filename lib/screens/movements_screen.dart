@@ -31,6 +31,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String? _editingState;
   double? _limiteMensual;
   bool _guardando = false;
+  double? _limiteMesForm;
 
   String _filtroTipo = 'todos';
   String _filtroCategoria = 'todos';
@@ -43,6 +44,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   void initState() {
     super.initState();
     _load();
+    _cargarLimiteForm();
   }
 
   @override
@@ -74,6 +76,42 @@ class _MovementsScreenState extends State<MovementsScreen> {
         _limiteMensual = limite;
       });
     }
+  }
+
+  // Carga el limite del mes de la fecha del formulario (para la validacion en vivo)
+  Future<void> _cargarLimiteForm() async {
+    final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
+    final limite = await _limitesService.getLimit(mes);
+    if (mounted) {
+      setState(() => _limiteMesForm = limite);
+    }
+  }
+
+  // Aviso en vivo cuando el monto supera el limite disponible del mes
+  String? _avisoMontoExcedido() {
+    if (_tipo != 'gasto') return null;
+    final limite = _limiteMesForm;
+    if (limite == null) return null;
+
+    final monto = double.tryParse(_montoController.text);
+    if (monto == null || monto <= 0) return null;
+
+    final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
+    var gastoActual = calcularGastoTotalMes(_movimientos, mes);
+
+    // Si se esta editando, no se cuenta dos veces el monto anterior
+    if (_editingId != null) {
+      final movViejo = _movimientos.firstWhere((m) => m['id'] == _editingId);
+      if (movViejo['tipo'] == 'gasto' && movViejo['estado'] != 'cancelado') {
+        gastoActual -= (movViejo['monto'] as num).toDouble();
+      }
+    }
+
+    final disponible = limite - gastoActual;
+    if (monto > disponible) {
+      return 'Supera tu límite mensual. Disponible: $disponible Bs de $limite Bs.';
+    }
+    return null;
   }
 
   // Fecha inicial del periodo seleccionado
@@ -405,6 +443,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                 if (ctx.mounted) {
                                   Navigator.pop(ctx);
                                   _load();
+                                  _cargarLimiteForm();
                                 }
                               },
                       child:
@@ -529,6 +568,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
       _fecha = DateTime.parse(m['fecha'] as String);
       _editingState = m['estado'] as String;
     });
+    _cargarLimiteForm();
   }
 
   Future<void> _confirmDeletion(String id) async {
@@ -630,6 +670,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final avisoMonto = _avisoMontoExcedido();
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Movimientos')),
@@ -797,6 +838,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                         );
                                         if (picked != null) {
                                           setState(() => _fecha = picked);
+                                          _cargarLimiteForm();
                                         }
                                       },
                                       child: Text('Cambiar fecha'),
@@ -812,6 +854,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             ),
 
                             controller: _montoController,
+                            onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(hintText: 'Monto (Bs)'),
                             validator: (texto) {
                               if (texto == null || texto.isEmpty) {
@@ -827,6 +870,17 @@ class _MovementsScreenState extends State<MovementsScreen> {
                               return null;
                             },
                           ),
+
+                          if (avisoMonto != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              avisoMonto,
+                              style: const TextStyle(
+                                color: ColorStyles.errorDefault,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
 
                           TextFormField(
                             controller: _descripcionController,

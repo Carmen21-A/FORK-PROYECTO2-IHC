@@ -12,14 +12,14 @@
 | H2 | Relación entre el sistema y el mundo real | 🛠️ Corregida | 2 (Menor) |
 | H3 | Control y libertad del usuario | 🛠️ Corregida | 3 (Mayor) |
 | H4 | Consistencia y estándares | 🛠️ Corregida | 2 (Menor) |
-| H5 | Prevención de errores | ❌ No cumple | 2 (Menor) |
+| H5 | Prevención de errores | 🛠️ Corregida | 2 (Menor) |
 | H6 | Reconocer antes que recordar | ❌ No cumple | 2 (Menor) |
 | H7 | Flexibilidad y eficiencia de uso | ✅ Cumple | 0 |
 | H8 | Diseño estético y minimalista | ❌ No cumple | 2 (Menor) |
 | H9 | Reconocer, diagnosticar y recuperarse de errores | ❌ No cumple | 3 (Mayor) |
 | H10 | Ayuda y documentación | ❌ No cumple | 2 (Menor) |
 
-**Resultado:** 1 cumple (H7), 4 corregidas (H1–H4) y 5 por corregir.
+**Resultado:** 1 cumple (H7), 5 corregidas (H1–H5) y 4 por corregir.
 
 ---
 
@@ -106,11 +106,11 @@
 
 ## H5 — Prevención de errores
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → formulario de gasto, campo de monto.
-- **Qué ocurre:** El formulario permite escribir un monto superior al límite disponible del mes sin advertirlo ni validar en tiempo real mientras se tipea. La comprobación se dispara recién al presionar "Guardar".
-- **Consecuencia:** No previene el error antes de que ocurra: la persona ingresa todos los datos para luego recibir un bloqueo reactivo mediante un SnackBar.
-- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L754-L774) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/movements_screen.dart#L405-L441).
+- **Qué ocurría:** El formulario permitía escribir un monto superior al límite disponible del mes sin advertirlo; la comprobación se disparaba recién al presionar "Guardar" (bloqueo reactivo con SnackBar).
+- **Corrección aplicada:** Al tipear el monto, `_avisoMontoExcedido()` calcula el disponible del mes y muestra un aviso en rojo debajo del campo ("Supera tu límite mensual. Disponible: X Bs de Y Bs.") antes de guardar. Se mantiene la validación final al guardar.
+- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L851-L883) · [`_avisoMontoExcedido()`](../lib/screens/movements_screen.dart#L91-L115) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/movements_screen.dart#L466-L502).
 - **Severidad:** 2 (Menor)
 
 **Evidencia — antes**
@@ -119,8 +119,7 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H5/despues/`.
-
+![H5 despues](evidencias/H5/despues/image.png)
 ---
 
 ## H6 — Reconocer antes que recordar
