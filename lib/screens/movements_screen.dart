@@ -31,6 +31,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String? _editingState;
   double? _limiteMensual;
   bool _guardando = false;
+  double? _limiteMesForm;
 
   String _filtroTipo = 'todos';
   String _filtroCategoria = 'todos';
@@ -43,6 +44,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   void initState() {
     super.initState();
     _load();
+    _cargarLimiteForm();
   }
 
   @override
@@ -74,6 +76,42 @@ class _MovementsScreenState extends State<MovementsScreen> {
         _limiteMensual = limite;
       });
     }
+  }
+
+  // Carga el limite del mes de la fecha del formulario (para la validacion en vivo)
+  Future<void> _cargarLimiteForm() async {
+    final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
+    final limite = await _limitesService.getLimit(mes);
+    if (mounted) {
+      setState(() => _limiteMesForm = limite);
+    }
+  }
+
+  // Aviso en vivo cuando el monto supera el limite disponible del mes
+  String? _avisoMontoExcedido() {
+    if (_tipo != 'gasto') return null;
+    final limite = _limiteMesForm;
+    if (limite == null) return null;
+
+    final monto = double.tryParse(_montoController.text);
+    if (monto == null || monto <= 0) return null;
+
+    final mes = '${_fecha.year}-${_fecha.month.toString().padLeft(2, '0')}';
+    var gastoActual = calcularGastoTotalMes(_movimientos, mes);
+
+    // Si se esta editando, no se cuenta dos veces el monto anterior
+    if (_editingId != null) {
+      final movViejo = _movimientos.firstWhere((m) => m['id'] == _editingId);
+      if (movViejo['tipo'] == 'gasto' && movViejo['estado'] != 'cancelado') {
+        gastoActual -= (movViejo['monto'] as num).toDouble();
+      }
+    }
+
+    final disponible = limite - gastoActual;
+    if (monto > disponible) {
+      return 'Supera tu límite mensual. Disponible: $disponible Bs de $limite Bs.';
+    }
+    return null;
   }
 
   // Fecha inicial del periodo seleccionado
@@ -177,7 +215,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     if (_filtroCategoria != 'todos') {
       chips.add(
         Chip(
-          label: Text('Categoria: $_filtroCategoria'),
+          label: Text('Categoría: $_filtroCategoria'),
           onDeleted: () {
             setState(() => _filtroCategoria = 'todos');
             _load();
@@ -233,7 +271,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                       TextInputAction.search, // add buton en teclado android
                   onSubmitted: (_) => _load(),
                   decoration: InputDecoration(
-                    hintText: 'Buscar por descripcion',
+                    hintText: 'Buscar por descripción',
                   ),
                 ),
               ),
@@ -255,7 +293,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                 },
               ),
               _dropdownFiltro(
-                'Categoria',
+                'Categoría',
                 _filtroCategoria,
                 ['todos', 'Transporte', 'Comida', 'Estudios', 'Ocio', 'Otros'],
                 (v) {
@@ -282,7 +320,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           ),
           Wrap(spacing: 8, children: _chipsFiltros()),
           Text(
-            'Total: ${calcularMontoTotalMovimientos(_movimientosFiltrados)} Bs',
+            'Total gastos: ${calcularTotalGastos(_movimientosFiltrados)} Bs · Total ingresos: ${calcularTotalIngresos(_movimientosFiltrados)} Bs',
           ),
         ],
       ),
@@ -307,7 +345,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Gastado: $gastoActual Bs / Limite: ${limite != null ? "$limite Bs" : "Sin definir"}',
+                    'Gastado: $gastoActual Bs / Límite: ${limite != null ? "$limite Bs" : "Sin definir"}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -351,7 +389,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           (ctx) => StatefulBuilder(
             builder:
                 (ctx, setDialogState) => AlertDialog(
-                  title: const Text('Limite mensual de gastos'),
+                  title: const Text('Límite mensual de gastos'),
                   content: Form(
                     key: formularioId,
                     child: Column(
@@ -362,7 +400,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           controller: controller,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: 'Nuevo limite',
+                            labelText: 'Nuevo límite',
                             hintText: 'Ej: 500',
                           ),
                           validator: (monto) {
@@ -405,6 +443,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                 if (ctx.mounted) {
                                   Navigator.pop(ctx);
                                   _load();
+                                  _cargarLimiteForm();
                                 }
                               },
                       child:
@@ -451,7 +490,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           SnackBar(
             backgroundColor: ColorStyles.errorDefault,
             content: Text(
-              'No se puede registrar, porque supera tu limite mensual de $limite bs (llevas gastando $gastoActual bs)',
+              'No se puede registrar, porque supera tu límite mensual de $limite Bs (llevas gastando $gastoActual Bs)',
             ),
           ),
         );
@@ -529,6 +568,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
       _fecha = DateTime.parse(m['fecha'] as String);
       _editingState = m['estado'] as String;
     });
+    _cargarLimiteForm();
   }
 
   Future<void> _confirmDeletion(String id) async {
@@ -538,7 +578,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
           (context) => AlertDialog(
             title: const Text('Confirma que quieres eliminar este movimiento'),
             content: const Text(
-              '¿Estas seguro que quieres eliminar este movimiento?',
+              '¿Estás seguro que quieres eliminar este movimiento?',
             ),
             actions: [
               OutlinedButton(
@@ -588,6 +628,32 @@ class _MovementsScreenState extends State<MovementsScreen> {
     final actual = m['estado'];
     final siguiente = siguienteEstado(actual);
     if (siguiente == null) return;
+
+    // Cancelar es irreversible: pedimos confirmacion antes
+    if (siguiente == 'cancelado') {
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Confirmar cancelacion'),
+              content: const Text(
+                '¿Seguro que quieres cancelar este movimiento? Esta acción no se puede deshacer.',
+              ),
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Volver'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Cancelar movimiento'),
+                ),
+              ],
+            ),
+      );
+      if (confirmar != true) return;
+    }
+
     await _service.cambiarEstado(m['id'], siguiente);
     _load();
   }
@@ -604,6 +670,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final avisoMonto = _avisoMontoExcedido();
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Movimientos')),
@@ -618,7 +685,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   const Padding(
                     padding: EdgeInsets.all(24),
                     child: Text(
-                      'No hay movimientos que coincidan con la busqueda',
+                      'No hay movimientos que coincidan con la búsqueda',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -633,7 +700,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   return ListTile(
                     title: Text('$etiqueta - $monto Bs - $categoria - $fecha'),
                     subtitle: Text(
-                      descripcion.isEmpty ? 'Sin descripcion' : descripcion,
+                      descripcion.isEmpty ? 'Sin descripción' : descripcion,
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -655,7 +722,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                         ),
                         ElevatedButton(
                           onPressed: () => _confirmDeletion(m['id'] as String),
-                          child: const Text('Borrar'),
+                          child: const Text('Eliminar'),
                         ),
 
                         OutlinedButton(
@@ -771,6 +838,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                                         );
                                         if (picked != null) {
                                           setState(() => _fecha = picked);
+                                          _cargarLimiteForm();
                                         }
                                       },
                                       child: Text('Cambiar fecha'),
@@ -786,14 +854,15 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             ),
 
                             controller: _montoController,
+                            onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(hintText: 'Monto (Bs)'),
                             validator: (texto) {
                               if (texto == null || texto.isEmpty) {
-                                return 'El campo no puede estar vacio';
+                                return 'El campo no puede estar vacío';
                               }
                               final n = double.tryParse(texto);
                               if (n == null) {
-                                return 'Formato numerico invalido';
+                                return 'Formato numérico inválido';
                               }
                               if (n <= 0) {
                                 return 'El monto debe ser mayor a 0';
@@ -802,10 +871,21 @@ class _MovementsScreenState extends State<MovementsScreen> {
                             },
                           ),
 
+                          if (avisoMonto != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              avisoMonto,
+                              style: const TextStyle(
+                                color: ColorStyles.errorDefault,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+
                           TextFormField(
                             controller: _descripcionController,
                             decoration: InputDecoration(
-                              hintText: 'Descripcion (opcional)',
+                              hintText: 'Descripción (opcional)',
                             ),
                           ),
 

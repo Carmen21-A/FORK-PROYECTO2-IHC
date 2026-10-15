@@ -7,6 +7,22 @@ double calcularMontoTotalMovimientos(List<Map<String, dynamic>> movimientos) {
   return montoTotal;
 }
 
+// Suma solo los gastos no cancelados de la lista
+double calcularTotalGastos(List<Map<String, dynamic>> movimientos) {
+  final gastos = movimientos.where(
+    (m) => m['tipo'] == 'gasto' && m['estado'] != 'cancelado',
+  );
+  return calcularMontoTotalMovimientos(gastos.toList());
+}
+
+// Suma solo los ingresos no cancelados de la lista
+double calcularTotalIngresos(List<Map<String, dynamic>> movimientos) {
+  final ingresos = movimientos.where(
+    (m) => m['tipo'] == 'ingreso' && m['estado'] != 'cancelado',
+  );
+  return calcularMontoTotalMovimientos(ingresos.toList());
+}
+
 // Aplica busqueda y filtros sobre una lista de movimientos
 List<Map<String, dynamic>> filtrarMovimientos(
   List<Map<String, dynamic>> movimientos, {

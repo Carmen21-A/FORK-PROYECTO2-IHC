@@ -9,17 +9,17 @@
 | # | Heurística | Estado | Severidad |
 |---|------------|:------:|:---------:|
 | H1 | Visibilidad del estado del sistema | 🛠️ Corregida | 3 (Mayor) |
-| H2 | Relación entre el sistema y el mundo real | ❌ No cumple | 2 (Menor) |
-| H3 | Control y libertad del usuario | ❌ No cumple | 3 (Mayor) |
-| H4 | Consistencia y estándares | ❌ No cumple | 2 (Menor) |
-| H5 | Prevención de errores | ❌ No cumple | 2 (Menor) |
+| H2 | Relación entre el sistema y el mundo real | 🛠️ Corregida | 2 (Menor) |
+| H3 | Control y libertad del usuario | 🛠️ Corregida | 3 (Mayor) |
+| H4 | Consistencia y estándares | 🛠️ Corregida | 2 (Menor) |
+| H5 | Prevención de errores | 🛠️ Corregida | 2 (Menor) |
 | H6 | Reconocer antes que recordar | ❌ No cumple | 2 (Menor) |
 | H7 | Flexibilidad y eficiencia de uso | ✅ Cumple | 0 |
 | H8 | Diseño estético y minimalista | ❌ No cumple | 2 (Menor) |
 | H9 | Reconocer, diagnosticar y recuperarse de errores | ❌ No cumple | 3 (Mayor) |
 | H10 | Ayuda y documentación | ❌ No cumple | 2 (Menor) |
 
-**Resultado:** 1 cumple (H7), 1 corregida (H1) y 8 por corregir.
+**Resultado:** 1 cumple (H7), 5 corregidas (H1–H5) y 4 por corregir.
 
 ---
 
@@ -39,17 +39,16 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H1/despues/`.
-
+![H2 despues](evidencias/H1/despues/image.png)
 ---
 
 ## H2 — Relación entre el sistema y el mundo real
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → panel de filtros, indicador "Total".
-- **Qué ocurre:** La función `calcularMontoTotalMovimientos` hace una suma aritmética de todos los montos sin distinguir ingresos de gastos y sumando también los movimientos cancelados (ej: 100 Bs de ingreso y 40 Bs de gasto se muestran como "Total: 140 Bs"). Además, para cancelar un movimiento la app obliga a transitar por "pagado".
-- **Consecuencia:** Rompe el modelo mental y financiero real del estudiante: muestra saldos falsos que contradicen la tarjeta superior y fuerza una lógica de negocio artificial.
-- **Código:** [indicador "Total"](../lib/screens/movements_screen.dart#L284) · [`calcularMontoTotalMovimientos()`](../lib/utils/movimientos_filtros.dart#L1-L8) · [flujo de estados](../lib/utils/estado_movimiento.dart#L1-L9).
+- **Qué ocurría:** El indicador "Total" sumaba todos los montos de la lista filtrada sin distinguir ingreso de gasto y sumando también los cancelados (ej: 100 Bs de ingreso y 40 Bs de gasto se mostraban como "Total: 140 Bs"). No decía qué representaba y contradecía la tarjeta superior.
+- **Corrección aplicada:** El total ahora se muestra separado y en lenguaje del dominio: **"Total gastos: X Bs · Total ingresos: Y Bs"**, y ambos excluyen los movimientos cancelados.
+- **Código:** [indicador "Total"](../lib/screens/movements_screen.dart#L285) · [`calcularTotalGastos()`](../lib/utils/movimientos_filtros.dart#L11-L16) · [`calcularTotalIngresos()`](../lib/utils/movimientos_filtros.dart#L19-L24).
 - **Severidad:** 2 (Menor)
 
 **Evidencia — antes**
@@ -58,17 +57,17 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H2/despues/`.
+![H2 despues](evidencias/H2/despues/image.png)
 
 ---
 
 ## H3 — Control y libertad del usuario
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → botón de cambio de estado en la lista.
-- **Qué ocurre:** Un solo toque sobre el botón en estado "pagado" cambia inmediatamente a "cancelado" sin diálogo de confirmación ni opción de deshacer. Una vez en "cancelado", `siguienteEstado` retorna `null`, por lo que el botón queda desactivado sin retorno posible.
-- **Consecuencia:** Un toque accidental al desplazarse por la lista anula permanentemente un movimiento financiero, sin forma de recuperarlo ni volver a editarlo en la app.
-- **Código:** [`_cambiarEstado()`](../lib/screens/movements_screen.dart#L558-L564) · [botón de estado](../lib/screens/movements_screen.dart#L612-L626) · [`siguienteEstado()`](../lib/utils/estado_movimiento.dart#L8).
+- **Qué ocurría:** Un solo toque llevaba de "pagado" a "cancelado" sin diálogo de confirmación ni opción de deshacer, y una vez cancelado no había retorno (`siguienteEstado` retorna `null`). Un toque accidental anulaba el movimiento de forma permanente.
+- **Corrección aplicada:** Antes de cancelar se muestra un diálogo de confirmación ("¿Seguro que quieres cancelar este movimiento? Esta acción no se puede deshacer."). Si la persona no confirma, el movimiento queda igual.
+- **Código:** [`_cambiarEstado()`](../lib/screens/movements_screen.dart#L587-L619) · [botón de estado](../lib/screens/movements_screen.dart#L668) · [`siguienteEstado()`](../lib/utils/estado_movimiento.dart#L8).
 - **Severidad:** 3 (Mayor)
 
 **Evidencia — antes**
@@ -79,17 +78,19 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H3/despues/`.
+![H3 despues 1](evidencias/H3/despues/image1.png)
+![H3 despues 2](evidencias/H3/despues/image2.png)
+![H3 despues 3](evidencias/H3/despues/image3.png)
 
 ---
 
 ## H4 — Consistencia y estándares
 
-- **Estado:** ❌ No cumple
-- **Pantalla / flujo:** Múltiples pantallas (`movements_screen.dart`, `login_screen.dart`).
-- **Qué ocurre:** En la fila del movimiento el botón se titula "Borrar", pero el modal de confirmación pregunta "¿…Eliminar?" con botón "Eliminar". La moneda se escribe "bs" (minúscula) en el aviso del límite y "Bs" en el resto de la interfaz. Hay palabras idénticas escritas con y sin tilde entre pantallas ("Iniciar Sesión"/"Iniciar Sesion", "descripcion", "Categoria", "Limite").
-- **Consecuencia:** Viola la coherencia terminológica estándar de la plataforma, distrae y genera incertidumbre sobre si las acciones corresponden al mismo concepto.
-- **Código:** ["Borrar"](../lib/screens/movements_screen.dart#L629) vs [modal "Eliminar"](../lib/screens/movements_screen.dart#L510-L521) · [SnackBar "bs"](../lib/screens/movements_screen.dart#L432) vs ["Bs"](../lib/screens/movements_screen.dart#L284) · ["Iniciar Sesión"](../lib/screens/login_screen.dart#L47) vs ["Iniciar Sesion"](../lib/screens/login_screen.dart#L121).
+- **Estado:** 🛠️ Corregida
+- **Pantalla / flujo:** Múltiples pantallas (`movements_screen.dart`, `login_screen.dart`, `register_screen.dart`, `reset_password_screen.dart`, `change_password_screen.dart`, `home_screen.dart`).
+- **Qué ocurría:** La misma acción usaba dos términos ("Borrar" en la lista, "Eliminar" en el modal); la moneda aparecía como "bs" y "Bs"; y palabras iguales se escribían con y sin tilde entre pantallas ("Iniciar Sesión"/"Iniciar Sesion", "descripcion", "Categoria", "Limite", "Correo electronico", "vacio", "accion").
+- **Corrección aplicada:** Se unificó: (1) la acción de eliminar → **"Eliminar"** en botón y modal; (2) la moneda → **"Bs"** en todas las pantallas; (3) la ortografía → acentos consistentes en los textos visibles ("Iniciar Sesión", "Correo electrónico", "descripción", "categoría", "límite", "vacío", "acción", "búsqueda", "mínimo", "numérico", "válido").
+- **Código:** [botón "Eliminar"](../lib/screens/movements_screen.dart#L684) y [modal "Eliminar"](../lib/screens/movements_screen.dart#L550) · [SnackBar "Bs"](../lib/screens/movements_screen.dart#L454) · [AppBar "Iniciar Sesión"](../lib/screens/login_screen.dart#L47) y [botón "Iniciar Sesión"](../lib/screens/login_screen.dart#L121).
 - **Severidad:** 2 (Menor)
 
 **Evidencia — antes**
@@ -99,17 +100,17 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H4/despues/`.
-
+![H4 despues 1](evidencias/H4/despues/image1.png)
+![H4 despues 2](evidencias/H4/despues/image2.png)
 ---
 
 ## H5 — Prevención de errores
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → formulario de gasto, campo de monto.
-- **Qué ocurre:** El formulario permite escribir un monto superior al límite disponible del mes sin advertirlo ni validar en tiempo real mientras se tipea. La comprobación se dispara recién al presionar "Guardar".
-- **Consecuencia:** No previene el error antes de que ocurra: la persona ingresa todos los datos para luego recibir un bloqueo reactivo mediante un SnackBar.
-- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L754-L774) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/movements_screen.dart#L405-L441).
+- **Qué ocurría:** El formulario permitía escribir un monto superior al límite disponible del mes sin advertirlo; la comprobación se disparaba recién al presionar "Guardar" (bloqueo reactivo con SnackBar).
+- **Corrección aplicada:** Al tipear el monto, `_avisoMontoExcedido()` calcula el disponible del mes y muestra un aviso en rojo debajo del campo ("Supera tu límite mensual. Disponible: X Bs de Y Bs.") antes de guardar. Se mantiene la validación final al guardar.
+- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L851-L883) · [`_avisoMontoExcedido()`](../lib/screens/movements_screen.dart#L91-L115) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/movements_screen.dart#L466-L502).
 - **Severidad:** 2 (Menor)
 
 **Evidencia — antes**
@@ -118,8 +119,7 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H5/despues/`.
-
+![H5 despues](evidencias/H5/despues/image.png)
 ---
 
 ## H6 — Reconocer antes que recordar

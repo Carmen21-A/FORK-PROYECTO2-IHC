@@ -107,4 +107,41 @@ void main() {
       expect(total, sumaManual);
     });
   });
+
+  group('5. Totales separados por tipo', () {
+    final conCancelado = [
+      {
+        'fecha': '2026-10-01',
+        'tipo': 'gasto',
+        'categoria': 'Comida',
+        'estado': 'pagado',
+        'monto': 100.0,
+        'descripcion': 'Almuerzo',
+      },
+      {
+        'fecha': '2026-10-02',
+        'tipo': 'gasto',
+        'categoria': 'Ocio',
+        'estado': 'cancelado',
+        'monto': 200.0,
+        'descripcion': 'Cine',
+      },
+      {
+        'fecha': '2026-10-03',
+        'tipo': 'ingreso',
+        'categoria': 'Otros',
+        'estado': 'pagado',
+        'monto': 500.0,
+        'descripcion': 'Beca',
+      },
+    ];
+
+    test('el total de gastos no incluye cancelados', () {
+      expect(calcularTotalGastos(conCancelado), 100.0);
+    });
+
+    test('el total de ingresos no incluye cancelados', () {
+      expect(calcularTotalIngresos(conCancelado), 500.0);
+    });
+  });
 }

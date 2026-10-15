@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: Text(
-                    'Correo electronico',
+                    'Correo electrónico',
                     style: AppTextStyle.boldBodyLarge,
                     textAlign: TextAlign.start,
                   ),
@@ -100,7 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (texto) {
                     return (texto == null || texto.length < 6)
-                        ? 'Minimo 6 caracteres'
+                        ? 'Mínimo 6 caracteres'
                         : null;
                   },
                 ),

@@ -49,7 +49,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               SizedBox(
                 width: double.infinity,
                 child: Text(
-                  'Correo electronico',
+                  'Correo electrónico',
                   style: AppTextStyle.boldBodyLarge,
                   textAlign: TextAlign.start,
                 ),
