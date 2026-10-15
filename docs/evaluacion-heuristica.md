@@ -10,7 +10,7 @@
 |---|------------|:------:|:---------:|
 | H1 | Visibilidad del estado del sistema | 🛠️ Corregida | 3 (Mayor) |
 | H2 | Relación entre el sistema y el mundo real | 🛠️ Corregida | 2 (Menor) |
-| H3 | Control y libertad del usuario | ❌ No cumple | 3 (Mayor) |
+| H3 | Control y libertad del usuario | 🛠️ Corregida | 3 (Mayor) |
 | H4 | Consistencia y estándares | ❌ No cumple | 2 (Menor) |
 | H5 | Prevención de errores | ❌ No cumple | 2 (Menor) |
 | H6 | Reconocer antes que recordar | ❌ No cumple | 2 (Menor) |
@@ -19,7 +19,7 @@
 | H9 | Reconocer, diagnosticar y recuperarse de errores | ❌ No cumple | 3 (Mayor) |
 | H10 | Ayuda y documentación | ❌ No cumple | 2 (Menor) |
 
-**Resultado:** 1 cumple (H7), 2 corregidas (H1, H2) y 7 por corregir.
+**Resultado:** 1 cumple (H7), 3 corregidas (H1, H2, H3) y 6 por corregir.
 
 ---
 
@@ -63,11 +63,11 @@
 
 ## H3 — Control y libertad del usuario
 
-- **Estado:** ❌ No cumple
+- **Estado:** 🛠️ Corregida
 - **Pantalla / flujo:** Movimientos → botón de cambio de estado en la lista.
-- **Qué ocurre:** Un solo toque sobre el botón en estado "pagado" cambia inmediatamente a "cancelado" sin diálogo de confirmación ni opción de deshacer. Una vez en "cancelado", `siguienteEstado` retorna `null`, por lo que el botón queda desactivado sin retorno posible.
-- **Consecuencia:** Un toque accidental al desplazarse por la lista anula permanentemente un movimiento financiero, sin forma de recuperarlo ni volver a editarlo en la app.
-- **Código:** [`_cambiarEstado()`](../lib/screens/movements_screen.dart#L558-L564) · [botón de estado](../lib/screens/movements_screen.dart#L612-L626) · [`siguienteEstado()`](../lib/utils/estado_movimiento.dart#L8).
+- **Qué ocurría:** Un solo toque llevaba de "pagado" a "cancelado" sin diálogo de confirmación ni opción de deshacer, y una vez cancelado no había retorno (`siguienteEstado` retorna `null`). Un toque accidental anulaba el movimiento de forma permanente.
+- **Corrección aplicada:** Antes de cancelar se muestra un diálogo de confirmación ("¿Seguro que quieres cancelar este movimiento? Esta acción no se puede deshacer."). Si la persona no confirma, el movimiento queda igual.
+- **Código:** [`_cambiarEstado()`](../lib/screens/movements_screen.dart#L587-L619) · [botón de estado](../lib/screens/movements_screen.dart#L668) · [`siguienteEstado()`](../lib/utils/estado_movimiento.dart#L8).
 - **Severidad:** 3 (Mayor)
 
 **Evidencia — antes**
@@ -78,7 +78,9 @@
 
 **Evidencia — después**
 
-> Pendiente: guardar la captura en `docs/evidencias/H3/despues/`.
+![H3 despues 1](evidencias/H3/despues/image1.png)
+![H3 despues 2](evidencias/H3/despues/image2.png)
+![H3 despues 3](evidencias/H3/despues/image3.png)
 
 ---
 

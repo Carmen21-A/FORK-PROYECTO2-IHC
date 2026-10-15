@@ -588,6 +588,32 @@ class _MovementsScreenState extends State<MovementsScreen> {
     final actual = m['estado'];
     final siguiente = siguienteEstado(actual);
     if (siguiente == null) return;
+
+    // Cancelar es irreversible: pedimos confirmacion antes
+    if (siguiente == 'cancelado') {
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Confirmar cancelacion'),
+              content: const Text(
+                '¿Seguro que quieres cancelar este movimiento? Esta accion no se puede deshacer.',
+              ),
+              actions: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Volver'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Cancelar movimiento'),
+                ),
+              ],
+            ),
+      );
+      if (confirmar != true) return;
+    }
+
     await _service.cambiarEstado(m['id'], siguiente);
     _load();
   }
