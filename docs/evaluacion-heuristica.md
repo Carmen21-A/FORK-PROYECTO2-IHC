@@ -1,0 +1,213 @@
+# Evaluación Heurística H1–H10 — Presupuesto Estudiantil
+
+**Funcionalidad evaluada:** configurar el límite mensual y registrar un gasto (flujo: definir/cambiar límite → registrar gasto → visualizar la lista y el total con búsqueda y filtros). Incluye un caso permitido y un caso bloqueado.
+
+**Repositorio:** <https://github.com/ihc-team/Project2-IHC>
+
+## Resumen
+
+| # | Heurística | Estado | Severidad |
+|---|------------|:------:|:---------:|
+| H1 | Visibilidad del estado del sistema | ❌ No cumple | 3 (Mayor) |
+| H2 | Relación entre el sistema y el mundo real | ❌ No cumple | 2 (Menor) |
+| H3 | Control y libertad del usuario | ❌ No cumple | 3 (Mayor) |
+| H4 | Consistencia y estándares | ❌ No cumple | 2 (Menor) |
+| H5 | Prevención de errores | ❌ No cumple | 2 (Menor) |
+| H6 | Reconocer antes que recordar | ❌ No cumple | 2 (Menor) |
+| H7 | Flexibilidad y eficiencia de uso | ✅ Cumple | 0 |
+| H8 | Diseño estético y minimalista | ❌ No cumple | 2 (Menor) |
+| H9 | Reconocer, diagnosticar y recuperarse de errores | ❌ No cumple | 3 (Mayor) |
+| H10 | Ayuda y documentación | ❌ No cumple | 2 (Menor) |
+
+**Resultado:** 1 cumple (H7) y 9 por corregir.
+
+---
+
+## H1 — Visibilidad del estado del sistema
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos → guardar un gasto / definir el límite.
+- **Qué ocurre:** Al presionar "Guardar", la app ejecuta llamadas asíncronas a Supabase (`_service.create` o `saveMonthLimit`) sin activar un indicador de carga (`CircularProgressIndicator`) ni deshabilitar los botones.
+- **Consecuencia:** La persona no sabe si la acción fue recibida o si el sistema se colgó; con latencia tiende a pulsar varias veces y provoca registros duplicados en la base de datos.
+- **Código:** [`_save()`](../lib/screens/movements_screen.dart#L443-L482) · [botón "Guardar"](../lib/screens/movements_screen.dart#L792-L798) · [`_dialogoCambiarLimite()`](../lib/screens/movements_screen.dart#L337-L402) en `movements_screen.dart`.
+- **Severidad:** 3 (Mayor)
+
+**Evidencia — antes**
+
+![H1 antes 1](evidencias/H1/antes/image1.png)
+![H1 antes 2](evidencias/H1/antes/image2.png)
+
+**Evidencia — después**
+
+> Pendiente: guardar la captura en `docs/evidencias/H1/despues/`.
+
+---
+
+## H2 — Relación entre el sistema y el mundo real
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos → panel de filtros, indicador "Total".
+- **Qué ocurre:** La función `calcularMontoTotalMovimientos` hace una suma aritmética de todos los montos sin distinguir ingresos de gastos y sumando también los movimientos cancelados (ej: 100 Bs de ingreso y 40 Bs de gasto se muestran como "Total: 140 Bs"). Además, para cancelar un movimiento la app obliga a transitar por "pagado".
+- **Consecuencia:** Rompe el modelo mental y financiero real del estudiante: muestra saldos falsos que contradicen la tarjeta superior y fuerza una lógica de negocio artificial.
+- **Código:** [indicador "Total"](../lib/screens/movements_screen.dart#L284) · [`calcularMontoTotalMovimientos()`](../lib/utils/movimientos_filtros.dart#L1-L8) · [flujo de estados](../lib/utils/estado_movimiento.dart#L1-L9).
+- **Severidad:** 2 (Menor)
+
+**Evidencia — antes**
+
+![H2 antes](evidencias/H2/antes/image.png)
+
+**Evidencia — después**
+
+> Pendiente: guardar la captura en `docs/evidencias/H2/despues/`.
+
+---
+
+## H3 — Control y libertad del usuario
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos → botón de cambio de estado en la lista.
+- **Qué ocurre:** Un solo toque sobre el botón en estado "pagado" cambia inmediatamente a "cancelado" sin diálogo de confirmación ni opción de deshacer. Una vez en "cancelado", `siguienteEstado` retorna `null`, por lo que el botón queda desactivado sin retorno posible.
+- **Consecuencia:** Un toque accidental al desplazarse por la lista anula permanentemente un movimiento financiero, sin forma de recuperarlo ni volver a editarlo en la app.
+- **Código:** [`_cambiarEstado()`](../lib/screens/movements_screen.dart#L558-L564) · [botón de estado](../lib/screens/movements_screen.dart#L612-L626) · [`siguienteEstado()`](../lib/utils/estado_movimiento.dart#L8).
+- **Severidad:** 3 (Mayor)
+
+**Evidencia — antes**
+
+![H3 antes 1](evidencias/H3/antes/image1.png)
+![H3 antes 2](evidencias/H3/antes/image2.png)
+![H3 antes 3](evidencias/H3/antes/image3.png)
+
+**Evidencia — después**
+
+> Pendiente: guardar la captura en `docs/evidencias/H3/despues/`.
+
+---
+
+## H4 — Consistencia y estándares
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Múltiples pantallas (`movements_screen.dart`, `login_screen.dart`).
+- **Qué ocurre:** En la fila del movimiento el botón se titula "Borrar", pero el modal de confirmación pregunta "¿…Eliminar?" con botón "Eliminar". La moneda se escribe "bs" (minúscula) en el aviso del límite y "Bs" en el resto de la interfaz. Hay palabras idénticas escritas con y sin tilde entre pantallas ("Iniciar Sesión"/"Iniciar Sesion", "descripcion", "Categoria", "Limite").
+- **Consecuencia:** Viola la coherencia terminológica estándar de la plataforma, distrae y genera incertidumbre sobre si las acciones corresponden al mismo concepto.
+- **Código:** ["Borrar"](../lib/screens/movements_screen.dart#L629) vs [modal "Eliminar"](../lib/screens/movements_screen.dart#L510-L521) · [SnackBar "bs"](../lib/screens/movements_screen.dart#L432) vs ["Bs"](../lib/screens/movements_screen.dart#L284) · ["Iniciar Sesión"](../lib/screens/login_screen.dart#L47) vs ["Iniciar Sesion"](../lib/screens/login_screen.dart#L121).
+- **Severidad:** 2 (Menor)
+
+**Evidencia — antes**
+
+![H4 antes 1](evidencias/H4/antes/image1.png)
+![H4 antes 2](evidencias/H4/antes/image2.png)
+
+**Evidencia — después**
+
+> Pendiente: guardar la captura en `docs/evidencias/H4/despues/`.
+
+---
+
+## H5 — Prevención de errores
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos → formulario de gasto, campo de monto.
+- **Qué ocurre:** El formulario permite escribir un monto superior al límite disponible del mes sin advertirlo ni validar en tiempo real mientras se tipea. La comprobación se dispara recién al presionar "Guardar".
+- **Consecuencia:** No previene el error antes de que ocurra: la persona ingresa todos los datos para luego recibir un bloqueo reactivo mediante un SnackBar.
+- **Código:** [campo de monto](../lib/screens/movements_screen.dart#L754-L774) · [`_validarSiExcedioLimiteMensual()`](../lib/screens/movements_screen.dart#L405-L441).
+- **Severidad:** 2 (Menor)
+
+**Evidencia — antes**
+
+![H5 antes](evidencias/H5/antes/image.png)
+
+**Evidencia — después**
+
+> Pendiente: guardar la captura en `docs/evidencias/H5/despues/`.
+
+---
+
+## H6 — Reconocer antes que recordar
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos → formulario de ingreso de movimiento.
+- **Qué ocurre:** El formulario de creación de gasto no muestra cuánto límite mensual queda disponible. Como el formulario está al pie de la lista, al hacer scroll la tarjeta superior queda fuera de vista.
+- **Consecuencia:** Obliga a la persona a retener en su memoria la cifra de dinero disponible para calcular mentalmente si el gasto que ingresa será admitido o superará el tope.
+- **Código:** [`_tarjetaResumenLimite()`](../lib/screens/movements_screen.dart#L291-L325) · [formulario de movimiento](../lib/screens/movements_screen.dart#L640-L803).
+- **Severidad:** 2 (Menor)
+
+**Evidencia**
+
+> Pendiente: guardar capturas en `docs/evidencias/H6/` (antes y después).
+
+---
+
+## H7 — Flexibilidad y eficiencia de uso
+
+- **Estado:** ✅ Cumple
+- **Pantalla / flujo:** Movimientos → búsqueda y filtros.
+- **Comprobación:** La búsqueda se ejecuta directamente con la tecla Enter/Search del teclado; los 4 filtros (tipo, categoría, periodo, estado) se combinan libremente; y cada chip permite quitar un filtro con un toque sin resetear el resto.
+- **Observación (no afecta la heurística):** el formulario al final del scroll resta velocidad a usuarios frecuentes con listas extensas.
+- **Código:** [`_chipsFiltros()`](../lib/screens/movements_screen.dart#L151-L218) · [acción de teclado en búsqueda](../lib/screens/movements_screen.dart#L233) · [`showDateRangePicker`](../lib/screens/movements_screen.dart#L115-L120).
+- **Severidad:** 0 (Cumple)
+
+**Evidencia**
+
+> Pendiente: guardar capturas en `docs/evidencias/H7/`.
+
+---
+
+## H8 — Diseño estético y minimalista
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos → elementos de la lista (`ListTile`).
+- **Qué ocurre:** Dentro de `trailing` de cada movimiento se incrustan en fila tres botones completos con texto (`OutlinedButton` de estado, `ElevatedButton` "Borrar" y `OutlinedButton` "Editar").
+- **Consecuencia:** Sobrecarga visual que compite con la información del movimiento. Además, "Borrar" resalta con fondo sólido dándole más peso que "Editar", y en pantallas estrechas comprime el título con riesgo de desbordamiento horizontal.
+- **Código:** [`ListTile`](../lib/screens/movements_screen.dart#L609-L637).
+- **Severidad:** 2 (Menor)
+
+**Evidencia**
+
+> Pendiente: guardar capturas en `docs/evidencias/H8/` (antes y después).
+
+---
+
+## H9 — Reconocer, diagnosticar y recuperarse de errores
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Login y Registro → envío de credenciales incorrectas.
+- **Qué ocurre:** Ambas pantallas capturan los errores con un bloque `catch (_)` que solo vacía los campos (`_emailController.text = ""; _passwordController.text = "";`) sin desplegar ningún mensaje que explique qué falló.
+- **Consecuencia:** El usuario queda sin saber si la contraseña fue errónea, si el usuario no existe o si falló la conexión. No hay diagnóstico ni salida, y además pierde lo tipeado y debe reescribirlo.
+- **Código:** [`_handleLogin()`](../lib/screens/login_screen.dart#L31-L34) · [`_handleRegister()`](../lib/screens/register_screen.dart#L32-L35).
+- **Severidad:** 3 (Mayor)
+
+**Evidencia**
+
+> Pendiente: guardar capturas en `docs/evidencias/H9/` (antes y después).
+
+---
+
+## H10 — Ayuda y documentación
+
+- **Estado:** ❌ No cumple
+- **Pantalla / flujo:** Movimientos y Menú (`app_drawer.dart`).
+- **Qué ocurre:** En ninguna parte de la interfaz hay un botón de ayuda, `Tooltip` o ícono informativo (`?`) que explique qué es el "Límite mensual", qué pasa al superarlo (bloquea nuevos gastos) o cómo funciona el flujo de estados de los movimientos.
+- **Consecuencia:** El estudiante novato no tiene guía dentro de la app para entender las reglas del límite, y debe descubrirlas por ensayo y error.
+- **Código:** [resumen de límite](../lib/screens/movements_screen.dart#L291-L334) · [`_dialogoCambiarLimite()`](../lib/screens/movements_screen.dart#L337-L402) · [drawer](../lib/widgets/app_drawer.dart#L25-L47).
+- **Severidad:** 2 (Menor)
+
+**Evidencia**
+
+> Pendiente: guardar capturas en `docs/evidencias/H10/` (antes y después).
+
+---
+
+## Evidencias pendientes
+
+| Heurística | Antes | Después |
+|------------|:-----:|:-------:|
+| H1 | ✅ | ⏳ |
+| H2 | ✅ | ⏳ |
+| H3 | ✅ | ⏳ |
+| H4 | ✅ | ⏳ |
+| H5 | ✅ | ⏳ |
+| H6 | ⏳ | ⏳ |
+| H7 | ⏳ | — |
+| H8 | ⏳ | ⏳ |
+| H9 | ⏳ | ⏳ |
+| H10 | ⏳ | ⏳ |
