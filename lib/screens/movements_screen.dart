@@ -793,16 +793,29 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   ),
                 ..._movimientosFiltrados.map((m) {
                   final tipo = m['tipo'] as String;
-                  final monto = m['monto'];
+                  final montoNum = m['monto'] as num;
+                  final montoTexto =
+                      montoNum == montoNum.toInt()
+                          ? montoNum.toInt().toString()
+                          : montoNum.toString();
                   final categoria = m['categoria'];
                   final descripcion = (m['descripcion'] ?? '').toString();
                   final fecha = _fechaTexto(m['fecha'] as String);
-                  final etiqueta = tipo == 'gasto' ? 'Gasto' : 'Ingreso';
+                  final esGasto = tipo == 'gasto';
+                  final colorMonto =
+                      esGasto ? ColorStyles.errorDark : ColorStyles.successDark;
 
                   return ListTile(
-                    title: Text('$etiqueta - $monto Bs - $categoria - $fecha'),
+                    title: Text(
+                      '${esGasto ? '-' : '+'} $montoTexto Bs',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: colorMonto,
+                      ),
+                    ),
                     subtitle: Text(
-                      descripcion.isEmpty ? 'Sin descripción' : descripcion,
+                      '$categoria · $fecha${descripcion.isEmpty ? '' : ' · $descripcion'}',
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
