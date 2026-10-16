@@ -1,0 +1,13 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: presupuesto-estudiantil-web:prod
+    container_name: presupuesto-estudiantil-web
+    # Sirve nginx en el puerto 80 sin HTTPS
+    ports:
+      - "80:80"
+    expose:
+      - "80"
+    restart: unless-stopped

@@ -1,0 +1,15 @@
+.git
+.gitignore
+.idea
+.vscode
+.dart_tool
+build
+android
+ios
+linux
+macos
+windows
+docs
+test
+*.md
+web_dev_config.yaml
