@@ -5,10 +5,11 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/movements_screen.dart';
+import '../screens/history_screen.dart';
 import '../screens/change_password_screen.dart';
 import '../screens/reset_password_screen.dart';
 
-final privateRoutes = ['/movements', '/ change-password'];
+final privateRoutes = ['/movements', '/change-password', '/history'];
 final publicRoutes = ['/', '/login', '/register', '/reset-password'];
 
 final appRouter = GoRouter(
@@ -36,6 +37,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/movements',
       builder: (context, state) => const MovementsScreen(),
+    ),
+    GoRoute(
+      path: '/history',
+      builder: (context, state) => const HistoryScreen(),
     ),
     GoRoute(
       path: '/reset-password',

@@ -30,6 +30,13 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            title: const Text('Historial'),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/history');
+            },
+          ),
+          ListTile(
             title: const Text('Cambiar contraseña'),
             onTap: () {
               Navigator.pop(context);
@@ -37,7 +44,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.help_outline),
             title: const Text('Ayuda'),
             onTap: () {
               Navigator.pop(context);
