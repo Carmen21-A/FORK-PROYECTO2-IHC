@@ -37,6 +37,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
   String _filtroCategoria = 'todos';
   String _filtroPeriodo = 'todos';
   String _filtroEstado = 'todos';
+  bool _mostrarFiltrosPersonalizados = false;
   DateTime? _rangoDesde;
   DateTime? _rangoHasta;
 
@@ -316,45 +317,113 @@ class _MovementsScreenState extends State<MovementsScreen> {
             ],
           ),
 
+          // Chips de acceso rápido para Tipo (el filtro MAS usado)
           Wrap(
-            spacing: 16,
-            runSpacing: 4,
+            spacing: 8,
             children: [
-              _dropdownFiltro(
-                'Tipo',
-                _filtroTipo,
-                ['todos', 'gasto', 'ingreso'],
-                (v) {
-                  setState(() => _filtroTipo = v);
-                  _load();
-                },
-              ),
-              _dropdownFiltro(
-                'Categoría',
-                _filtroCategoria,
-                ['todos', 'Transporte', 'Comida', 'Estudios', 'Ocio', 'Otros'],
-                (v) {
-                  setState(() => _filtroCategoria = v);
-                  _load();
-                },
-              ),
-              _dropdownFiltro('Periodo', _filtroPeriodo, [
-                'todos',
-                'este mes',
-                'mes pasado',
-                'rango',
-              ], (v) => _cambiarPeriodo(v)),
-              _dropdownFiltro(
-                'Estado',
-                _filtroEstado,
-                ['todos', 'pendiente', 'pagado', 'cancelado'],
-                (v) {
-                  setState(() => _filtroEstado = v);
-                  _load();
-                },
+              for (final opcion in ['todos', 'gasto', 'ingreso'])
+                ChoiceChip(
+                  label: Text(
+                    opcion == 'todos'
+                        ? 'Todos'
+                        : opcion == 'gasto'
+                        ? 'Gastos'
+                        : 'Ingresos',
+                  ),
+                  selected: _filtroTipo == opcion,
+                  onSelected: (_) {
+                    setState(() => _filtroTipo = opcion);
+                    _load();
+                  },
+                ),
+              OutlinedButton.icon(
+                onPressed:
+                    () => setState(
+                      () =>
+                          _mostrarFiltrosPersonalizados =
+                              !_mostrarFiltrosPersonalizados,
+                    ),
+                icon: Icon(
+                  _mostrarFiltrosPersonalizados
+                      ? Icons.expand_less
+                      : Icons.expand_more,
+                  size: 18,
+                ),
+                label: const Text('Más filtros'),
               ),
             ],
           ),
+
+          // Por defecto permanecen ocultos
+          if (_mostrarFiltrosPersonalizados)
+            Wrap(
+              spacing: 16,
+              runSpacing: 4,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Categoría',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    _dropdownFiltro(
+                      'Categoría',
+                      _filtroCategoria,
+                      [
+                        'todos',
+                        'Transporte',
+                        'Comida',
+                        'Estudios',
+                        'Ocio',
+                        'Otros',
+                      ],
+                      (v) {
+                        setState(() => _filtroCategoria = v);
+                        _load();
+                      },
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Período',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    _dropdownFiltro('Periodo', _filtroPeriodo, [
+                      'todos',
+                      'este mes',
+                      'mes pasado',
+                      'rango',
+                    ], (v) => _cambiarPeriodo(v)),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Estado',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    _dropdownFiltro(
+                      'Estado',
+                      _filtroEstado,
+                      ['todos', 'pendiente', 'pagado', 'cancelado'],
+                      (v) {
+                        setState(() => _filtroEstado = v);
+                        _load();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
           Wrap(spacing: 8, children: _chipsFiltros()),
           Text(
             'Total gastos: ${calcularTotalGastos(_movimientosFiltrados)} Bs · Total ingresos: ${calcularTotalIngresos(_movimientosFiltrados)} Bs',
@@ -667,7 +736,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
     final siguiente = siguienteEstado(actual);
     if (siguiente == null) return;
 
-    // Cancelar es irreversible: pedimos confirmacion antes
+    // Cancelar es irreversible, se pide confirmacion antes
     if (siguiente == 'cancelado') {
       final confirmar = await showDialog<bool>(
         context: context,
