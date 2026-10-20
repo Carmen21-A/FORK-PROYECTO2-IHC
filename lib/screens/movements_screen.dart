@@ -821,7 +821,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
               ),
             ),
             actions: [
-              TextButton(
+              OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Entendido'),
               ),

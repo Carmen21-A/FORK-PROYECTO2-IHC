@@ -43,11 +43,11 @@ final appTheme = ThemeData(
     headerBackgroundColor: ColorStyles.primaryBase,
     headerForegroundColor: ColorStyles.textInverse,
     backgroundColor: ColorStyles.textInverse,
-    cancelButtonStyle: TextButton.styleFrom(
+    cancelButtonStyle: OutlinedButton.styleFrom(
       foregroundColor: ColorStyles.primaryBase,
     ),
-    confirmButtonStyle: TextButton.styleFrom(
-      foregroundColor: ColorStyles.primaryBase,
+    confirmButtonStyle: OutlinedButton.styleFrom(
+      foregroundColor: ColorStyles.successDefault,
     ),
     dayBackgroundColor: WidgetStatePropertyAll(ColorStyles.primaryBase),
     dayForegroundColor: WidgetStatePropertyAll(ColorStyles.textInverse),

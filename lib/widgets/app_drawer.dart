@@ -50,7 +50,7 @@ class AppDrawer extends StatelessWidget {
                         'El Presupuesto Estudiantil te ayuda a registrar tus gastos e ingresos y controlar que no superes tu limite mensual.',
                       ),
                       actions: [
-                        TextButton(
+                        OutlinedButton(
                           onPressed: () => Navigator.pop(context),
                           child: const Text('Cerrar'),
                         ),
