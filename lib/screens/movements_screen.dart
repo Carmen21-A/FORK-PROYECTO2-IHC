@@ -574,6 +574,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
       if (mounted) {
         // Se vuevle a cargar la lista
         _load();
+        Navigator.pop(context);
       }
     } catch (_) {
     } finally {
@@ -760,20 +761,228 @@ class _MovementsScreenState extends State<MovementsScreen> {
     );
   }
 
+  Widget _formularioMovimiento() {
+    final avisoMonto = _avisoMontoExcedido();
+    return Form(
+      key: _formularioId,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            children: [
+              // Si _editingId NO es nulo, mostramos este aviso:
+              if (_editingId != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Edita este movimiento',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      OutlinedButton(
+                        onPressed: () {
+                          setState(() {
+                            _editingId = null;
+                            _editingState = null;
+                            _montoController.clear();
+                            _descripcionController.clear();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  direction: Axis.horizontal,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceAround,
+                  children: [
+                    DropdownButton<String>(
+                      value: _tipo,
+                      items: [
+                        DropdownMenuItem(value: 'gasto', child: Text('Gasto')),
+                        DropdownMenuItem(
+                          value: 'ingreso',
+                          child: Text('Ingreso'),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _tipo = v!),
+                    ),
+                    DropdownButton<String>(
+                      value: _categoria,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Transporte',
+                          child: Text('Transporte'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Comida',
+                          child: Text('Comida'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Estudios',
+                          child: Text('Estudios'),
+                        ),
+                        DropdownMenuItem(value: 'Ocio', child: Text('Ocio')),
+                        DropdownMenuItem(value: 'Otros', child: Text('Otros')),
+                      ],
+                      onChanged: (v) => setState(() => _categoria = v!),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_fechaTexto(_fecha.toIso8601String())),
+                        OutlinedButton(
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _fecha,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                              initialEntryMode: DatePickerEntryMode.input,
+                            );
+                            if (picked != null) {
+                              setState(() => _fecha = picked);
+                              _cargarLimiteForm();
+                            }
+                          },
+                          child: Text('Cambiar fecha'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              _indicadorLimiteForm(),
+              TextFormField(
+                enabled: puedeEditarMonto(_editingState ?? 'pendiente'),
+
+                controller: _montoController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(hintText: 'Monto (Bs)'),
+                validator: (texto) {
+                  if (texto == null || texto.isEmpty) {
+                    return 'El campo no puede estar vacío';
+                  }
+                  final n = double.tryParse(texto);
+                  if (n == null) {
+                    return 'Formato numérico inválido';
+                  }
+                  if (n <= 0) {
+                    return 'El monto debe ser mayor a 0';
+                  }
+                  return null;
+                },
+              ),
+
+              if (avisoMonto != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  avisoMonto,
+                  style: const TextStyle(
+                    color: ColorStyles.errorDefault,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+
+              TextFormField(
+                controller: _descripcionController,
+                decoration: InputDecoration(hintText: 'Descripción (opcional)'),
+              ),
+
+              if (!puedeEditarMonto(_editingState ?? 'pendiente')) ...[
+                const Text(
+                  'No es posible modificar el monto porque el movimiento ya fue pagado',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ],
+
+              ElevatedButton(
+                onPressed: _guardando ? null : _save,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 52),
+                ),
+                child:
+                    _guardando
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text('Guardar'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _abrirModalFormulario() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(child: _formularioMovimiento()),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final avisoMonto = _avisoMontoExcedido();
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('Movimientos'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Ayuda',
-            onPressed: _mostrarDialogoAyuda,
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: OutlinedButton.icon(
+              onPressed: _mostrarDialogoAyuda,
+              icon: const Icon(Icons.help_outline, size: 18),
+              label: const Text('Ayuda'),
+            ),
           ),
         ],
+      ),
+
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            _editingId = null;
+            _editingState = null;
+            _montoController.clear();
+            _descripcionController.clear();
+            _fecha = DateTime.now();
+          });
+          _abrirModalFormulario();
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Nuevo Movimiento'),
       ),
 
       body: Column(
@@ -841,6 +1050,7 @@ class _MovementsScreenState extends State<MovementsScreen> {
                           onSelected: (opcion) {
                             if (opcion == 'editar') {
                               _prepareEdition(m);
+                              _abrirModalFormulario();
                             } else if (opcion == 'eliminar') {
                               _confirmDeletion(m['id'] as String);
                             }
@@ -880,193 +1090,6 @@ class _MovementsScreenState extends State<MovementsScreen> {
                     ),
                   );
                 }),
-                Form(
-                  key: _formularioId,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        children: [
-                          // Si _editingId NO es nulo, mostramos este aviso:
-                          if (_editingId != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Edita este movimiento',
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _editingId = null;
-                                        _editingState = null;
-                                        _montoController.clear();
-                                        _descripcionController.clear();
-                                      });
-                                    },
-                                    child: const Text('Cancelar'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-
-                          SizedBox(
-                            width: double.infinity,
-                            child: Wrap(
-                              direction: Axis.horizontal,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              alignment: WrapAlignment.spaceAround,
-                              children: [
-                                DropdownButton<String>(
-                                  value: _tipo,
-                                  items: [
-                                    DropdownMenuItem(
-                                      value: 'gasto',
-                                      child: Text('Gasto'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'ingreso',
-                                      child: Text('Ingreso'),
-                                    ),
-                                  ],
-                                  onChanged: (v) => setState(() => _tipo = v!),
-                                ),
-                                DropdownButton<String>(
-                                  value: _categoria,
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: 'Transporte',
-                                      child: Text('Transporte'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'Comida',
-                                      child: Text('Comida'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'Estudios',
-                                      child: Text('Estudios'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'Ocio',
-                                      child: Text('Ocio'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'Otros',
-                                      child: Text('Otros'),
-                                    ),
-                                  ],
-                                  onChanged:
-                                      (v) => setState(() => _categoria = v!),
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(_fechaTexto(_fecha.toIso8601String())),
-                                    OutlinedButton(
-                                      onPressed: () async {
-                                        final picked = await showDatePicker(
-                                          context: context,
-                                          initialDate: _fecha,
-                                          firstDate: DateTime(2020),
-                                          lastDate: DateTime(2100),
-                                          initialEntryMode:
-                                              DatePickerEntryMode.input,
-                                        );
-                                        if (picked != null) {
-                                          setState(() => _fecha = picked);
-                                          _cargarLimiteForm();
-                                        }
-                                      },
-                                      child: Text('Cambiar fecha'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          _indicadorLimiteForm(),
-                          TextFormField(
-                            enabled: puedeEditarMonto(
-                              _editingState ?? 'pendiente',
-                            ),
-
-                            controller: _montoController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(hintText: 'Monto (Bs)'),
-                            validator: (texto) {
-                              if (texto == null || texto.isEmpty) {
-                                return 'El campo no puede estar vacío';
-                              }
-                              final n = double.tryParse(texto);
-                              if (n == null) {
-                                return 'Formato numérico inválido';
-                              }
-                              if (n <= 0) {
-                                return 'El monto debe ser mayor a 0';
-                              }
-                              return null;
-                            },
-                          ),
-
-                          if (avisoMonto != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              avisoMonto,
-                              style: const TextStyle(
-                                color: ColorStyles.errorDefault,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-
-                          TextFormField(
-                            controller: _descripcionController,
-                            decoration: InputDecoration(
-                              hintText: 'Descripción (opcional)',
-                            ),
-                          ),
-
-                          if (!puedeEditarMonto(
-                            _editingState ?? 'pendiente',
-                          )) ...[
-                            const Text(
-                              'No es posible modificar el monto porque el movimiento ya fue pagado',
-                              style: TextStyle(color: Colors.red, fontSize: 12),
-                            ),
-                          ],
-
-                          ElevatedButton(
-                            onPressed: _guardando ? null : _save,
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 52),
-                            ),
-                            child:
-                                _guardando
-                                    ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                    : const Text('Guardar'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

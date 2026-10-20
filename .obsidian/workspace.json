@@ -1,0 +1,213 @@
+{
+  "main": {
+    "id": "69ad70267a3b0df1",
+    "type": "split",
+    "children": [
+      {
+        "id": "690252707b2cc178",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f75b78324d12a1a3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs1/decisiones-interaccion.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "decisiones-interaccion"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e7c98becfbaa566f",
+    "type": "split",
+    "children": [
+      {
+        "id": "52549c3595f80249",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e4a9b816a91cbaab",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "5c8bb280e541776b",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "62897cd3851837bc",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "5364b6c1b82df7ed",
+    "type": "split",
+    "children": [
+      {
+        "id": "b9fc271dbc5539e0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b449df9c00e10903",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "docs1/decisiones-interaccion.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes"
+            }
+          },
+          {
+            "id": "6c8cb77f5088bd07",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "docs1/decisiones-interaccion.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes"
+            }
+          },
+          {
+            "id": "a709a98d610e6312",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "e9b5c139f37021e4",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "53354e3e41790764",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "docs1/decisiones-interaccion.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "f75b78324d12a1a3",
+  "lastOpenFiles": [
+    "docs1/clase-16-hallazgos-interaccion.md",
+    "docs1/decisiones-interaccion.md",
+    "docs1/Apunte3/Nota.md",
+    "build/7eb740e0",
+    "build/flutter_assets/NOTICES",
+    "build/flutter_assets/FontManifest.json",
+    "build/flutter_assets/AssetManifest.bin.json",
+    "build/flutter_assets/AssetManifest.bin",
+    "build/flutter_assets/fonts/MaterialIcons-Regular.otf",
+    "build/flutter_assets/fonts",
+    "build/flutter_assets/assets/icons/v1/icon_no_background.png",
+    "build/flutter_assets/assets/icons/v1/icon_macos.png",
+    "docs1/para_estudiar/H9-reconocer-diagnosticar-errores.md",
+    "build/ccf1f9b0",
+    "build/flutter_assets/shaders/stretch_effect.frag",
+    "build/flutter_assets/shaders/ink_sparkle.frag",
+    "build/flutter_assets/assets/icons/v1/icon.png",
+    "docs1/para_estudiar/H10-ayuda-documentacion.md",
+    "docs1/para_estudiar/H7-flexibilidad-eficiencia.md"
+  ]
+}
