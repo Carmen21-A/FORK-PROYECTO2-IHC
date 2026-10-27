@@ -17,6 +17,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final _service = HistorialService();
   List<Map<String, dynamic>> _eventos = [];
 
+  final _searchController = TextEditingController();
+  String _busqueda = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -209,8 +218,79 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  Widget _campoBusqueda() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Escribe lo que quieres buscar',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon:
+              _busqueda.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _busqueda = '');
+                    },
+                  )
+                  : null,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onChanged: (valor) => setState(() => _busqueda = valor),
+      ),
+    );
+  }
+
+  Widget _sinResultados() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.search_off, size: 64, color: Colors.grey),
+            const SizedBox(height: 12),
+            Text(
+              'Sin resultados para "$_busqueda"',
+              style: AppTextStyle.boldBodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Prueba buscando por otra palabra clave o categoría.',
+              style: AppTextStyle.regularBodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_eventos.isEmpty) {
+      return Scaffold(
+        drawer: const AppDrawer(),
+        appBar: AppBar(
+          title: const Text('Historial'),
+          actions: [
+            IconButton(
+              tooltip: 'Actualizar',
+              onPressed: _load,
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
+        body: _estadoVacio(),
+      );
+    }
+
+    final eventosFiltrados = filtrarHistorial(_eventos, _busqueda);
+
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -223,14 +303,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ],
       ),
-      body:
-          _eventos.isEmpty
-              ? _estadoVacio()
-              : ListView.separated(
-                itemCount: _eventos.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) => _filaEvento(_eventos[index]),
-              ),
+      body: Column(
+        children: [
+          _campoBusqueda(),
+          Expanded(
+            child:
+                eventosFiltrados.isEmpty
+                    ? _sinResultados()
+                    : ListView.separated(
+                      itemCount: eventosFiltrados.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder:
+                          (context, index) =>
+                              _filaEvento(eventosFiltrados[index]),
+                    ),
+          ),
+        ],
+      ),
     );
   }
 }

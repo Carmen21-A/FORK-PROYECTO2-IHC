@@ -58,4 +58,46 @@ void main() {
       expect(ordenados, isEmpty);
     });
   });
+
+  group('4. Filtrar historial', () {
+    final eventosPrueba = [
+      {
+        'id': '1',
+        'accion': 'creado',
+        'detalle': 'Gasto 50 Bs · Comida · Almuerzo',
+      },
+      {
+        'id': '2',
+        'accion': 'editado',
+        'detalle': 'Gasto 20 Bs · Transporte · Micro',
+      },
+      {'id': '3', 'accion': 'eliminado', 'detalle': 'Ingreso 100 Bs · Otros'},
+    ];
+
+    test('filtra por texto en detalle ignorando mayusculas', () {
+      final resultado = filtrarHistorial(eventosPrueba, 'comida');
+
+      expect(resultado.length, 1);
+      expect(resultado.first['id'], '1');
+    });
+
+    test('filtra por accion', () {
+      final resultado = filtrarHistorial(eventosPrueba, 'eliminado');
+
+      expect(resultado.length, 1);
+      expect(resultado.first['id'], '3');
+    });
+
+    test('devuelve lista vacia cuando nada coincide', () {
+      final resultado = filtrarHistorial(eventosPrueba, 'cine');
+
+      expect(resultado, isEmpty);
+    });
+
+    test('devuelve todos los eventos si la busqueda esta vacia', () {
+      final resultado = filtrarHistorial(eventosPrueba, '   ');
+
+      expect(resultado.length, 3);
+    });
+  });
 }
