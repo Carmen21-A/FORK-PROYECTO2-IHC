@@ -116,10 +116,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 _filaDetalle('Acción', _textoAccion(accion)),
                 _filaDetalle('Detalle', (evento['detalle'] ?? '').toString()),
                 _filaDetalle(
-                  'Movimiento',
-                  (evento['movimiento_id'] ?? 'No disponible').toString(),
-                ),
-                _filaDetalle(
                   'Fecha',
                   _fechaHora((evento['created_at'] ?? '').toString()),
                 ),
@@ -197,7 +193,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: _fondoAccion(accion),
-        child: Icon(_iconoAccion(accion), color: _colorAccion(accion), size: 20),
+        child: Icon(
+          _iconoAccion(accion),
+          color: _colorAccion(accion),
+          size: 20,
+        ),
       ),
       title: Text(
         _textoAccion(accion),
