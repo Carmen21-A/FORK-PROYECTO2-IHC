@@ -13,6 +13,21 @@ String armarDetalleEvento({
   return '$tipoTexto $monto Bs · $categoria$textoDescripcion';
 }
 
+List<Map<String, dynamic>> filtrarHistorial(
+  List<Map<String, dynamic>> eventos,
+  String busqueda,
+) {
+  final query = busqueda.trim().toLowerCase();
+  if (query.isEmpty) return eventos;
+
+  return eventos.where((evento) {
+    final detalle = (evento['detalle'] ?? '').toString().toLowerCase();
+    final accion = (evento['accion'] ?? '').toString().toLowerCase();
+
+    return detalle.contains(query) || accion.contains(query);
+  }).toList();
+}
+
 // Ordena los eventos del mas reciente al mas viejo
 List<Map<String, dynamic>> ordenarRecientePrimero(
   List<Map<String, dynamic>> eventos,
