@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:presupuesto_estudiantil/design_system/color_styles.dart';
 import 'package:presupuesto_estudiantil/utils/estado_movimiento.dart';
 import 'package:presupuesto_estudiantil/widgets/app_drawer.dart';
@@ -471,6 +472,15 @@ class _MovementsScreenState extends State<MovementsScreen> {
             OutlinedButton(
               onPressed: _dialogoCambiarLimite,
               child: Text(limite == null ? 'Definir' : 'Cambiar'),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'Presupuestos por Categoría',
+              icon: const Icon(
+                Icons.pie_chart_rounded,
+                color: ColorStyles.primaryBase,
+              ),
+              onPressed: () => context.go('/presupuestos-categoria'),
             ),
           ],
         ),
