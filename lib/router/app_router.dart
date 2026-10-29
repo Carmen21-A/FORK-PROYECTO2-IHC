@@ -8,8 +8,14 @@ import '../screens/movements_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/change_password_screen.dart';
 import '../screens/reset_password_screen.dart';
+import '../screens/presupuesto_categoria_screen.dart';
 
-final privateRoutes = ['/movements', '/change-password', '/history'];
+final privateRoutes = [
+  '/movements',
+  '/change-password',
+  '/history',
+  '/presupuestos-categoria',
+];
 final publicRoutes = ['/', '/login', '/register', '/reset-password'];
 
 final appRouter = GoRouter(
@@ -37,6 +43,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/movements',
       builder: (context, state) => const MovementsScreen(),
+    ),
+    /// Define una nueva ruta de navegación para el presupuesto mensual por categoría
+    GoRoute(
+      /// Indica la dirección de la ruta o URL a la que se navegará
+      path: '/presupuestos-categoria',
+      /// Función constructora que recibe context y state, y retorna la pantalla visual const PresupuestoCategoriaScreen
+      builder: (context, state) => const PresupuestoCategoriaScreen(),
     ),
     GoRoute(
       path: '/history',

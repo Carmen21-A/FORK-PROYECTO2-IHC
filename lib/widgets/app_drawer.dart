@@ -23,6 +23,7 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
+            leading: const Icon(Icons.list_alt_rounded),
             title: const Text('Movimientos'),
             onTap: () {
               Navigator.pop(context); // cierra el drawer
@@ -30,6 +31,15 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.pie_chart_rounded),
+            title: const Text('Presupuesto por Categoría'),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/presupuestos-categoria');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.history_rounded),
             title: const Text('Historial'),
             onTap: () {
               Navigator.pop(context);
