@@ -1,0 +1,1032 @@
+<script setup>
+// Portado de lib/screens/movements_screen.dart
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { MovementsService } from '../services/movementsService.js'
+import { LimitesService } from '../services/limitesService.js'
+import { siguienteEstado, puedeEditarMonto } from '../utils/estadoMovimiento.js'
+import {
+  calcularGastoTotalMes,
+  esLimiteMenorAGasto,
+  superaLimiteMensual,
+  validarMontoLimite,
+} from '../utils/limiteMensual.js'
+import { calcularTotalGastos, calcularTotalIngresos } from '../utils/movimientosFiltros.js'
+import { MESES, claveMes, dartNum, fechaISO, parseDouble, parseFecha } from '../utils/formato.js'
+import { OPCIONES_RECURRENCIA, TEXTO_RECURRENCIA, siguienteFecha } from '../utils/recurrencia.js'
+import { showSnackBar } from '../widgets/snackbar.js'
+import AppScaffold from '../widgets/AppScaffold.vue'
+import AppDialog from '../widgets/AppDialog.vue'
+import AppIcon from '../widgets/AppIcon.vue'
+import BottomSheet from '../widgets/BottomSheet.vue'
+
+const router = useRouter()
+const CATEGORIAS = ['Transporte', 'Comida', 'Estudios', 'Ocio', 'Otros']
+
+// ---------- Formulario ----------
+const montoTexto = ref('')
+const descripcion = ref('')
+const busqueda = ref('')
+const tipo = ref('gasto')
+const categoria = ref('Transporte')
+const recurrencia = ref('') // Tarea 6: '' = no se repite
+const fecha = ref(new Date())
+const montoError = ref(null)
+const inputFecha = ref(null)
+
+const movimientos = ref([])
+const movimientosFiltrados = ref([])
+const editingId = ref(null)
+const editingState = ref(null)
+const limiteMensual = ref(null)
+const guardando = ref(false)
+const limiteMesForm = ref(null)
+
+// ---------- Filtros ----------
+const filtroTipo = ref('todos')
+const filtroCategoria = ref('todos')
+const filtroPeriodo = ref('todos')
+const filtroEstado = ref('todos')
+const mostrarFiltrosPersonalizados = ref(false)
+const rangoDesde = ref(null)
+const rangoHasta = ref(null)
+
+// ---------- Dialogos ----------
+const formularioAbierto = ref(false)
+const dialogoAyuda = ref(false)
+const dialogoLimite = ref(null)
+const dialogoRango = ref(null)
+const eliminarId = ref(null)
+const cancelarMovimiento = ref(null)
+const menuAbierto = ref(null)
+
+const mesActual = () => claveMes(new Date())
+const mesForm = () => claveMes(fecha.value)
+
+onMounted(() => {
+  load()
+  cargarLimiteForm()
+  document.addEventListener('click', cerrarMenu)
+})
+onBeforeUnmount(() => document.removeEventListener('click', cerrarMenu))
+
+function cerrarMenu() {
+  menuAbierto.value = null
+}
+
+// Carga los movimientos (todos y filtrados) desde la API, y el limite
+async function load() {
+  try {
+    const [data, filtrados, limite] = await Promise.all([
+      MovementsService.getAll(),
+      MovementsService.buscarConFiltros({
+        texto: busqueda.value,
+        tipo: filtroTipo.value === 'todos' ? null : filtroTipo.value,
+        categoria: filtroCategoria.value === 'todos' ? null : filtroCategoria.value,
+        estado: filtroEstado.value === 'todos' ? null : filtroEstado.value,
+        desde: periodoDesde(),
+        hasta: periodoHasta(),
+      }),
+      LimitesService.getLimit(mesActual()),
+    ])
+    movimientos.value = data
+    movimientosFiltrados.value = filtrados
+    limiteMensual.value = limite
+  } catch (e) {
+    showSnackBar(e.message, 'var(--error-default)')
+  }
+}
+
+// Carga el limite del mes de la fecha del formulario (para la validacion en vivo)
+async function cargarLimiteForm() {
+  try {
+    limiteMesForm.value = await LimitesService.getLimit(mesForm())
+  } catch {
+    limiteMesForm.value = null
+  }
+}
+
+// Gasto del mes del formulario sin contar dos veces el movimiento que se edita
+function gastoActualForm() {
+  let gastoActual = calcularGastoTotalMes(movimientos.value, mesForm())
+  if (editingId.value !== null) {
+    const movViejo = movimientos.value.find((m) => m.id === editingId.value)
+    if (movViejo && movViejo.tipo === 'gasto' && movViejo.estado !== 'cancelado') {
+      gastoActual -= Number(movViejo.monto)
+    }
+  }
+  return gastoActual
+}
+
+// Aviso en vivo cuando el monto supera el limite disponible del mes
+const avisoMontoExcedido = computed(() => {
+  if (tipo.value !== 'gasto') return null
+  const limite = limiteMesForm.value
+  if (limite === null) return null
+
+  const monto = parseDouble(montoTexto.value)
+  if (monto === null || monto <= 0) return null
+
+  const disponible = limite - gastoActualForm()
+  if (monto > disponible) {
+    return `Supera tu límite mensual. Disponible: ${dartNum(disponible)} Bs de ${dartNum(limite)} Bs.`
+  }
+  return null
+})
+
+// Muestra el limite que esta disponible en el formulario de gasto
+const indicadorLimiteForm = computed(() => {
+  if (tipo.value !== 'gasto') return null
+  const limite = limiteMesForm.value ?? limiteMensual.value
+  if (limite === null) return null
+
+  const disponible = limite - gastoActualForm()
+  const disponibleTexto = disponible >= 0 ? `${dartNum(disponible)} Bs` : '0 Bs'
+  return `Límite disponible: ${disponibleTexto} de ${dartNum(limite)} Bs`
+})
+
+// Fecha inicial del periodo seleccionado
+function periodoDesde() {
+  const hoy = new Date()
+  if (filtroPeriodo.value === 'este mes') return new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+  if (filtroPeriodo.value === 'mes pasado') return new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
+  if (filtroPeriodo.value === 'rango') return rangoDesde.value
+  return null
+}
+
+// Fecha final del periodo seleccionado
+function periodoHasta() {
+  const hoy = new Date()
+  if (filtroPeriodo.value === 'este mes') return new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
+  if (filtroPeriodo.value === 'mes pasado') return new Date(hoy.getFullYear(), hoy.getMonth(), 0)
+  if (filtroPeriodo.value === 'rango') return rangoHasta.value
+  return null
+}
+
+function cambiarPeriodo(valor) {
+  if (valor !== 'rango') {
+    filtroPeriodo.value = valor
+    load()
+    return
+  }
+  dialogoRango.value = {
+    desde: rangoDesde.value ? fechaISO(rangoDesde.value) : '',
+    hasta: rangoHasta.value ? fechaISO(rangoHasta.value) : '',
+    error: null,
+  }
+}
+
+function confirmarRango() {
+  const { desde, hasta } = dialogoRango.value
+  if (!desde || !hasta) {
+    dialogoRango.value.error = 'Elige la fecha de inicio y la de fin'
+    return
+  }
+  if (desde > hasta) {
+    dialogoRango.value.error = 'La fecha de inicio no puede ser posterior a la de fin'
+    return
+  }
+  filtroPeriodo.value = 'rango'
+  rangoDesde.value = parseFecha(desde)
+  rangoHasta.value = parseFecha(hasta)
+  dialogoRango.value = null
+  load()
+}
+
+const filtros = { tipo: filtroTipo, categoria: filtroCategoria, estado: filtroEstado }
+
+function cambiarFiltro(nombre, valor) {
+  filtros[nombre].value = valor
+  load()
+}
+
+// Chips de los filtros activos, con opcion de quitarlos
+const chipsFiltros = computed(() => {
+  const chips = []
+  if (busqueda.value.trim() !== '') {
+    chips.push({ texto: `Buscar: ${busqueda.value.trim()}`, quitar: () => { busqueda.value = '' } })
+  }
+  if (filtroTipo.value !== 'todos') {
+    chips.push({ texto: `Tipo: ${filtroTipo.value}`, quitar: () => { filtroTipo.value = 'todos' } })
+  }
+  if (filtroCategoria.value !== 'todos') {
+    chips.push({
+      texto: `Categoría: ${filtroCategoria.value}`,
+      quitar: () => { filtroCategoria.value = 'todos' },
+    })
+  }
+  if (filtroPeriodo.value !== 'todos') {
+    const texto =
+      filtroPeriodo.value === 'rango'
+        ? `${fechaCorta(rangoDesde.value)} - ${fechaCorta(rangoHasta.value)}`
+        : filtroPeriodo.value
+    chips.push({
+      texto: `Periodo: ${texto}`,
+      quitar: () => {
+        filtroPeriodo.value = 'todos'
+        rangoDesde.value = null
+        rangoHasta.value = null
+      },
+    })
+  }
+  if (filtroEstado.value !== 'todos') {
+    chips.push({ texto: `Estado: ${filtroEstado.value}`, quitar: () => { filtroEstado.value = 'todos' } })
+  }
+  return chips
+})
+
+function quitarChip(chip) {
+  chip.quitar()
+  load()
+}
+
+const totalesTexto = computed(
+  () =>
+    `Total gastos: ${dartNum(calcularTotalGastos(movimientosFiltrados.value))} Bs · ` +
+    `Total ingresos: ${dartNum(calcularTotalIngresos(movimientosFiltrados.value))} Bs`,
+)
+
+// ---------- Tarjeta resumen del limite ----------
+const resumenLimite = computed(() => {
+  const gastoActual = calcularGastoTotalMes(movimientos.value, mesActual())
+  const limite = limiteMensual.value
+  const disponible = limite !== null ? limite - gastoActual : null
+  return { gastoActual, limite, disponible }
+})
+
+// Esto sirve para cambiar el limite mensual
+function dialogoCambiarLimite() {
+  dialogoLimite.value = {
+    texto: limiteMensual.value !== null ? dartNum(limiteMensual.value) : '',
+    gastoActual: calcularGastoTotalMes(movimientos.value, mesActual()),
+    error: null,
+    guardando: false,
+  }
+}
+
+async function guardarLimite() {
+  const dialogo = dialogoLimite.value
+  // Que no este vacio, sin letras y solo numeros
+  dialogo.error = validarMontoLimite(dialogo.texto)
+  // Verifica que no sea menor a lo ya gastado
+  if (!dialogo.error && esLimiteMenorAGasto(parseDouble(dialogo.texto), dialogo.gastoActual)) {
+    dialogo.error = `No puede ser menor a lo ya gastado "${dartNum(dialogo.gastoActual)} Bs"`
+  }
+  if (dialogo.error) return
+
+  dialogo.guardando = true
+  try {
+    await LimitesService.saveMonthLimit({ mes: mesActual(), limite: parseDouble(dialogo.texto) })
+    dialogoLimite.value = null
+    load()
+    cargarLimiteForm()
+    showSnackBar(`Límite actualizado a ${dartNum(parseDouble(dialogo.texto))} Bs`, 'var(--success-dark)')
+  } catch (e) {
+    dialogo.guardando = false
+    dialogo.error = e.message
+  }
+}
+
+async function validarSiExcedioLimiteMensual(monto) {
+  if (tipo.value !== 'gasto') return false
+
+  const limite = await LimitesService.getLimit(mesForm())
+  if (limite === null) return false
+
+  const gastoActual = gastoActualForm()
+
+  if (superaLimiteMensual({ gastoActualDelMes: gastoActual, nuevoGasto: monto, limite })) {
+    showSnackBar(
+      `No se puede registrar, porque supera tu límite mensual de ${dartNum(limite)} Bs (llevas gastando ${dartNum(gastoActual)} Bs)`,
+      'var(--error-default)',
+    )
+    return true // Se excedio
+  }
+
+  return false // No se excedio
+}
+
+function validarMonto() {
+  const texto = montoTexto.value
+  if (texto === '') return 'El campo no puede estar vacío'
+  const n = parseDouble(texto)
+  if (n === null) return 'Formato numérico inválido'
+  if (n <= 0) return 'El monto debe ser mayor a 0'
+  return null
+}
+
+async function save() {
+  if (guardando.value) return
+  montoError.value = validarMonto()
+  if (montoError.value) return
+  const monto = parseDouble(montoTexto.value) ?? 0
+
+  guardando.value = true
+  try {
+    const excede = await validarSiExcedioLimiteMensual(monto)
+    if (excede) return
+
+    const datos = {
+      tipo: tipo.value,
+      monto,
+      categoria: categoria.value,
+      fecha: fecha.value,
+      descripcion: descripcion.value.trim(),
+      // Solo un gasto se repite
+      recurrencia: tipo.value === 'gasto' && recurrencia.value ? recurrencia.value : null,
+    }
+    let mensaje
+    if (editingId.value === null) {
+      // Se esta creando uno
+      await MovementsService.create(datos)
+      mensaje = `${tipo.value === 'gasto' ? 'Gasto' : 'Ingreso'} registrado: ${dartNum(monto)} Bs`
+    } else {
+      // Se esta editando un movimiento existente
+      await MovementsService.update({ id: editingId.value, ...datos })
+      editingId.value = null
+      editingState.value = null
+      mensaje = 'Movimiento actualizado'
+    }
+
+    // Se vuelve a cargar la lista y se confirma lo que paso
+    await load()
+    formularioAbierto.value = false
+    montoTexto.value = ''
+    descripcion.value = ''
+    recurrencia.value = ''
+    showSnackBar(mensaje, 'var(--success-dark)')
+  } catch (e) {
+    showSnackBar(e.message, 'var(--error-default)')
+  } finally {
+    guardando.value = false
+  }
+}
+
+async function eliminar(id) {
+  eliminarId.value = null
+  try {
+    await MovementsService.delete(id)
+    load()
+    showSnackBar('Movimiento eliminado', 'var(--success-dark)')
+  } catch (e) {
+    showSnackBar(e.message, 'var(--error-default)')
+  }
+}
+
+function prepareEdition(m) {
+  editingId.value = m.id
+  montoTexto.value = String(m.monto)
+  descripcion.value = m.descripcion ?? ''
+  tipo.value = m.tipo
+  categoria.value = m.categoria
+  recurrencia.value = m.recurrencia ?? ''
+  fecha.value = parseFecha(m.fecha)
+  editingState.value = m.estado
+  montoError.value = null
+  cargarLimiteForm()
+  formularioAbierto.value = true
+}
+
+function nuevoMovimiento() {
+  editingId.value = null
+  editingState.value = null
+  montoTexto.value = ''
+  descripcion.value = ''
+  recurrencia.value = ''
+  montoError.value = null
+  fecha.value = new Date()
+  cargarLimiteForm()
+  formularioAbierto.value = true
+}
+
+function cancelarEdicion() {
+  editingId.value = null
+  editingState.value = null
+  montoTexto.value = ''
+  descripcion.value = ''
+  formularioAbierto.value = false
+}
+
+function fechaTexto(iso) {
+  const d = parseFecha(iso)
+  return `${d.getDate()} de ${MESES[d.getMonth()]}`
+}
+
+function fechaCorta(f) {
+  if (!f) return '?'
+  return `${f.getDate()}/${f.getMonth() + 1}/${f.getFullYear()}`
+}
+
+function abrirSelectorFecha() {
+  const input = inputFecha.value
+  if (!input) return
+  if (typeof input.showPicker === 'function') {
+    try {
+      input.showPicker()
+      return
+    } catch {
+      // algunos navegadores no lo permiten: se usa el campo directamente
+    }
+  }
+  input.focus()
+}
+
+function alCambiarFecha(evento) {
+  if (!evento.target.value) return
+  fecha.value = parseFecha(evento.target.value)
+  cargarLimiteForm()
+}
+
+async function cambiarEstado(m, confirmado = false) {
+  const siguiente = siguienteEstado(m.estado)
+  if (siguiente === null) return
+
+  // Cancelar es irreversible, se pide confirmacion antes
+  if (siguiente === 'cancelado' && !confirmado) {
+    cancelarMovimiento.value = m
+    return
+  }
+  cancelarMovimiento.value = null
+
+  try {
+    const respuesta = await MovementsService.cambiarEstado(m.id, siguiente)
+    load()
+    // Tarea 6: al pagar un gasto recurrente se genera el siguiente (o se avisa por que no)
+    if (respuesta?.siguiente) {
+      showSnackBar(
+        `Se generó el próximo gasto: ${fechaTexto(respuesta.siguiente.fecha)}`,
+        'var(--success-dark)',
+      )
+    } else if (respuesta?.aviso) {
+      showSnackBar(respuesta.aviso, 'var(--error-default)')
+    }
+  } catch (e) {
+    showSnackBar(e.message, 'var(--error-default)')
+  }
+}
+
+const estadoXColor = {
+  pendiente: 'var(--estado-pendiente)',
+  pagado: 'var(--estado-pagado)',
+  cancelado: 'var(--estado-cancelado)',
+}
+
+function montoLista(m) {
+  return `${m.tipo === 'gasto' ? '-' : '+'} ${Number(m.monto)} Bs`
+}
+
+// Tarea 6: "Se repite cada semana · próxima: 10 de noviembre" (la proxima solo mientras esta pendiente)
+function textoRecurrencia(m) {
+  if (!m.recurrencia) return null
+  const texto = `Se repite ${TEXTO_RECURRENCIA[m.recurrencia]}`
+  if (m.estado !== 'pendiente') return texto
+  return `${texto} · próxima: ${fechaTexto(fechaISO(siguienteFecha(parseFecha(m.fecha), m.recurrencia)))}`
+}
+
+function subtituloLista(m) {
+  const desc = m.descripcion ?? ''
+  return `${m.categoria} · ${fechaTexto(m.fecha)}${desc === '' ? '' : ` · ${desc}`}`
+}
+
+function alternarMenu(id) {
+  menuAbierto.value = menuAbierto.value === id ? null : id
+}
+</script>
+
+<template>
+  <AppScaffold titulo="Movimientos" con-drawer>
+    <template #acciones>
+      <button class="btn btn-outlined btn-small" @click="dialogoAyuda = true">
+        <AppIcon name="help" :size="18" />
+        Ayuda
+      </button>
+    </template>
+
+    <main class="movimientos">
+      <!-- Tarjeta resumen del limite -->
+      <section class="card resumen-limite">
+        <div class="resumen-texto">
+          <strong>
+            Gastado: {{ dartNum(resumenLimite.gastoActual) }} Bs / Límite:
+            {{ resumenLimite.limite !== null ? `${dartNum(resumenLimite.limite)} Bs` : 'Sin definir' }}
+          </strong>
+          <span
+            :style="{
+              color:
+                resumenLimite.disponible !== null && resumenLimite.disponible <= 0
+                  ? 'var(--error-default)'
+                  : 'var(--text-secondary)',
+            }"
+          >
+            {{
+              resumenLimite.limite !== null
+                ? `Disponible: ${dartNum(resumenLimite.disponible >= 0 ? resumenLimite.disponible : 0)} Bs`
+                : 'Define un limite para controlar tus gastos'
+            }}
+          </span>
+        </div>
+        <button class="btn btn-outlined btn-small" @click="dialogoCambiarLimite">
+          {{ resumenLimite.limite === null ? 'Definir' : 'Cambiar' }}
+        </button>
+        <button
+          class="icon-btn"
+          title="Presupuestos por Categoría"
+          aria-label="Presupuestos por Categoría"
+          @click="router.push('/presupuestos-categoria')"
+        >
+          <AppIcon name="pie_chart" filled color="var(--primary-base)" />
+        </button>
+      </section>
+
+      <!-- Panel de busqueda y filtros -->
+      <section class="filtros">
+        <form class="row" role="search" @submit.prevent="load">
+          <input
+            v-model="busqueda"
+            class="input"
+            type="search"
+            placeholder="Buscar por descripción"
+            aria-label="Buscar por descripción"
+            enterkeyhint="search"
+          />
+          <button type="submit" class="btn btn-elevated">Buscar</button>
+        </form>
+
+        <!-- Chips de acceso rápido para Tipo (el filtro MAS usado) -->
+        <div class="wrap">
+          <button
+            v-for="opcion in ['todos', 'gasto', 'ingreso']"
+            :key="opcion"
+            class="chip"
+            :class="{ selected: filtroTipo === opcion }"
+            :aria-pressed="filtroTipo === opcion"
+            @click="cambiarFiltro('tipo', opcion)"
+          >
+            <AppIcon v-if="filtroTipo === opcion" name="check" :size="18" />
+            {{ opcion === 'todos' ? 'Todos' : opcion === 'gasto' ? 'Gastos' : 'Ingresos' }}
+          </button>
+          <button
+            class="btn btn-outlined btn-small"
+            :aria-expanded="mostrarFiltrosPersonalizados"
+            @click="mostrarFiltrosPersonalizados = !mostrarFiltrosPersonalizados"
+          >
+            <AppIcon :name="mostrarFiltrosPersonalizados ? 'expand_less' : 'expand_more'" :size="18" />
+            Más filtros
+          </button>
+        </div>
+
+        <!-- Por defecto permanecen ocultos -->
+        <div v-if="mostrarFiltrosPersonalizados" class="filtros-extra">
+          <label class="field">
+            <span class="field-small-label">Categoría</span>
+            <select
+              class="select-inline"
+              :value="filtroCategoria"
+              @change="cambiarFiltro('categoria', $event.target.value)"
+            >
+              <option v-for="o in ['todos', ...CATEGORIAS]" :key="o" :value="o">{{ o }}</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-small-label">Período</span>
+            <select
+              class="select-inline"
+              :value="filtroPeriodo"
+              @change="cambiarPeriodo($event.target.value); $event.target.value = filtroPeriodo"
+            >
+              <option v-for="o in ['todos', 'este mes', 'mes pasado', 'rango']" :key="o" :value="o">
+                {{ o }}
+              </option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-small-label">Estado</span>
+            <select
+              class="select-inline"
+              :value="filtroEstado"
+              @change="cambiarFiltro('estado', $event.target.value)"
+            >
+              <option v-for="o in ['todos', 'pendiente', 'pagado', 'cancelado']" :key="o" :value="o">
+                {{ o }}
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <div v-if="chipsFiltros.length" class="wrap">
+          <span v-for="chip in chipsFiltros" :key="chip.texto" class="chip">
+            {{ chip.texto }}
+            <button class="chip-remove" :aria-label="`Quitar ${chip.texto}`" @click="quitarChip(chip)">
+              <AppIcon name="cancel" />
+            </button>
+          </span>
+        </div>
+        <p>{{ totalesTexto }}</p>
+      </section>
+
+      <!-- Lista de movimientos -->
+      <ul class="lista">
+        <!-- Cuenta sin movimientos: decir que hacer, no que la busqueda fallo -->
+        <li v-if="movimientos.length === 0" class="vacio">
+          Aún no tienes movimientos. Registra el primero con "Nuevo Movimiento".
+        </li>
+        <li v-else-if="movimientosFiltrados.length === 0" class="vacio">
+          No hay movimientos que coincidan con la búsqueda
+        </li>
+        <li v-for="m in movimientosFiltrados" :key="m.id" class="list-tile">
+          <div class="list-tile-main">
+            <div
+              class="monto"
+              :style="{ color: m.tipo === 'gasto' ? 'var(--error-dark)' : 'var(--success-dark)' }"
+            >
+              {{ montoLista(m) }}
+            </div>
+            <div class="list-tile-subtitle">{{ subtituloLista(m) }}</div>
+            <div v-if="m.recurrencia" class="list-tile-subtitle recurrente">
+              <AppIcon name="repeat" :size="16" />
+              {{ textoRecurrencia(m) }}
+            </div>
+          </div>
+          <button
+            class="btn btn-outlined btn-small estado"
+            :style="{ color: estadoXColor[m.estado], borderColor: estadoXColor[m.estado] }"
+            :title="siguienteEstado(m.estado) ? `Cambiar a ${siguienteEstado(m.estado)}` : 'Estado final'"
+            @click="cambiarEstado(m)"
+          >
+            {{ m.estado }}
+          </button>
+          <div class="menu-wrap">
+            <button
+              class="icon-btn"
+              title="Opciones"
+              aria-label="Opciones"
+              :aria-expanded="menuAbierto === m.id"
+              @click.stop="alternarMenu(m.id)"
+            >
+              <AppIcon name="more_vert" />
+            </button>
+            <div v-if="menuAbierto === m.id" class="menu" role="menu">
+              <button class="menu-item" role="menuitem" @click="prepareEdition(m)">
+                <AppIcon name="edit" :size="20" />
+                Editar
+              </button>
+              <button
+                class="menu-item"
+                role="menuitem"
+                style="color: var(--estado-cancelado)"
+                @click="eliminarId = m.id"
+              >
+                <AppIcon name="delete" :size="20" />
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </main>
+
+    <button class="fab" @click="nuevoMovimiento">
+      <AppIcon name="add" />
+      Nuevo Movimiento
+    </button>
+
+    <!-- Formulario de movimiento -->
+    <BottomSheet
+      v-if="formularioAbierto"
+      :titulo="editingId === null ? 'Nuevo gasto o ingreso' : 'Editar movimiento'"
+      @cerrar="formularioAbierto = false"
+    >
+      <form class="formulario stack" novalidate @submit.prevent="save">
+        <!-- Si editingId NO es nulo, mostramos este aviso -->
+        <div v-if="editingId !== null" class="row editando">
+          <strong>Edita este movimiento</strong>
+          <button type="button" class="btn btn-outlined btn-small" @click="cancelarEdicion">
+            Cancelar
+          </button>
+        </div>
+
+        <div class="form-opciones">
+          <select v-model="tipo" class="select-inline" aria-label="Tipo">
+            <option value="gasto">Gasto</option>
+            <option value="ingreso">Ingreso</option>
+          </select>
+          <select v-model="categoria" class="select-inline" aria-label="Categoría">
+            <option v-for="c in CATEGORIAS" :key="c" :value="c">{{ c }}</option>
+          </select>
+          <!-- Tarea 6: solo un gasto puede repetirse -->
+          <select v-if="tipo === 'gasto'" v-model="recurrencia" class="select-inline" aria-label="Repetir">
+            <option v-for="o in OPCIONES_RECURRENCIA" :key="o.valor" :value="o.valor">{{ o.texto }}</option>
+          </select>
+          <div class="row">
+            <span>{{ fechaTexto(fechaISO(fecha)) }}</span>
+            <span class="selector-fecha">
+              <button type="button" class="btn btn-outlined btn-small" @click="abrirSelectorFecha">
+                Cambiar fecha
+              </button>
+              <input
+                ref="inputFecha"
+                type="date"
+                class="input-fecha-oculto"
+                aria-label="Fecha del movimiento"
+                min="2020-01-01"
+                max="2100-12-31"
+                :value="fechaISO(fecha)"
+                @change="alCambiarFecha"
+              />
+            </span>
+          </div>
+        </div>
+
+        <p v-if="indicadorLimiteForm" class="indicador-limite">{{ indicadorLimiteForm }}</p>
+
+        <div class="field">
+          <input
+            v-model="montoTexto"
+            class="input"
+            :class="{ invalid: montoError }"
+            inputmode="decimal"
+            placeholder="Monto (Bs)"
+            aria-label="Monto (Bs)"
+            :disabled="!puedeEditarMonto(editingState ?? 'pendiente')"
+          />
+          <span v-if="montoError" class="field-error">{{ montoError }}</span>
+          <span v-if="avisoMontoExcedido" class="aviso-monto">{{ avisoMontoExcedido }}</span>
+        </div>
+
+        <input
+          v-model="descripcion"
+          class="input"
+          placeholder="Descripción (opcional)"
+          aria-label="Descripción (opcional)"
+        />
+
+        <p v-if="!puedeEditarMonto(editingState ?? 'pendiente')" class="aviso-pagado">
+          No es posible modificar el monto porque el movimiento ya fue pagado
+        </p>
+
+        <button type="submit" class="btn btn-elevated btn-block" :disabled="guardando">
+          <span v-if="guardando" class="spinner" aria-label="Guardando" />
+          <template v-else>Guardar</template>
+        </button>
+      </form>
+    </BottomSheet>
+
+    <!-- Dialogo del limite mensual -->
+    <AppDialog
+      v-if="dialogoLimite"
+      titulo="Límite mensual de gastos"
+      :dismissible="!dialogoLimite.guardando"
+      @cerrar="dialogoLimite = null"
+    >
+      <form id="form-limite" class="stack" novalidate @submit.prevent="guardarLimite">
+        <p>Gasto actual del mes: {{ dartNum(dialogoLimite.gastoActual) }} Bs</p>
+        <label class="field">
+          <span class="field-small-label">Nuevo límite</span>
+          <input
+            v-model="dialogoLimite.texto"
+            class="input"
+            :class="{ invalid: dialogoLimite.error }"
+            inputmode="decimal"
+            placeholder="Ej: 500"
+          />
+          <span v-if="dialogoLimite.error" class="field-error">{{ dialogoLimite.error }}</span>
+        </label>
+      </form>
+      <template #acciones>
+        <button
+          class="btn btn-outlined"
+          :disabled="dialogoLimite.guardando"
+          @click="dialogoLimite = null"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          form="form-limite"
+          class="btn btn-elevated"
+          :disabled="dialogoLimite.guardando"
+        >
+          <span v-if="dialogoLimite.guardando" class="spinner" aria-label="Guardando" />
+          <template v-else>Guardar</template>
+        </button>
+      </template>
+    </AppDialog>
+
+    <!-- Selector de rango de fechas -->
+    <AppDialog v-if="dialogoRango" titulo="Elige el rango de fechas" @cerrar="dialogoRango = null">
+      <div class="stack">
+        <label class="field">
+          <span class="field-small-label">Desde</span>
+          <input v-model="dialogoRango.desde" class="input" type="date" min="2020-01-01" max="2100-12-31" />
+        </label>
+        <label class="field">
+          <span class="field-small-label">Hasta</span>
+          <input v-model="dialogoRango.hasta" class="input" type="date" min="2020-01-01" max="2100-12-31" />
+        </label>
+        <span v-if="dialogoRango.error" class="field-error">{{ dialogoRango.error }}</span>
+      </div>
+      <template #acciones>
+        <button class="btn btn-outlined" @click="dialogoRango = null">Cancelar</button>
+        <button class="btn btn-elevated" @click="confirmarRango">Aplicar</button>
+      </template>
+    </AppDialog>
+
+    <!-- Confirmar eliminacion -->
+    <AppDialog
+      v-if="eliminarId"
+      titulo="Confirma que quieres eliminar este movimiento"
+      @cerrar="eliminarId = null"
+    >
+      <p>¿Estás seguro que quieres eliminar este movimiento?</p>
+      <template #acciones>
+        <button class="btn btn-outlined" @click="eliminarId = null">Cancelar</button>
+        <button class="btn btn-elevated" @click="eliminar(eliminarId)">Eliminar</button>
+      </template>
+    </AppDialog>
+
+    <!-- Confirmar cancelacion (irreversible) -->
+    <AppDialog
+      v-if="cancelarMovimiento"
+      titulo="Confirmar cancelacion"
+      @cerrar="cancelarMovimiento = null"
+    >
+      <p>¿Seguro que quieres cancelar este movimiento? Esta acción no se puede deshacer.</p>
+      <template #acciones>
+        <button class="btn btn-outlined" @click="cancelarMovimiento = null">Volver</button>
+        <button class="btn btn-elevated" @click="cambiarEstado(cancelarMovimiento, true)">
+          Cancelar movimiento
+        </button>
+      </template>
+    </AppDialog>
+
+    <!-- Ayuda -->
+    <AppDialog v-if="dialogoAyuda" @cerrar="dialogoAyuda = false">
+      <template #titulo>
+        <AppIcon name="help" color="var(--estado-pendiente)" />
+        Ayuda
+      </template>
+      <div class="ayuda">
+        <strong>Límite:</strong>
+        <p>
+          Este es el monto máximo que tienes planeado gastar en el mes, si intentaras registrar un
+          gasto que supere tu límite, la app lo bloqueará para cuidar tu presupuesto.
+        </p>
+        <strong>Gastos e Ingresos:</strong>
+        <p>
+          • Gasto: es el dinero que pagas o usas (transporte, comida, estudios, etc.), cada gasto
+          que anotas se descuenta de tu límite del mes.<br />
+          • Ingreso: dinero que recibes (mesada, sueldo, etc.) y no consume tu límite.
+        </p>
+        <strong class="ayuda-separada">Estados de los movimientos:</strong>
+        <p>
+          • Pendiente: movimiento registrado.<br />
+          • Pagado: dinero ya desembolsado (su monto no se puede cambiar).<br />
+          • Cancelado: movimiento anulado.
+        </p>
+      </div>
+      <template #acciones>
+        <button class="btn btn-outlined" @click="dialogoAyuda = false">Entendido</button>
+      </template>
+    </AppDialog>
+  </AppScaffold>
+</template>
+
+<style scoped>
+.movimientos {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 96px;
+}
+
+.resumen-limite {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin: var(--space-s) var(--space-m);
+  padding: 12px;
+}
+
+.resumen-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.filtros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+}
+
+.filtros-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-m);
+}
+
+.filtros-extra .field {
+  width: auto;
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vacio {
+  padding: var(--space-l);
+  text-align: center;
+}
+
+.monto {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.estado {
+  background: transparent;
+}
+
+.recurrente {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--estado-pendiente);
+}
+
+.menu-wrap {
+  position: relative;
+}
+
+.formulario {
+  padding: 20px;
+}
+
+.editando {
+  justify-content: space-between;
+  padding: var(--space-s);
+  color: #ff9800;
+}
+
+.form-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--space-s);
+}
+
+.selector-fecha {
+  position: relative;
+}
+
+.input-fecha-oculto {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.indicador-limite {
+  margin: 6px 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.aviso-monto {
+  font-size: 12px;
+  color: var(--error-default);
+}
+
+.aviso-pagado {
+  font-size: 12px;
+  color: var(--estado-cancelado);
+}
+
+.ayuda p {
+  margin-bottom: var(--space-xs);
+}
+
+.ayuda-separada {
+  display: block;
+  margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+  .resumen-limite {
+    flex-wrap: wrap;
+  }
+
+  .resumen-texto {
+    flex-basis: 100%;
+  }
+
+  .list-tile {
+    flex-wrap: wrap;
+  }
+}
+</style>

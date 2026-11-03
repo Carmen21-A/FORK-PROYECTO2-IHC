@@ -1,9 +1,0 @@
-server:
-  host: "localhost"
-  port: 3000 
-  # https: # esto hacer despues
-  #   cert-path: "/path/to/cert.pem" # Path <string> to your TLS certificate
-  #   cert-key-path: "/path/to/key.pem" # Path <string> to TLS certificate key
-  # proxy:
-  #   - target: "https://glgmxspheajpbutpmvxy.supabase.co/" # Base URL <string> of your backend
-  #     prefix: "/supabase/" # Path <string>

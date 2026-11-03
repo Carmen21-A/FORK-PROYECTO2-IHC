@@ -1,0 +1,639 @@
+/* Portado de lib/theme/app_theme.dart + los widgets de Material que usaba Flutter */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-body-small);
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--primary-400);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-400);
+  outline-offset: 2px;
+}
+
+.icon {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s);
+  min-height: 40px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: none;
+  font: inherit;
+  font-size: var(--text-body-medium);
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s, background-color 0.15s, box-shadow 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* ElevatedButton: fondo primaryBase y texto oscuro (el blanco no llegaba al contraste 4.5:1) */
+.btn-elevated {
+  background: var(--primary-base);
+  color: var(--primary-600);
+  box-shadow: var(--shadow);
+}
+
+.btn-elevated:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+/* OutlinedButton: borde primaryBase 1.5, radio 12 */
+.btn-outlined {
+  background: transparent;
+  color: var(--primary-400);
+  border: 1.5px solid var(--primary-base);
+  border-radius: 12px;
+}
+
+.btn-outlined:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-base) 10%, transparent);
+}
+
+.btn-text {
+  background: transparent;
+  color: var(--primary-400);
+  padding: 8px 12px;
+}
+
+.btn-text:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-base) 10%, transparent);
+}
+
+.btn-danger {
+  background: var(--error-default);
+  color: var(--text-inverse);
+}
+
+.btn-block {
+  width: 100%;
+  min-height: 52px;
+}
+
+.btn-small {
+  min-height: 34px;
+  padding: 4px 14px;
+  font-size: var(--text-caption);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  /* 44px: area tactil minima (Fitts) */
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: rgb(0 0 0 / 0.06);
+}
+
+/* ---------- Campos de texto (InputDecorationTheme) ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.field-label {
+  font-size: var(--text-body-large);
+  font-weight: 700;
+}
+
+.field-small-label {
+  font-size: var(--text-micro);
+  /* gray-300 no llegaba al contraste 4.5:1 */
+  color: var(--gray-base);
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  background: var(--surface-container);
+  font: inherit;
+  color: var(--text-base);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border: 2px solid var(--primary-base);
+  padding: 11px 15px;
+}
+
+.input:disabled {
+  background: #f3f3f3;
+  color: var(--text-disabled);
+}
+
+.input.has-suffix {
+  padding-right: 52px;
+}
+
+.input.has-prefix {
+  padding-left: 48px;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 16px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.input-prefix-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 6px;
+}
+
+.input.invalid {
+  border-color: var(--error-default);
+}
+
+.field-error {
+  color: var(--error-dark);
+  font-size: var(--text-micro);
+}
+
+.select-inline {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 1px solid var(--gray-300);
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+}
+
+/* ---------- Estructura de pantalla (Scaffold + AppBar) ---------- */
+.scaffold {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  min-height: 64px;
+  padding: 0 var(--space-s);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.app-bar.primary {
+  background: var(--primary-base);
+  /* texto oscuro, igual que .btn-elevated: el blanco sobre naranja no se lee */
+  color: var(--primary-600);
+  box-shadow: var(--shadow);
+}
+
+.app-bar-title {
+  flex: 1;
+  font-size: 22px;
+  font-weight: 400;
+  margin-left: var(--space-s);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-l);
+}
+
+.page.centered {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 520px;
+}
+
+/* ---------- Drawer ---------- */
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 41;
+  width: min(304px, 85vw);
+  overflow-y: auto;
+  background: #ffffff;
+  box-shadow: var(--shadow-lg);
+  border-radius: 0 16px 16px 0;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: flex-end;
+  height: 160px;
+  padding: var(--space-m);
+  background: var(--primary-base);
+  color: var(--text-inverse);
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  width: 100%;
+  min-height: 56px;
+  padding: 0 var(--space-m);
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.drawer-item:hover {
+  background: rgb(0 0 0 / 0.05);
+}
+
+.drawer-item .icon {
+  color: var(--gray-500);
+}
+
+.divider {
+  height: 1px;
+  margin: var(--space-s) 0;
+  border: none;
+  background: var(--gray-100);
+}
+
+/* ---------- Tarjetas, chips y listas ---------- */
+.card {
+  background: var(--surface-container);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.chip.selected {
+  border-color: transparent;
+  background: var(--primary-100);
+  color: var(--primary-600);
+}
+
+.chip .chip-remove {
+  display: inline-grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.chip .chip-remove .icon {
+  font-size: 18px;
+}
+
+.list-tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: 10px var(--space-m);
+}
+
+.list-tile.clickable {
+  cursor: pointer;
+}
+
+.list-tile.clickable:hover {
+  background: rgb(0 0 0 / 0.04);
+}
+
+.list-tile-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-tile-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------- Barra de progreso (LinearProgressIndicator) ---------- */
+.progress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--gray-100);
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.3s;
+}
+
+/* ---------- Spinner (CircularProgressIndicator) ---------- */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+.spinner.large {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+  color: var(--primary-base);
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Boton flotante (FloatingActionButton.extended) ---------- */
+.fab {
+  position: fixed;
+  right: var(--space-m);
+  bottom: var(--space-m);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-s);
+  min-height: 56px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 16px;
+  background: var(--primary-100);
+  color: var(--primary-600);
+  font: inherit;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+}
+
+/* ---------- Dialogos y hojas inferiores ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-m);
+  background: rgb(0 0 0 / 0.45);
+}
+
+.overlay.bottom {
+  place-items: end center;
+  padding: 0;
+}
+
+.dialog {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: var(--space-l);
+  border-radius: 28px;
+  background: var(--surface-container);
+  box-shadow: var(--shadow-lg);
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin-bottom: var(--space-m);
+  font-size: var(--text-subtitle);
+  font-weight: 400;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-s);
+  margin-top: var(--space-l);
+}
+
+.sheet {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 28px 28px 0 0;
+  background: var(--surface-container);
+  box-shadow: var(--shadow-lg);
+}
+
+.sheet-handle {
+  width: 32px;
+  height: 4px;
+  margin: 12px auto 0;
+  border-radius: 2px;
+  background: var(--gray-200);
+}
+
+/* ---------- Snackbar ---------- */
+.snackbar-host {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-m);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  width: min(560px, calc(100% - 32px));
+  transform: translateX(-50%);
+}
+
+.snackbar {
+  padding: 14px 16px;
+  border-radius: 4px;
+  background: #323232;
+  color: #ffffff;
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-caption);
+}
+
+/* ---------- Menu emergente (PopupMenuButton) ---------- */
+.menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 30;
+  min-width: 160px;
+  padding: var(--space-s) 0;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: var(--shadow-lg);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  width: 100%;
+  padding: 12px var(--space-m);
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: rgb(0 0 0 / 0.05);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: var(--space-m);
+  }
+}
