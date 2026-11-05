@@ -86,7 +86,10 @@ test.describe('Buscar y filtrar', () => {
     await expect(filaDe(page, 'Pasaje de micro')).toBeVisible()
     await expect(page.getByText('Mesada')).toHaveCount(0)
 
-    await page.getByRole('button', { name: 'Quitar Buscar: Pasaje' }).click()
+    // Puede limpiar con el boton "Limpiar" de la barra de busqueda
+    await page.getByRole('button', { name: 'Limpiar', exact: true }).click()
+    await expect(filaDe(page, 'Mesada')).toBeVisible()
+
     await page.getByRole('button', { name: 'Ingresos' }).click()
     await expect(filaDe(page, 'Mesada')).toBeVisible()
     await expect(page.getByText('Pasaje de micro')).toHaveCount(0)
@@ -97,9 +100,10 @@ test.describe('Buscar y filtrar', () => {
     await page.getByLabel('Buscar por descripción').fill('zapatos')
     await page.getByRole('button', { name: 'Buscar', exact: true }).click()
 
-    // Vacio: mensaje y accion
+    // Vacio: mensaje y accion de restauracion directa
     await expect(page.getByText('No hay movimientos que coincidan con la búsqueda')).toBeVisible()
-    await page.getByRole('button', { name: 'Quitar Buscar: zapatos' }).click()
+    await expect(page.getByRole('button', { name: 'Limpiar búsqueda' })).toBeVisible()
+    await page.getByRole('button', { name: 'Limpiar búsqueda' }).click()
     await expect(filaDe(page, 'Pasaje de micro')).toBeVisible()
   })
 })

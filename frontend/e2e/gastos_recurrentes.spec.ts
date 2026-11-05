@@ -37,7 +37,7 @@ async function registrarGastoRecurrente(page: Page, monto: string, repetir: 'Cad
 }
 
 // La fila del gasto "Pensión" de una fecha (hay una por cada ocurrencia)
-const pension = (page: Page, fecha: Date) => filaDe(page, `Comida · ${texto(fecha)} · Pensión`)
+const pension = (page: Page, fecha: Date) => filaDe(page, `Categoría: Comida · ${texto(fecha)} · Descripción: Pensión`)
 
 // ============================================================================
 // CAMINO FELIZ

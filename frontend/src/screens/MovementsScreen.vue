@@ -240,6 +240,22 @@ function quitarChip(chip) {
   load()
 }
 
+function limpiarSoloBusqueda() {
+  busqueda.value = ''
+  load()
+}
+
+function limpiarBusqueda() {
+  busqueda.value = ''
+  filtroTipo.value = 'todos'
+  filtroCategoria.value = 'todos'
+  filtroPeriodo.value = 'todos'
+  filtroEstado.value = 'todos'
+  rangoDesde.value = null
+  rangoHasta.value = null
+  load()
+}
+
 const totalesTexto = computed(
   () =>
     `Total gastos: ${dartNum(calcularTotalGastos(movimientosFiltrados.value))} Bs · ` +
@@ -540,16 +556,37 @@ function alternarMenu(id) {
 
       <!-- Panel de busqueda y filtros -->
       <section class="filtros">
-        <form class="row" role="search" @submit.prevent="load">
-          <input
-            v-model="busqueda"
-            class="input"
-            type="search"
-            placeholder="Buscar por descripción"
-            aria-label="Buscar por descripción"
-            enterkeyhint="search"
-          />
+        <form class="row form-busqueda" role="search" @submit.prevent="load">
+          <div class="input-busqueda-wrapper">
+            <input
+              v-model="busqueda"
+              class="input input-busqueda"
+              type="search"
+              placeholder="Buscar por descripción"
+              aria-label="Buscar por descripción"
+              enterkeyhint="search"
+            />
+            <button
+              v-if="busqueda.trim() !== ''"
+              type="button"
+              class="btn-limpiar-input"
+              title="Borrar texto de búsqueda"
+              aria-label="Borrar texto"
+              @click="limpiarSoloBusqueda"
+            >
+              <AppIcon name="close" :size="18" />
+            </button>
+          </div>
           <button type="submit" class="btn btn-elevated">Buscar</button>
+          <button
+            v-if="busqueda.trim() !== ''"
+            type="button"
+            class="btn btn-outlined"
+            title="Limpiar búsqueda"
+            @click="limpiarSoloBusqueda"
+          >
+            Limpiar
+          </button>
         </form>
 
         <!-- Chips de acceso rápido para Tipo (el filtro MAS usado) -->
@@ -630,8 +667,16 @@ function alternarMenu(id) {
         <li v-if="movimientos.length === 0" class="vacio">
           Aún no tienes movimientos. Registra el primero con "Nuevo Movimiento".
         </li>
-        <li v-else-if="movimientosFiltrados.length === 0" class="vacio">
-          No hay movimientos que coincidan con la búsqueda
+        <li v-else-if="movimientosFiltrados.length === 0" class="vacio vacio-accion">
+          <p>No hay movimientos que coincidan con la búsqueda</p>
+          <button
+            type="button"
+            class="btn btn-outlined btn-small"
+            @click="limpiarBusqueda"
+          >
+            <AppIcon name="close" :size="16" />
+            Limpiar búsqueda
+          </button>
         </li>
         <li v-for="m in movimientosFiltrados" :key="m.id" class="list-tile">
           <div class="list-tile-main">
@@ -641,7 +686,7 @@ function alternarMenu(id) {
             >
               {{ montoLista(m) }}
             </div>
-            <div class="list-tile-subtitle">{{ subtituloLista(m) }}</div>
+            <div class="list-tile-subtitle meta-movimiento"><span class="badge-cat"><span class="meta-label">Categoría:</span> {{ m.categoria }}</span> · {{ fechaTexto(m.fecha) }}<template v-if="m.descripcion"> · <span class="badge-desc"><span class="meta-label">Descripción:</span> {{ m.descripcion }}</span></template></div>
             <div v-if="m.recurrencia" class="list-tile-subtitle recurrente">
               <AppIcon name="repeat" :size="16" />
               {{ textoRecurrencia(m) }}
@@ -930,6 +975,84 @@ function alternarMenu(id) {
   width: auto;
 }
 
+.form-busqueda {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.input-busqueda-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.input-busqueda-wrapper .input {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.btn-limpiar-input {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: 50%;
+}
+
+.btn-limpiar-input:hover {
+  background: var(--surface-container-high);
+  color: var(--text-primary);
+}
+
+.meta-movimiento {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.badge-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.meta-label {
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.meta-sep {
+  color: #334155;
+}
+
+.badge-desc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
 .lista {
   margin: 0;
   padding: 0;
@@ -939,6 +1062,18 @@ function alternarMenu(id) {
 .vacio {
   padding: var(--space-l);
   text-align: center;
+}
+
+.vacio-accion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.vacio-accion p {
+  margin: 0;
+  color: var(--text-secondary);
 }
 
 .monto {
