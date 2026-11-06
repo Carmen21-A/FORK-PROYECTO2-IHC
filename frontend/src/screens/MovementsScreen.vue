@@ -51,6 +51,32 @@ const mostrarFiltrosPersonalizados = ref(false)
 const rangoDesde = ref(null)
 const rangoHasta = ref(null)
 
+// ---------- Pestañas de Intención (Arquitectura de Información - Clase 20) ----------
+const pestanaActiva = ref('todos')
+
+const gastosPendientes = computed(() =>
+  movimientos.value.filter((m) => m.tipo === 'gasto' && m.estado === 'pendiente'),
+)
+const contadorPendientes = computed(() => gastosPendientes.value.length)
+const totalPorPagar = computed(() =>
+  gastosPendientes.value.reduce((acc, m) => acc + Number(m.monto), 0),
+)
+
+const movimientosAMostrar = computed(() => {
+  if (pestanaActiva.value === 'por_pagar') {
+    return gastosPendientes.value
+  }
+  return movimientosFiltrados.value
+})
+
+function cambiarPestana(p) {
+  if (p === 'presupuestos') {
+    router.push('/presupuestos-categoria')
+    return
+  }
+  pestanaActiva.value = p
+}
+
 // ---------- Dialogos ----------
 const formularioAbierto = ref(false)
 const dialogoAyuda = ref(false)
@@ -519,8 +545,65 @@ function alternarMenu(id) {
     </template>
 
     <main class="movimientos">
+      <!-- Navegación por Intención (Arquitectura de Información - Clase 20) -->
+      <nav class="tabs-arquitectura" role="tablist" aria-label="Navegación por intención">
+        <button
+          type="button"
+          role="tab"
+          class="tab-item"
+          :class="{ activa: pestanaActiva === 'todos' }"
+          :aria-selected="pestanaActiva === 'todos'"
+          @click="cambiarPestana('todos')"
+        >
+          <AppIcon name="receipt_long" :size="18" />
+          <span>Todos los movimientos</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="tab-item"
+          :class="{ activa: pestanaActiva === 'por_pagar' }"
+          :aria-selected="pestanaActiva === 'por_pagar'"
+          @click="cambiarPestana('por_pagar')"
+        >
+          <AppIcon name="schedule" :size="18" />
+          <span>Por pagar</span>
+          <span v-if="contadorPendientes > 0" class="tab-badge">{{ contadorPendientes }}</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="tab-item"
+          :class="{ activa: pestanaActiva === 'presupuestos' }"
+          :aria-selected="pestanaActiva === 'presupuestos'"
+          @click="cambiarPestana('presupuestos')"
+        >
+          <AppIcon name="pie_chart" :size="18" />
+          <span>Presupuestos</span>
+        </button>
+      </nav>
+
+      <!-- Tarjeta específica cuando la intención es "Por pagar" -->
+      <section v-if="pestanaActiva === 'por_pagar'" class="card resumen-por-pagar">
+        <div class="resumen-por-pagar-icono">
+          <AppIcon name="schedule" :size="32" color="var(--estado-pendiente)" />
+        </div>
+        <div class="resumen-por-pagar-texto">
+          <strong>Por pagar este mes: {{ dartNum(totalPorPagar) }} Bs</strong>
+          <span>
+            {{
+              contadorPendientes === 0
+                ? 'No tienes pagos pendientes acumulados'
+                : `${contadorPendientes} ${contadorPendientes === 1 ? 'gasto pendiente' : 'gastos pendientes'} por saldar`
+            }}
+          </span>
+        </div>
+      </section>
+
       <!-- Tarjeta resumen del limite -->
-      <section class="card resumen-limite">
+      <section v-if="pestanaActiva === 'todos'" class="card resumen-limite">
         <div class="resumen-texto">
           <strong>
             Gastado: {{ dartNum(resumenLimite.gastoActual) }} Bs / Límite:
@@ -555,7 +638,7 @@ function alternarMenu(id) {
       </section>
 
       <!-- Panel de busqueda y filtros -->
-      <section class="filtros">
+      <section v-if="pestanaActiva === 'todos'" class="filtros">
         <form class="row form-busqueda" role="search" @submit.prevent="load">
           <div class="input-busqueda-wrapper">
             <input
@@ -663,11 +746,14 @@ function alternarMenu(id) {
 
       <!-- Lista de movimientos -->
       <ul class="lista">
+        <li v-if="pestanaActiva === 'por_pagar' && movimientosAMostrar.length === 0" class="vacio">
+          🎉 ¡Excelente! No tienes pagos pendientes por saldar este mes.
+        </li>
         <!-- Cuenta sin movimientos: decir que hacer, no que la busqueda fallo -->
-        <li v-if="movimientos.length === 0" class="vacio">
+        <li v-else-if="pestanaActiva === 'todos' && movimientos.length === 0" class="vacio">
           Aún no tienes movimientos. Registra el primero con "Nuevo Movimiento".
         </li>
-        <li v-else-if="movimientosFiltrados.length === 0" class="vacio vacio-accion">
+        <li v-else-if="pestanaActiva === 'todos' && movimientosFiltrados.length === 0" class="vacio vacio-accion">
           <p>No hay movimientos que coincidan con la búsqueda</p>
           <button
             type="button"
@@ -678,7 +764,7 @@ function alternarMenu(id) {
             Limpiar búsqueda
           </button>
         </li>
-        <li v-for="m in movimientosFiltrados" :key="m.id" class="list-tile">
+        <li v-for="m in movimientosAMostrar" :key="m.id" class="list-tile">
           <div class="list-tile-main">
             <div
               class="monto"
@@ -1163,5 +1249,106 @@ function alternarMenu(id) {
   .list-tile {
     flex-wrap: wrap;
   }
+}
+
+/* ---------- Navegación por Intención (Arquitectura de Información - Clase 20) ---------- */
+.tabs-arquitectura {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 6px;
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--gray-200, #e2e8f0);
+  border-radius: 12px;
+  margin-bottom: var(--space-m);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.tab-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, #64748b);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-item:hover {
+  background: rgba(237, 165, 88, 0.12);
+  color: var(--text-primary, #1e293b);
+}
+
+.tab-item.activa {
+  background: var(--primary-base, #eda558);
+  color: #1a0e04;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--estado-pendiente, #1565c0);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tab-item.activa .tab-badge {
+  background: #1a0e04;
+  color: #ffffff;
+}
+
+/* Tarjeta resumen específica de la intención "Por pagar" */
+.resumen-por-pagar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-m);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  margin-bottom: var(--space-m);
+}
+
+.resumen-por-pagar-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #dbeafe;
+  flex-shrink: 0;
+}
+
+.resumen-por-pagar-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resumen-por-pagar-texto strong {
+  font-size: 16px;
+  color: #1e3a8a;
+}
+
+.resumen-por-pagar-texto span {
+  font-size: 13px;
+  color: #3b82f6;
+  font-weight: 500;
 }
 </style>
