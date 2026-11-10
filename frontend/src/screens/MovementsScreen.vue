@@ -74,6 +74,10 @@ function cambiarPestana(p) {
     router.push('/presupuestos-categoria')
     return
   }
+  if (p === 'metas') {
+    router.push('/metas')
+    return
+  }
   pestanaActiva.value = p
 }
 
@@ -582,6 +586,18 @@ function alternarMenu(id) {
         >
           <AppIcon name="pie_chart" :size="18" />
           <span>Presupuestos</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="tab-item"
+          :class="{ activa: pestanaActiva === 'metas' }"
+          :aria-selected="pestanaActiva === 'metas'"
+          @click="cambiarPestana('metas')"
+        >
+          <AppIcon name="savings" :size="18" />
+          <span>Metas</span>
         </button>
       </nav>
 

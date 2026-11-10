@@ -9,12 +9,14 @@ import HistoryScreen from '../screens/HistoryScreen.vue'
 import ChangePasswordScreen from '../screens/ChangePasswordScreen.vue'
 import ResetPasswordScreen from '../screens/ResetPasswordScreen.vue'
 import PresupuestoCategoriaScreen from '../screens/PresupuestoCategoriaScreen.vue'
+import MetasScreen from '../screens/MetasScreen.vue'
 
 export const privateRoutes = [
   '/movements',
   '/change-password',
   '/history',
   '/presupuestos-categoria',
+  '/metas',
 ]
 export const publicRoutes = ['/', '/login', '/register', '/reset-password']
 
@@ -28,6 +30,8 @@ export const appRouter = createRouter({
     { path: '/movements', component: MovementsScreen },
     /// Ruta de navegación para el presupuesto mensual por categoría
     { path: '/presupuestos-categoria', component: PresupuestoCategoriaScreen },
+    /// Ruta de navegación para metas de ahorro y fondos disponibles (Tarea 8)
+    { path: '/metas', component: MetasScreen },
     { path: '/history', component: HistoryScreen },
     { path: '/reset-password', component: ResetPasswordScreen },
     { path: '/:pathMatch(.*)*', redirect: '/' },

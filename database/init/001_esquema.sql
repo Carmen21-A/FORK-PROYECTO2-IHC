@@ -89,3 +89,19 @@ CREATE TABLE IF NOT EXISTS recuperaciones_password (
     used_at TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS ix_recuperaciones_password_user_id ON recuperaciones_password (user_id);
+
+-- Metas de Ahorro con Fondos Disponibles (Tarea 8)
+CREATE TABLE IF NOT EXISTS metas_ahorro (  -- crea la tabla de metas de ahorro si no existe
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- identificador único generado automáticamente
+    user_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,  -- dueño de la meta, si se borra el usuario se borran sus metas
+    nombre VARCHAR(100) NOT NULL,  -- nombre de la meta
+    monto_objetivo NUMERIC(12, 2) NOT NULL,  -- monto que se quiere alcanzar
+    monto_ahorrado NUMERIC(12, 2) NOT NULL DEFAULT 0,  -- dinero reservado en la meta, empieza en 0
+    fecha_limite DATE NOT NULL,  -- fecha límite para cumplir la meta
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),  -- fecha y hora de creación
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),  -- fecha y hora de la última modificación
+    CONSTRAINT ck_metas_objetivo CHECK (monto_objetivo > 0),  -- el objetivo debe ser mayor a cero
+    CONSTRAINT ck_metas_ahorrado CHECK (monto_ahorrado >= 0)  -- lo ahorrado nunca puede ser negativo
+);  -- fin de la tabla metas_ahorro
+CREATE INDEX IF NOT EXISTS ix_metas_ahorro_user_id ON metas_ahorro (user_id);  -- índice para buscar rápido las metas de un usuario
+CREATE INDEX IF NOT EXISTS idx_metas_ahorro_user_fecha ON metas_ahorro (user_id, fecha_limite);  -- índice para buscar metas de un usuario por fecha límite

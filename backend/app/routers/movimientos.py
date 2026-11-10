@@ -11,10 +11,12 @@ from app.dependencias import usuario_actual  # importa dependencia para validar 
 from app.logica.estado_movimiento import es_transicion_valida, puede_editar_monto  # importa validaciones de transiciones de estado y edición
 from app.logica.historial import armar_detalle_evento  # importa generador de texto descriptivo para el historial
 from app.logica.limite_mensual import supera_limite_mensual  # importa regla de validación de tope mensual de gastos
+from app.logica.metas import validar_reservas_intactas  # importa la regla que protege el dinero apartado en metas (Tarea 8)
 from app.logica.recurrencia import TEXTO_RECURRENCIA, siguiente_fecha  # importa mapeo de texto y función de próxima fecha recurrente
 from app.models import Movimiento, Usuario  # importa modelos de tabla Movimiento y Usuario
 from app.routers.historial import registrar_evento  # importa función para guardar eventos en el historial
 from app.routers.limites import calcular_gasto_total_mes, get_limit  # importa funciones para calcular gastos acumulados y consultar límites
+from app.routers.metas import obtener_saldo_calculado  # importa el cálculo de saldo disponible y fondos reservados (Tarea 8)
 from app.schemas import CambioEstado, EstadoCambiado, MovimientoRead, MovimientoWrite  # importa esquemas de datos Pydantic
 
 router = APIRouter(prefix="/movimientos", tags=["movimientos"])  # define el router de movimientos con prefijo /movimientos
@@ -29,6 +31,20 @@ def _detalle(payload: MovimientoWrite) -> str:  # función auxiliar que formatea
         categoria=payload.categoria,  # pasa la categoría asignada
         descripcion=payload.descripcion,  # pasa la descripción del movimiento
     )  # fin de armar_detalle_evento
+
+
+def _saldo_disponible(db: Session, usuario: Usuario):  # devuelve el saldo disponible actual (ingresos - gastos - fondos en metas)
+    return obtener_saldo_calculado(db, usuario.id)[4]  # el quinto valor de la tupla es el saldo disponible
+
+
+def _proteger_fondos_de_metas(db: Session, usuario: Usuario, disponible_antes) -> None:  # Tarea 8: impide gastar dinero reservado en metas
+    db.flush()  # envía el cambio pendiente a la base para recalcular el saldo con él incluido
+    _, _, _, reservados, disponible_despues = obtener_saldo_calculado(db, usuario.id)  # recalcula el saldo después del cambio
+    try:  # aplica la regla de negocio pura
+        validar_reservas_intactas(disponible_antes, disponible_despues, reservados)  # falla si el cambio toca dinero reservado
+    except ValueError as e:  # si la regla rechaza la operación
+        db.rollback()  # descarta el cambio: el movimiento y las metas quedan como estaban
+        raise HTTPException(status_code=409, detail=str(e))  # informa al usuario el motivo del rechazo
 
 
 def _buscar_propio(db: Session, usuario: Usuario, movimiento_id: UUID) -> Movimiento:  # función auxiliar para buscar un movimiento que pertenezca al usuario
@@ -184,6 +200,7 @@ def update(  # función controladora para actualizar los datos de un movimiento
             detail="No es posible modificar el monto porque el movimiento ya fue pagado",  # detalle de la regla
         )  # fin de raise
     _validar_limite_mensual(db, usuario, payload, excluir_id=movimiento.id)  # valida el límite del mes excluyendo el monto anterior del mismo movimiento
+    disponible_antes = _saldo_disponible(db, usuario)  # Tarea 8: saldo disponible antes de editar
 
     movimiento.tipo = payload.tipo  # actualiza el tipo
     movimiento.monto = payload.monto  # actualiza el monto
@@ -191,6 +208,7 @@ def update(  # función controladora para actualizar los datos de un movimiento
     movimiento.descripcion = payload.descripcion.strip()  # actualiza la descripción limpia
     movimiento.fecha = payload.fecha  # actualiza la fecha
     movimiento.recurrencia = _recurrencia(payload)  # actualiza la recurrencia permitida
+    _proteger_fondos_de_metas(db, usuario, disponible_antes)  # Tarea 8: p. ej. convertir un ingreso pagado en gasto no puede tocar las metas
     registrar_evento(db, usuario.id, "editado", _detalle(payload), movimiento.id)  # registra el evento de edición en el historial
     db.commit()  # guarda los cambios en la base de datos
     return movimiento  # retorna el movimiento actualizado
@@ -209,7 +227,9 @@ def cambiar_estado(  # función controladora para transicionar el estado (pendie
             status_code=409,  # código 409
             detail=f"No se puede pasar de {movimiento.estado} a {payload.estado}.",  # mensaje explicativo
         )  # fin de raise
+    disponible_antes = _saldo_disponible(db, usuario)  # Tarea 8: saldo disponible antes del cambio de estado
     movimiento.estado = payload.estado  # asigna el nuevo estado al movimiento
+    _proteger_fondos_de_metas(db, usuario, disponible_antes)  # Tarea 8: pagar un gasto o cancelar un ingreso no puede usar dinero de metas
     registrar_evento(  # guarda en el historial el cambio de estado realizado
         db, usuario.id, "cambio_estado", f"Estado cambiado a {payload.estado}", movimiento.id  # datos del evento
     )  # fin de registrar_evento
@@ -245,5 +265,7 @@ def delete(  # función controladora para eliminar un movimiento
         ),  # fin de armar_detalle_evento
         movimiento.id,  # conserva el id del movimiento borrado en la bitácora
     )  # fin de registrar_evento
+    disponible_antes = _saldo_disponible(db, usuario)  # Tarea 8: saldo disponible antes de eliminar
     db.delete(movimiento)  # elimina el registro de la tabla movimientos
+    _proteger_fondos_de_metas(db, usuario, disponible_antes)  # Tarea 8: eliminar un ingreso pagado no puede dejar las metas sin respaldo
     db.commit()  # confirma la eliminación en la base de datos

@@ -33,6 +33,10 @@ async function cerrarSesion() {
         <AppIcon name="list_alt" />
         Movimientos
       </button>
+      <button class="drawer-item" @click="ir('/metas')">
+        <AppIcon name="savings" />
+        Metas de Ahorro
+      </button>
       <button class="drawer-item" @click="ir('/presupuestos-categoria')">
         <AppIcon name="pie_chart" filled />
         Presupuesto por Categoría

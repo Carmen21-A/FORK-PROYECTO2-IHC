@@ -123,3 +123,26 @@ class RecuperacionPassword(Base):  # modelo que almacena tokens para recuperar c
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)  # hash SHA256 del token enviado por correo
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # fecha y hora límite de validez del enlace
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # fecha y hora en la que se usó el enlace
+
+
+# Tarea 8: Metas de Ahorro con fondos disponibles
+class MetaAhorro(Base):  # modelo que representa una meta de ahorro del usuario
+    __tablename__ = "metas_ahorro"  # nombre de la tabla en la base de datos
+    __table_args__ = (  # restricciones a nivel de tabla
+        CheckConstraint("monto_objetivo > 0", name="ck_metas_objetivo"),  # el objetivo debe ser mayor a cero
+        CheckConstraint("monto_ahorrado >= 0", name="ck_metas_ahorrado"),  # lo ahorrado nunca puede ser negativo
+    )  # fin de restricciones
+
+    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)  # identificador único de la meta
+    user_id: Mapped[UUID] = mapped_column(  # dueño de la meta
+        Uuid(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), index=True  # referencia al usuario; si se borra el usuario se borran sus metas
+    )  # fin de user_id
+    nombre: Mapped[str] = mapped_column(String(100))  # nombre de la meta (máximo 100 caracteres)
+    monto_objetivo: Mapped[Decimal] = mapped_column(Numeric(12, 2))  # monto que se quiere alcanzar
+    monto_ahorrado: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0.00"))  # dinero reservado en la meta (empieza en 0)
+    fecha_limite: Mapped[date] = mapped_column(Date)  # fecha hasta la que se quiere cumplir la meta
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)  # fecha y hora de creación
+    updated_at: Mapped[datetime] = mapped_column(  # fecha y hora de la última modificación
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now  # se actualiza sola cada vez que cambia la meta
+    )  # fin de updated_at
+

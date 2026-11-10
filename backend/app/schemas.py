@@ -107,3 +107,47 @@ class HistorialRead(BaseModel):  # esquema de lectura para eventos del historial
     detalle: str  # texto descriptivo del evento
     created_at: datetime  # fecha y hora en la que ocurrió el evento
     model_config = ConfigDict(from_attributes=True)  # lectura directa desde atributos del ORM
+
+
+# ---------- Tarea 8: Metas de Ahorro y Fondos Disponibles ----------
+class MetaWrite(BaseModel):  # esquema de entrada para crear una meta
+    nombre: str = Field(min_length=1, max_length=100)  # nombre obligatorio de 1 a 100 caracteres
+    monto_objetivo: Decimal = Field(gt=0, max_digits=12)  # objetivo mayor a cero
+    fecha_limite: date  # fecha límite obligatoria
+
+
+class MetaUpdate(BaseModel):  # esquema de entrada para editar una meta (todos los campos opcionales)
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)  # nuevo nombre, si se envía
+    monto_objetivo: Decimal | None = Field(default=None, gt=0, max_digits=12)  # nuevo objetivo, si se envía
+    fecha_limite: date | None = None  # nueva fecha límite, si se envía
+
+
+class MetaRead(BaseModel):  # esquema de salida con los datos de una meta
+    id: UUID  # identificador de la meta
+    user_id: UUID  # dueño de la meta
+    nombre: str  # nombre de la meta
+    monto_objetivo: float  # monto que se quiere alcanzar
+    monto_ahorrado: float  # dinero reservado en la meta
+    fecha_limite: date  # fecha límite
+    porcentaje: float = 0.0  # porcentaje de avance calculado
+    cumplida: bool = False  # indica si ya se alcanzó el objetivo
+    created_at: datetime  # fecha y hora de creación
+    model_config = ConfigDict(from_attributes=True)  # permite leer directamente desde objetos del ORM
+
+
+class MontoOperacion(BaseModel):  # esquema de entrada para asignar o retirar fondos
+    monto: Decimal = Field(gt=0, max_digits=12)  # monto mayor a cero
+
+
+class TransferenciaMetas(BaseModel):  # esquema de entrada para transferir entre metas
+    meta_destino_id: UUID  # meta que recibe el dinero
+    monto: Decimal = Field(gt=0, max_digits=12)  # monto mayor a cero
+
+
+class ResumenFondos(BaseModel):  # esquema de salida con el resumen de saldos del usuario
+    total_ingresos: float  # suma de ingresos pagados
+    total_gastos: float  # suma de gastos pagados
+    saldo_total: float  # ingresos menos gastos
+    fondos_reservados: float  # dinero apartado en metas
+    saldo_disponible: float  # saldo total menos fondos reservados
+

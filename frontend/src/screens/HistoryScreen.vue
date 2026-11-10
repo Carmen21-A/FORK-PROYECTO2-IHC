@@ -62,6 +62,37 @@ const ACCIONES = {
     fondo: 'var(--warning-light)',
     color: 'var(--warning-dark)',
   },
+  // Tarea 8: eventos de metas de ahorro (no son movimientos, pero quedan en la historia)
+  meta_creada: {
+    texto: 'Meta de ahorro creada',
+    icono: 'savings',
+    fondo: 'var(--success-light)',
+    color: 'var(--success-dark)',
+  },
+  meta_eliminada: {
+    texto: 'Meta de ahorro eliminada',
+    icono: 'delete',
+    fondo: 'var(--error-light)',
+    color: 'var(--error-default)',
+  },
+  fondos_asignados: {
+    texto: 'Fondos asignados a meta',
+    icono: 'add_card',
+    fondo: 'var(--primary-100)',
+    color: 'var(--primary-300)',
+  },
+  fondos_retirados: {
+    texto: 'Fondos retirados de meta',
+    icono: 'account_balance_wallet',
+    fondo: 'var(--warning-light)',
+    color: 'var(--warning-dark)',
+  },
+  fondos_transferidos: {
+    texto: 'Fondos transferidos entre metas',
+    icono: 'sync_alt',
+    fondo: 'var(--primary-100)',
+    color: 'var(--primary-300)',
+  },
 }
 
 function accion(nombre) {
