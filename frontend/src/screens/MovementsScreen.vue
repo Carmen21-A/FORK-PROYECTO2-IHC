@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { MovementsService } from '../services/movementsService.js'
 import { LimitesService } from '../services/limitesService.js'
+import { guardarMovimientoConTrack, iniciarMovimientoConTrack } from '../services/analitica.js'
 import { siguienteEstado, puedeEditarMonto } from '../utils/estadoMovimiento.js'
 import {
   calcularGastoTotalMes,
@@ -383,8 +384,8 @@ async function save() {
     }
     let mensaje
     if (editingId.value === null) {
-      // Se esta creando uno
-      await MovementsService.create(datos)
+      // Se esta creando uno (Clase 21: movimiento_guardado solo se registra si se guardó)
+      await guardarMovimientoConTrack(datos, MovementsService.create)
       mensaje = `${tipo.value === 'gasto' ? 'Gasto' : 'Ingreso'} registrado: ${dartNum(monto)} Bs`
     } else {
       // Se esta editando un movimiento existente
@@ -443,6 +444,8 @@ function nuevoMovimiento() {
   fecha.value = new Date()
   cargarLimiteForm()
   formularioAbierto.value = true
+  // Clase 21: la persona empieza el flujo principal
+  iniciarMovimientoConTrack()
 }
 
 function cancelarEdicion() {

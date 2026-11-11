@@ -10,6 +10,7 @@ import ChangePasswordScreen from '../screens/ChangePasswordScreen.vue'
 import ResetPasswordScreen from '../screens/ResetPasswordScreen.vue'
 import PresupuestoCategoriaScreen from '../screens/PresupuestoCategoriaScreen.vue'
 import MetasScreen from '../screens/MetasScreen.vue'
+import AnaliticaScreen from '../screens/AnaliticaScreen.vue'
 
 export const privateRoutes = [
   '/movements',
@@ -17,6 +18,7 @@ export const privateRoutes = [
   '/history',
   '/presupuestos-categoria',
   '/metas',
+  '/analitica',
 ]
 export const publicRoutes = ['/', '/login', '/register', '/reset-password']
 
@@ -32,6 +34,8 @@ export const appRouter = createRouter({
     { path: '/presupuestos-categoria', component: PresupuestoCategoriaScreen },
     /// Ruta de navegación para metas de ahorro y fondos disponibles (Tarea 8)
     { path: '/metas', component: MetasScreen },
+    /// Clase 21: panel propio de analítica (solo desarrollo)
+    { path: '/analitica', component: AnaliticaScreen },
     { path: '/history', component: HistoryScreen },
     { path: '/reset-password', component: ResetPasswordScreen },
     { path: '/:pathMatch(.*)*', redirect: '/' },

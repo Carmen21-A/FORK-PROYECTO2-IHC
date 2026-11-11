@@ -7,11 +7,13 @@ from sqlalchemy import (  # importa constructores de columnas y restricciones de
     Date,  # tipo de dato Date para fechas sin hora
     DateTime,  # tipo de dato DateTime para marcas temporales
     ForeignKey,  # clave foránea para enlazar con otras tablas
+    JSON,  # tipo JSON genérico (Clase 21: propiedades de los eventos)
     Numeric,  # tipo numérico decimal de alta precisión
     String,  # tipo de texto con longitud máxima
     UniqueConstraint,  # restricción UNIQUE para evitar combinaciones duplicadas
     Uuid,  # tipo de columna UUID compatible con PostgreSQL
 )  # fin de imports de sqlalchemy
+from sqlalchemy.dialects.postgresql import JSONB  # importa JSONB, el tipo JSON binario de PostgreSQL (Clase 21)
 from sqlalchemy.orm import Mapped, mapped_column  # importa anotaciones modernas Mapped y mapped_column del ORM
 
 from app.database import Base  # importa la clase Base declarativa compartida
@@ -145,4 +147,14 @@ class MetaAhorro(Base):  # modelo que representa una meta de ahorro del usuario
     updated_at: Mapped[datetime] = mapped_column(  # fecha y hora de la última modificación
         DateTime(timezone=True), default=utc_now, onupdate=utc_now  # se actualiza sola cada vez que cambia la meta
     )  # fin de updated_at
+
+
+# Clase 21: Analítica de interacción. Registra la acción, no a la persona (no hay user_id ni email)
+class Evento(Base):  # modelo que representa un evento de analítica
+    __tablename__ = "eventos"  # nombre de la tabla en la base de datos
+
+    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)  # identificador único del registro
+    evento: Mapped[str] = mapped_column(String(50), index=True)  # nombre del evento (p. ej. movimiento_guardado)
+    props: Mapped[dict] = mapped_column(JSON().with_variant(JSONB(), "postgresql"), default=dict)  # propiedades mínimas (JSONB en PostgreSQL)
+    fecha: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)  # fecha y hora en que ocurrió
 

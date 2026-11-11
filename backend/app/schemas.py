@@ -151,3 +151,30 @@ class ResumenFondos(BaseModel):  # esquema de salida con el resumen de saldos de
     fondos_reservados: float  # dinero apartado en metas
     saldo_disponible: float  # saldo total menos fondos reservados
 
+
+# ---------- Clase 21: Analítica de interacción ----------
+class EventoWrite(BaseModel):  # esquema de entrada de un evento enviado por track()
+    evento: str = Field(min_length=1, max_length=50)  # nombre del evento
+    props: dict = Field(default_factory=dict)  # propiedades mínimas (se validan en logica/analitica.py)
+    fecha: datetime | None = None  # fecha en que ocurrió; si no llega se usa la hora del servidor
+
+
+class EventoRead(BaseModel):  # esquema de salida de un evento
+    evento: str  # nombre del evento
+    props: dict  # propiedades guardadas
+    fecha: datetime  # fecha y hora
+    model_config = ConfigDict(from_attributes=True)  # permite leer directamente desde objetos del ORM
+
+
+class ConteoEvento(BaseModel):  # una fila de SELECT evento, COUNT(*) ... GROUP BY evento
+    evento: str  # nombre del evento
+    total: int  # cuántas veces ocurrió
+
+
+class PanelAnalitica(BaseModel):  # respuesta del panel /analitica
+    conteos: list[ConteoEvento]  # cantidad por cada evento
+    iniciados: int  # total de movimiento_iniciado
+    guardados: int  # total de movimiento_guardado
+    porcentaje_terminan: int  # % de los que empiezan y terminan
+    ultimos: list[EventoRead]  # últimos eventos, el más reciente primero
+

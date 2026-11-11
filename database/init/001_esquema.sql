@@ -105,3 +105,12 @@ CREATE TABLE IF NOT EXISTS metas_ahorro (  -- crea la tabla de metas de ahorro s
 );  -- fin de la tabla metas_ahorro
 CREATE INDEX IF NOT EXISTS ix_metas_ahorro_user_id ON metas_ahorro (user_id);  -- índice para buscar rápido las metas de un usuario
 CREATE INDEX IF NOT EXISTS idx_metas_ahorro_user_fecha ON metas_ahorro (user_id, fecha_limite);  -- índice para buscar metas de un usuario por fecha límite
+
+-- Analitica de interaccion (Clase 21): un registro por evento, sin datos de la persona
+CREATE TABLE IF NOT EXISTS eventos (  -- crea la tabla de eventos si no existe
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- identificador unico del registro
+    evento VARCHAR(50) NOT NULL,  -- nombre del evento, objeto + accion en pasado
+    props JSONB NOT NULL DEFAULT '{}',  -- propiedades minimas, solo las que la pregunta necesita
+    fecha TIMESTAMPTZ NOT NULL DEFAULT NOW()  -- fecha y hora en que ocurrio
+);  -- fin de la tabla eventos, sin user_id ni email a proposito
+CREATE INDEX IF NOT EXISTS ix_eventos_evento ON eventos (evento);  -- indice para contar rapido por nombre de evento

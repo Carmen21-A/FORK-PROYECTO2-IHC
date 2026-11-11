@@ -46,6 +46,7 @@ def sembrar() -> None:  # función principal que vacía y puebla la base de dato
         db.connection().exec_driver_sql(ESQUEMA.read_text(encoding="utf-8"))  # ejecuta el archivo 001_esquema.sql para asegurar tablas
         # Borrar usuarios borra en cascada sus movimientos, limites, presupuestos e historial
         db.execute(text("TRUNCATE usuarios CASCADE"))  # vacía todas las tablas en cascada para comenzar desde cero
+        db.execute(text("TRUNCATE eventos"))  # Clase 21: vacía los eventos de analítica (no dependen de usuarios)
 
         martita = Usuario(email=MARTITA["email"], password_hash=hash_password(MARTITA["password"]))  # crea el usuario Martita con su contraseña hasheada
         pablo = Usuario(email=PABLO["email"], password_hash=hash_password(PABLO["password"]))  # crea el usuario Pablo con su contraseña hasheada

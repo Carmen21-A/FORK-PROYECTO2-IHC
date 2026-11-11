@@ -45,6 +45,10 @@ async function cerrarSesion() {
         <AppIcon name="history" />
         Historial
       </button>
+      <button class="drawer-item" @click="ir('/analitica')">
+        <AppIcon name="monitoring" />
+        Analítica
+      </button>
       <button class="drawer-item" @click="ir('/change-password')">Cambiar contraseña</button>
       <button class="drawer-item" @click="mostrarAyuda = true">Ayuda</button>
       <hr class="divider" />
