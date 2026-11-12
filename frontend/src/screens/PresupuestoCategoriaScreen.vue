@@ -3,7 +3,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { MovementsService } from '../services/movementsService.js'
 import { PresupuestosService } from '../services/presupuestosService.js'
-import { EstadoPresupuesto, validarMontoPresupuesto } from '../utils/presupuestoCategoria.js'
+import {
+  EstadoPresupuesto,
+  calcularGastoCategoria,
+  validarMontoPresupuesto,
+} from '../utils/presupuestoCategoria.js'
+import { EVENTOS, motivoPresupuesto, track } from '../services/analitica.js'
 import { fixed, parseDouble } from '../utils/formato.js'
 import { showSnackBar } from '../widgets/snackbar.js'
 import AppScaffold from '../widgets/AppScaffold.vue'
@@ -86,6 +91,8 @@ function abrirDialogoPresupuesto(categoria, valorActual) {
     error: null,
     guardando: false,
   }
+  // Tarea 9 Parte A: inicio del embudo «Presupuesto por categoría»
+  track(EVENTOS.PRESUPUESTO_INICIADO, { categoria })
 }
 
 function sumarAlMonto(monto) {
@@ -96,7 +103,11 @@ function sumarAlMonto(monto) {
 async function guardarPresupuesto() {
   const d = dialogo.value
   d.error = validarMontoPresupuesto(d.texto)
-  if (d.error) return
+  if (d.error) {
+    // Tarea 9 Parte A: validación fallida con motivo de una lista fija
+    track(EVENTOS.PRESUPUESTO_RECHAZADO, { motivo: motivoPresupuesto(d.error) })
+    return
+  }
 
   const nuevoMonto = parseDouble(d.texto.trim())
   d.guardando = true
@@ -107,6 +118,13 @@ async function guardarPresupuesto() {
       categoria: d.categoria,
       monto: nuevoMonto,
     })
+    // Tarea 9 Parte A: éxito (como el ejemplo de clase: ¿se guarda cuando ya superó su límite?)
+    const gastado = calcularGastoCategoria({
+      movimientos: movimientos.value,
+      mes: mesClave.value,
+      categoria: d.categoria,
+    })
+    track(EVENTOS.PRESUPUESTO_GUARDADO, { categoria: d.categoria, supera_limite: gastado > nuevoMonto })
     dialogo.value = null
     cargarDatos()
     showSnackBar(
@@ -114,6 +132,7 @@ async function guardarPresupuesto() {
       'var(--success-dark)',
     )
   } catch (e) {
+    track(EVENTOS.PRESUPUESTO_RECHAZADO, { motivo: 'rechazado_por_servidor' })
     d.guardando = false
     showSnackBar(`Error al guardar: ${e.message}`, 'var(--error-default)')
   }

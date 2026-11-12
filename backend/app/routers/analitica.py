@@ -1,4 +1,5 @@
-# Endpoints de analítica de interacción (Clase 21)
+# Endpoints de analítica de interacción (Clase 21 y Tarea 9 Parte A)
+from collections import Counter  # importa Counter para contar errores por motivo
 from datetime import datetime, timezone  # importa datetime y timezone para la fecha por defecto en UTC
 
 from fastapi import APIRouter, Depends, HTTPException, status  # importa utilidades de FastAPI
@@ -7,7 +8,13 @@ from sqlalchemy.orm import Session  # importa Session para trabajar con la base 
 
 from app.database import get_db  # importa la dependencia que entrega la sesión de base de datos
 from app.dependencias import usuario_actual  # importa la dependencia de usuario autenticado
-from app.logica.analitica import porcentaje_terminan, validar_evento  # importa las reglas puras de analítica
+from app.logica.analitica import (  # importa las reglas puras de analítica
+    FLUJOS,  # flujos principales con sus pasos
+    armar_embudos,  # arma un embudo por flujo
+    mayor_caida,  # busca el paso con la mayor caída
+    porcentaje_terminan,  # % que llega al éxito
+    validar_evento,  # regla de privacidad
+)  # fin de importaciones de lógica
 from app.models import Evento, Usuario  # importa los modelos Evento y Usuario
 from app.schemas import ConteoEvento, EventoRead, EventoWrite, PanelAnalitica  # importa los esquemas de analítica
 
@@ -16,6 +23,7 @@ router = APIRouter(tags=["analitica"])  # crea el router (las rutas son /eventos
 INICIO = "movimiento_iniciado"  # evento de inicio del flujo principal
 EXITO = "movimiento_guardado"  # evento de éxito del flujo principal
 CANTIDAD_ULTIMOS = 10  # cuántos eventos recientes muestra el panel
+EVENTOS_DE_ERROR = {flujo["error"] for flujo in FLUJOS}  # eventos de error de todos los flujos (Tarea 9)
 
 
 @router.post("/eventos", status_code=status.HTTP_201_CREATED)  # endpoint POST /api/eventos (lo llama track())
@@ -44,7 +52,7 @@ def registrar_evento(  # guarda un evento en la tabla eventos
 def panel_analitica(  # cuenta los eventos y arma el panel
     db: Session = Depends(get_db),  # inyecta la sesión de base de datos
     _usuario: Usuario = Depends(usuario_actual),  # exige sesión válida para ver el panel
-) -> PanelAnalitica:  # retorna el panel con conteos, porcentaje y últimos eventos
+) -> PanelAnalitica:  # retorna el panel con conteos, embudos y últimos eventos
     filas = db.execute(  # ejecuta SELECT evento, COUNT(*) FROM eventos GROUP BY evento
         select(Evento.evento, func.count()).group_by(Evento.evento).order_by(Evento.evento)  # agrupa y cuenta por nombre
     ).all()  # obtiene todas las filas
@@ -52,6 +60,18 @@ def panel_analitica(  # cuenta los eventos y arma el panel
 
     iniciados = conteos.get(INICIO, 0)  # cuántos empezaron (0 si ninguno)
     guardados = conteos.get(EXITO, 0)  # cuántos terminaron (0 si ninguno)
+
+    errores = Counter(  # Tarea 9: cuenta los errores por (evento, motivo)
+        (evento, props["motivo"])  # clave: evento y motivo de la lista fija
+        for evento, props in db.execute(  # recorre solo los eventos de error
+            select(Evento.evento, Evento.props).where(Evento.evento.in_(EVENTOS_DE_ERROR))  # filtra por eventos de error
+        ).all()  # obtiene las filas
+        if "motivo" in (props or {})  # las salidas sin motivo (p. ej. aviso cancelado) solo se cuentan en el total
+    )  # fin del conteo de errores
+    embudos = armar_embudos(conteos, dict(errores))  # Tarea 9: un embudo por flujo principal
+
+    realizadas = conteos.get("busqueda_realizada", 0)  # Tarea 9: búsquedas hechas
+    sin_resultados = conteos.get("busqueda_sin_resultados", 0)  # Tarea 9: búsquedas sin resultados
 
     ultimos = db.scalars(  # trae los eventos más recientes
         select(Evento).order_by(Evento.fecha.desc()).limit(CANTIDAD_ULTIMOS)  # ordenados del más nuevo al más viejo
@@ -63,4 +83,11 @@ def panel_analitica(  # cuenta los eventos y arma el panel
         guardados=guardados,  # total de éxitos
         porcentaje_terminan=porcentaje_terminan(iniciados, guardados),  # % que termina
         ultimos=[EventoRead.model_validate(e) for e in ultimos],  # últimos eventos
+        embudos=embudos,  # Tarea 9: embudos por flujo
+        mayor_caida=mayor_caida(embudos),  # Tarea 9: paso con la mayor caída
+        busquedas={  # Tarea 9: resumen de búsquedas
+            "realizadas": realizadas,  # cuántas búsquedas
+            "sin_resultados": sin_resultados,  # cuántas sin resultados
+            "porcentaje_sin_resultados": porcentaje_terminan(realizadas, sin_resultados),  # % sin resultados
+        },  # fin de búsquedas
     )  # fin de PanelAnalitica

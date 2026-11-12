@@ -53,3 +53,58 @@ def test_api_rechaza_datos_personales(client, auth):  # el backend no deja guard
 def test_api_exige_sesion(client):  # sin sesión no se pueden enviar ni ver eventos
     assert client.post("/api/eventos", json={"evento": "movimiento_iniciado"}).status_code == 401  # enviar sin token
     assert client.get("/api/analitica").status_code == 401  # ver el panel sin token
+
+
+# ---------- Tarea 9 · Parte A: analítica en todo el producto ----------
+from app.logica.analitica import EVENTOS_PERMITIDOS, FLUJOS, armar_embudos, caida_entre_pasos, mayor_caida  # importa lo nuevo
+
+
+def test_cada_flujo_tiene_sus_eventos_definidos():  # todos los pasos y errores de los embudos existen en la lista
+    for flujo in FLUJOS:  # recorre cada flujo
+        for evento in flujo["pasos"] + [flujo["error"]]:  # sus pasos y su evento de error
+            assert evento in EVENTOS_PERMITIDOS  # está definido
+
+
+def test_errores_solo_con_motivo_de_lista_fija():  # el motivo de un error debe venir de la lista fija
+    validar_evento("movimiento_rechazado", {"motivo": "supera_limite_mensual"})  # motivo válido
+    validar_evento("fondos_operacion_rechazada", {"operacion": "asignar", "motivo": "fondos_insuficientes"})  # válido
+    with pytest.raises(ValueError, match="motivo"):  # un motivo escrito a mano se rechaza
+        validar_evento("movimiento_rechazado", {"motivo": "el usuario escribió mal el monto"})  # texto libre
+    with pytest.raises(ValueError, match="operacion"):  # una operación que no existe se rechaza
+        validar_evento("fondos_operacion_iniciada", {"operacion": "robar"})  # valor fuera de la lista
+
+
+def test_busqueda_no_guarda_el_texto():  # la búsqueda solo guarda si hubo texto o filtros (sí/no)
+    validar_evento("busqueda_sin_resultados", {"con_texto": True, "con_filtros": False})  # válido
+    with pytest.raises(ValueError, match="no permitidas"):  # el texto buscado nunca se guarda
+        validar_evento("busqueda_realizada", {"con_texto": True, "con_filtros": False, "texto": "taxi a casa de Juan"})  # texto
+    with pytest.raises(ValueError, match="verdadero o falso"):  # con_texto solo acepta True o False
+        validar_evento("busqueda_realizada", {"con_texto": "taxi", "con_filtros": False})  # valor de texto
+
+
+def test_embudos_y_mayor_caida():  # arma los embudos y encuentra el paso con la mayor caída
+    assert caida_entre_pasos(10, 6) == 40  # de 10 a 6 se pierde el 40 %
+    conteos = {"movimiento_iniciado": 10, "movimiento_guardado": 6, "meta_creacion_iniciada": 4, "meta_creada": 1}  # datos
+    errores = {("movimiento_rechazado", "monto_vacio"): 3}  # 3 rechazos por monto vacío
+    embudos = armar_embudos(conteos, errores)  # arma los embudos
+    registrar = next(e for e in embudos if e["id"] == "registrar")  # embudo de registrar movimiento
+    assert [p["total"] for p in registrar["pasos"]] == [10, 6]  # pasos con sus totales
+    assert registrar["pasos"][1]["caida"] == 40  # caída del 40 %
+    assert registrar["motivos"] == [{"motivo": "monto_vacio", "total": 3}]  # errores por motivo
+    caida = mayor_caida(embudos)  # busca la mayor caída de toda la app
+    assert caida["flujo"] == "Crear meta de ahorro (Tarea 8)"  # de 4 a 1 se pierde el 75 %
+    assert caida["caida"] == 75  # es la mayor
+
+
+def test_panel_devuelve_embudos(client, auth):  # la API arma los embudos con datos reales
+    client.post("/api/eventos", json={"evento": "meta_creacion_iniciada", "props": {}}, headers=auth)  # inicio
+    client.post("/api/eventos", json={"evento": "meta_rechazada", "props": {"motivo": "nombre_vacio"}}, headers=auth)  # error
+    client.post("/api/eventos", json={"evento": "busqueda_realizada", "props": {"con_texto": True, "con_filtros": False}}, headers=auth)  # búsqueda
+    client.post("/api/eventos", json={"evento": "busqueda_sin_resultados", "props": {"con_texto": True, "con_filtros": False}}, headers=auth)  # sin resultados
+    panel = client.get("/api/analitica", headers=auth).json()  # consulta el panel
+    meta = next(e for e in panel["embudos"] if e["id"] == "meta")  # embudo de metas
+    assert meta["pasos"][0]["total"] == 1  # uno empezó
+    assert meta["pasos"][1]["caida"] == 100  # nadie terminó: caída del 100 %
+    assert meta["motivos"] == [{"motivo": "nombre_vacio", "total": 1}]  # el error se agrupa por motivo
+    assert panel["mayor_caida"]["hasta"] == "meta_creada"  # es la mayor caída
+    assert panel["busquedas"] == {"realizadas": 1, "sin_resultados": 1, "porcentaje_sin_resultados": 100}  # búsquedas

@@ -173,10 +173,47 @@ class ConteoEvento(BaseModel):  # una fila de SELECT evento, COUNT(*) ... GROUP 
     total: int  # cuántas veces ocurrió
 
 
+class PasoEmbudo(BaseModel):  # Tarea 9: un paso de un embudo
+    evento: str  # evento que marca el paso
+    total: int  # cuántos llegaron a este paso
+    caida: int  # % que se perdió desde el paso anterior
+
+
+class MotivoError(BaseModel):  # Tarea 9: errores de un flujo agrupados por motivo
+    motivo: str  # motivo de la lista fija
+    total: int  # cuántas veces pasó
+
+
+class Embudo(BaseModel):  # Tarea 9: embudo de un flujo principal
+    id: str  # identificador del flujo
+    nombre: str  # nombre legible del flujo
+    pasos: list[PasoEmbudo]  # pasos en orden, de inicio a éxito
+    porcentaje_terminan: int  # % que llega al éxito
+    evento_error: str  # evento de error o salida del flujo
+    total_errores: int  # cuántas veces se frenó el flujo
+    motivos: list[MotivoError]  # errores por motivo
+
+
+class MayorCaida(BaseModel):  # Tarea 9: el paso donde más gente se pierde
+    flujo: str  # nombre del flujo
+    desde: str  # paso anterior
+    hasta: str  # paso donde se pierde la gente
+    caida: int  # % perdido
+
+
+class ResumenBusquedas(BaseModel):  # Tarea 9: búsquedas y filtros sin resultados
+    realizadas: int  # búsquedas hechas
+    sin_resultados: int  # búsquedas que no encontraron nada
+    porcentaje_sin_resultados: int  # % sin resultados
+
+
 class PanelAnalitica(BaseModel):  # respuesta del panel /analitica
     conteos: list[ConteoEvento]  # cantidad por cada evento
     iniciados: int  # total de movimiento_iniciado
     guardados: int  # total de movimiento_guardado
     porcentaje_terminan: int  # % de los que empiezan y terminan
     ultimos: list[EventoRead]  # últimos eventos, el más reciente primero
+    embudos: list[Embudo] = []  # Tarea 9: un embudo por flujo principal
+    mayor_caida: MayorCaida | None = None  # Tarea 9: paso con la mayor caída
+    busquedas: ResumenBusquedas | None = None  # Tarea 9: búsquedas sin resultados
 

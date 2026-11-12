@@ -1,8 +1,9 @@
 <script setup>
 // Pantalla de Metas de Ahorro y Gestión de Fondos Disponibles (Tarea 8)
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MetasService } from '../services/metasService.js'
+import { EVENTOS, track } from '../services/analitica.js'
 import {
   calcularPorcentajeMeta,
   diasRestantes,
@@ -73,6 +74,8 @@ function abrirCrearMeta() {
     guardando: false,
   }
   dialogoCrear.value = true
+  // Tarea 9 Parte A: inicio del embudo «Crear meta»
+  track(EVENTOS.META_CREACION_INICIADA, {})
 }
 
 function abrirEditarMeta(m) {
@@ -88,19 +91,27 @@ function abrirEditarMeta(m) {
   dialogoCrear.value = true
 }
 
+// Tarea 9 Parte A: error que frena la creación de una meta (solo al crear, no al editar)
+function trackRechazoMeta(f, motivo) {
+  if (!f.id) track(EVENTOS.META_RECHAZADA, { motivo })
+}
+
 async function guardarMeta() {
   const f = formMeta.value
   if (!f.nombre.trim()) {
     f.error = 'El nombre de la meta es obligatorio'
+    trackRechazoMeta(f, 'nombre_vacio')
     return
   }
   const obj = parseDouble(f.monto_objetivo)
   if (obj === null || obj <= 0) {
     f.error = 'El monto objetivo debe ser mayor a 0 Bs'
+    trackRechazoMeta(f, 'objetivo_invalido')
     return
   }
   if (!f.fecha_limite) {
     f.error = 'La fecha límite es obligatoria'
+    trackRechazoMeta(f, 'fecha_vacia')
     return
   }
 
@@ -120,11 +131,14 @@ async function guardarMeta() {
         monto_objetivo: obj,
         fecha_limite: f.fecha_limite,
       })
+      // Tarea 9 Parte A: éxito del embudo «Crear meta» (sin nombre ni montos)
+      track(EVENTOS.META_CREADA, {})
       showSnackBar('Meta de ahorro creada', 'var(--success-dark)')
     }
     dialogoCrear.value = false
     await load()
   } catch (e) {
+    trackRechazoMeta(f, 'rechazado_por_servidor')
     f.error = e.message
   } finally {
     f.guardando = false
@@ -155,6 +169,8 @@ function abrirAsignar(meta) {
     error: null,
     guardando: false,
   }
+  // Tarea 9 Parte A: inicio del embudo «Mover fondos»
+  track(EVENTOS.FONDOS_INICIADA, { operacion: dialogoOperacion.value.tipo })
 }
 
 function abrirRetirar(meta) {
@@ -167,6 +183,8 @@ function abrirRetirar(meta) {
     error: null,
     guardando: false,
   }
+  // Tarea 9 Parte A: inicio del embudo «Mover fondos»
+  track(EVENTOS.FONDOS_INICIADA, { operacion: dialogoOperacion.value.tipo })
 }
 
 function abrirTransferir(meta) {
@@ -180,6 +198,8 @@ function abrirTransferir(meta) {
     error: null,
     guardando: false,
   }
+  // Tarea 9 Parte A: inicio del embudo «Mover fondos»
+  track(EVENTOS.FONDOS_INICIADA, { operacion: dialogoOperacion.value.tipo })
 }
 
 const avisoValidacionOperacion = computed(() => {
@@ -197,6 +217,14 @@ const avisoValidacionOperacion = computed(() => {
     return validarMontoOperacion(op.monto, op.meta.monto_ahorrado, 'transferir')
   }
   return null
+})
+
+// Tarea 9 Parte A: la validación en vivo frena la operación por falta de fondos (se registra una vez por diálogo)
+watch(avisoValidacionOperacion, (mensaje) => {
+  const op = dialogoOperacion.value
+  if (!op || op.rechazoRegistrado || !mensaje?.startsWith('Fondos insuficientes')) return
+  op.rechazoRegistrado = true
+  track(EVENTOS.FONDOS_RECHAZADA, { operacion: op.tipo, motivo: 'fondos_insuficientes' })
 })
 
 async function ejecutarOperacion() {
@@ -224,9 +252,12 @@ async function ejecutarOperacion() {
       await MetasService.transferir(op.meta.id, op.destinoId, monto)
       showSnackBar(`Transferiste ${dartNum(monto)} Bs entre metas`, 'var(--success-dark)')
     }
+    // Tarea 9 Parte A: éxito del embudo «Mover fondos»
+    track(EVENTOS.FONDOS_REALIZADA, { operacion: op.tipo })
     dialogoOperacion.value = null
     await load()
   } catch (e) {
+    track(EVENTOS.FONDOS_RECHAZADA, { operacion: op.tipo, motivo: 'rechazado_por_servidor' })
     op.error = e.message
   } finally {
     op.guardando = false
@@ -465,7 +496,8 @@ function alternarMenu(id) {
       :titulo="formMeta.id ? 'Editar meta de ahorro' : 'Nueva meta de ahorro'"
       @cerrar="dialogoCrear = false"
     >
-      <form class="stack" @submit.prevent="guardarMeta">
+      <!-- Tarea 9 Parte A: novalidate para usar la validación propia (mensaje claro y error medido) -->
+      <form class="stack" novalidate @submit.prevent="guardarMeta">
         <label class="field">
           <span>Nombre de la meta</span>
           <input

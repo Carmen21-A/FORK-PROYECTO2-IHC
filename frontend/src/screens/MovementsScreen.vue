@@ -4,7 +4,15 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { MovementsService } from '../services/movementsService.js'
 import { LimitesService } from '../services/limitesService.js'
-import { guardarMovimientoConTrack, iniciarMovimientoConTrack } from '../services/analitica.js'
+import {
+  EVENTOS,
+  guardarMovimientoConTrack,
+  iniciarMovimientoConTrack,
+  motivoMontoMovimiento,
+  motivoRechazoServidor,
+  track,
+  trackBusqueda,
+} from '../services/analitica.js'
 import { siguienteEstado, puedeEditarMonto } from '../utils/estadoMovimiento.js'
 import {
   calcularGastoTotalMes,
@@ -194,10 +202,23 @@ function periodoHasta() {
   return null
 }
 
+// Tarea 9 Parte A: busca o filtra y registra si hubo resultados (sin guardar el texto buscado)
+async function buscar() {
+  await load()
+  const conTexto = busqueda.value.trim() !== ''
+  const conFiltros =
+    filtroTipo.value !== 'todos' ||
+    filtroCategoria.value !== 'todos' ||
+    filtroEstado.value !== 'todos' ||
+    filtroPeriodo.value !== 'todos'
+  if (!conTexto && !conFiltros) return
+  trackBusqueda({ conTexto, conFiltros, sinResultados: movimientosFiltrados.value.length === 0 })
+}
+
 function cambiarPeriodo(valor) {
   if (valor !== 'rango') {
     filtroPeriodo.value = valor
-    load()
+    buscar()
     return
   }
   dialogoRango.value = {
@@ -221,14 +242,14 @@ function confirmarRango() {
   rangoDesde.value = parseFecha(desde)
   rangoHasta.value = parseFecha(hasta)
   dialogoRango.value = null
-  load()
+  buscar()
 }
 
 const filtros = { tipo: filtroTipo, categoria: filtroCategoria, estado: filtroEstado }
 
 function cambiarFiltro(nombre, valor) {
   filtros[nombre].value = valor
-  load()
+  buscar()
 }
 
 // Chips de los filtros activos, con opcion de quitarlos
@@ -367,25 +388,40 @@ const avisoPresupuesto = ref(null)
 
 // Cancelar no cambia nada: se cierra el aviso y el formulario sigue abierto para ajustar el monto
 function cancelarAvisoPresupuesto() {
+  // Tarea 9 Parte A: salida del embudo del aviso
+  track(EVENTOS.AVISO_CANCELADO, { categoria: avisoPresupuesto.value.categoria })
   avisoPresupuesto.value = null
 }
 
 // Confirmar guarda: se vuelve a enviar indicando que el usuario aceptó pasarse
 function confirmarAvisoPresupuesto() {
+  // Tarea 9 Parte A: éxito del embudo del aviso
+  track(EVENTOS.AVISO_CONFIRMADO, { categoria: avisoPresupuesto.value.categoria })
   avisoPresupuesto.value = null
   save(true)
+}
+
+// Tarea 9 Parte A: error que frena el registro (solo al crear, que es el embudo medido)
+function trackRechazoMovimiento(motivo) {
+  if (editingId.value === null) track(EVENTOS.MOVIMIENTO_RECHAZADO, { motivo })
 }
 
 async function save(confirmarExceso = false) {
   if (guardando.value) return
   montoError.value = validarMonto()
-  if (montoError.value) return
+  if (montoError.value) {
+    trackRechazoMovimiento(motivoMontoMovimiento(montoError.value))
+    return
+  }
   const monto = parseDouble(montoTexto.value) ?? 0
 
   guardando.value = true
   try {
     const excede = await validarSiExcedioLimiteMensual(monto)
-    if (excede) return
+    if (excede) {
+      trackRechazoMovimiento('supera_limite_mensual')
+      return
+    }
 
     const datos = {
       tipo: tipo.value,
@@ -422,8 +458,11 @@ async function save(confirmarExceso = false) {
     // Tarea 9: el gasto pasaría el presupuesto de su categoría -> mostrar cuánto y pedir confirmación
     if (e.status === 409 && e.datos?.codigo === 'supera_presupuesto_categoria') {
       avisoPresupuesto.value = e.datos
+      // Tarea 9 Parte A: paso intermedio del embudo del aviso
+      track(EVENTOS.AVISO_MOSTRADO, { categoria: e.datos.categoria })
       return
     }
+    trackRechazoMovimiento(/límite mensual/.test(e.message) ? 'supera_limite_mensual' : 'rechazado_por_servidor')
     showSnackBar(e.message, 'var(--error-default)')
   } finally {
     guardando.value = false
@@ -518,8 +557,13 @@ async function cambiarEstado(m, confirmado = false) {
   }
   cancelarMovimiento.value = null
 
+  // Tarea 9 Parte A: inicio del embudo «Pagar un pendiente»
+  const esPago = siguiente === 'pagado'
+  if (esPago) track(EVENTOS.PAGO_INICIADO, { tipo: m.tipo })
+
   try {
     const respuesta = await MovementsService.cambiarEstado(m.id, siguiente)
+    if (esPago) track(EVENTOS.MOVIMIENTO_PAGADO, { tipo: m.tipo })
     load()
     // Tarea 6: al pagar un gasto recurrente se genera el siguiente (o se avisa por que no)
     if (respuesta?.siguiente) {
@@ -531,6 +575,8 @@ async function cambiarEstado(m, confirmado = false) {
       showSnackBar(respuesta.aviso, 'var(--error-default)')
     }
   } catch (e) {
+    // Tarea 9 Parte A: permiso denegado (p. ej. el dinero está reservado en metas)
+    if (esPago) track(EVENTOS.PAGO_RECHAZADO, { motivo: motivoRechazoServidor(e) })
     showSnackBar(e.message, 'var(--error-default)')
   }
 }
@@ -679,7 +725,7 @@ function alternarMenu(id) {
 
       <!-- Panel de busqueda y filtros -->
       <section v-if="pestanaActiva === 'todos'" class="filtros">
-        <form class="row form-busqueda" role="search" @submit.prevent="load">
+        <form class="row form-busqueda" role="search" @submit.prevent="buscar">
           <div class="input-busqueda-wrapper">
             <input
               v-model="busqueda"
