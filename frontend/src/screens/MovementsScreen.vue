@@ -362,7 +362,21 @@ function validarMonto() {
   return null
 }
 
-async function save() {
+// Tarea 9: datos del aviso cuando el gasto haría pasar el presupuesto de su categoría
+const avisoPresupuesto = ref(null)
+
+// Cancelar no cambia nada: se cierra el aviso y el formulario sigue abierto para ajustar el monto
+function cancelarAvisoPresupuesto() {
+  avisoPresupuesto.value = null
+}
+
+// Confirmar guarda: se vuelve a enviar indicando que el usuario aceptó pasarse
+function confirmarAvisoPresupuesto() {
+  avisoPresupuesto.value = null
+  save(true)
+}
+
+async function save(confirmarExceso = false) {
   if (guardando.value) return
   montoError.value = validarMonto()
   if (montoError.value) return
@@ -381,6 +395,8 @@ async function save() {
       descripcion: descripcion.value.trim(),
       // Solo un gasto se repite
       recurrencia: tipo.value === 'gasto' && recurrencia.value ? recurrencia.value : null,
+      // Tarea 9: true solo si el usuario ya confirmó en el aviso de presupuesto
+      confirmar_exceso: confirmarExceso === true,
     }
     let mensaje
     if (editingId.value === null) {
@@ -403,6 +419,11 @@ async function save() {
     recurrencia.value = ''
     showSnackBar(mensaje, 'var(--success-dark)')
   } catch (e) {
+    // Tarea 9: el gasto pasaría el presupuesto de su categoría -> mostrar cuánto y pedir confirmación
+    if (e.status === 409 && e.datos?.codigo === 'supera_presupuesto_categoria') {
+      avisoPresupuesto.value = e.datos
+      return
+    }
     showSnackBar(e.message, 'var(--error-default)')
   } finally {
     guardando.value = false
@@ -846,7 +867,7 @@ function alternarMenu(id) {
       :titulo="editingId === null ? 'Nuevo gasto o ingreso' : 'Editar movimiento'"
       @cerrar="formularioAbierto = false"
     >
-      <form class="formulario stack" novalidate @submit.prevent="save">
+      <form class="formulario stack" novalidate @submit.prevent="save()">
         <!-- Si editingId NO es nulo, mostramos este aviso -->
         <div v-if="editingId !== null" class="row editando">
           <strong>Edita este movimiento</strong>
@@ -991,6 +1012,35 @@ function alternarMenu(id) {
       <template #acciones>
         <button class="btn btn-outlined" @click="eliminarId = null">Cancelar</button>
         <button class="btn btn-elevated" @click="eliminar(eliminarId)">Eliminar</button>
+      </template>
+    </AppDialog>
+
+    <!-- Tarea 9: aviso antes de superar el presupuesto de la categoría -->
+    <AppDialog
+      v-if="avisoPresupuesto"
+      titulo="Este gasto supera tu presupuesto"
+      @cerrar="cancelarAvisoPresupuesto"
+    >
+      <div class="stack aviso-presupuesto">
+        <p>
+          Si lo guardas, te pasarías
+          <strong>{{ dartNum(avisoPresupuesto.exceso) }} Bs</strong>
+          del presupuesto de <strong>{{ avisoPresupuesto.categoria }}</strong> este mes.
+        </p>
+        <dl class="aviso-detalle">
+          <dt>Presupuesto de {{ avisoPresupuesto.categoria }}</dt>
+          <dd>{{ dartNum(avisoPresupuesto.presupuesto) }} Bs</dd>
+          <dt>Ya gastado</dt>
+          <dd>{{ dartNum(avisoPresupuesto.gastado) }} Bs</dd>
+          <dt>Este gasto</dt>
+          <dd>{{ dartNum(avisoPresupuesto.monto) }} Bs</dd>
+          <dt>Quedaría en</dt>
+          <dd class="aviso-exceso">{{ dartNum(avisoPresupuesto.nuevo_total) }} Bs</dd>
+        </dl>
+      </div>
+      <template #acciones>
+        <button class="btn btn-outlined" @click="cancelarAvisoPresupuesto">Cancelar</button>
+        <button class="btn btn-elevated" @click="confirmarAvisoPresupuesto">Guardar de todas formas</button>
       </template>
     </AppDialog>
 
@@ -1203,6 +1253,35 @@ function alternarMenu(id) {
 
 .formulario {
   padding: 20px;
+}
+
+/* Tarea 9: aviso antes de superar el presupuesto de la categoría */
+.aviso-presupuesto p {
+  margin: 0;
+}
+
+.aviso-detalle {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--warning-light);
+}
+
+.aviso-detalle dt {
+  color: var(--text-secondary);
+}
+
+.aviso-detalle dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+.aviso-exceso {
+  color: var(--error-default);
 }
 
 .editando {

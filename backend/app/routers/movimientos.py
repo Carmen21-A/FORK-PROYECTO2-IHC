@@ -1,19 +1,21 @@
 # Reemplaza a lib/services/movements_service.dart
+from calendar import monthrange  # importa monthrange para saber el último día de un mes (Tarea 9)
 from datetime import date  # importa date para manejo de fechas
 from uuid import UUID  # importa UUID para tipar identificadores únicos de movimientos
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status  # importa utilidades de FastAPI para rutas, dependencias, errores y parámetros de consulta
-from sqlalchemy import select  # importa select para armar consultas de SQLAlchemy
+from sqlalchemy import func, select  # importa select para armar consultas y func para sumar (SUM)
 from sqlalchemy.orm import Session  # importa Session para interactuar con la base de datos
 
 from app.database import get_db  # importa dependencia para obtener la sesión de base de datos
 from app.dependencias import usuario_actual  # importa dependencia para validar el usuario en sesión
+from app.logica.aviso_presupuesto import calcular_aviso_presupuesto  # importa la regla del aviso antes de superar el presupuesto (Tarea 9)
 from app.logica.estado_movimiento import es_transicion_valida, puede_editar_monto  # importa validaciones de transiciones de estado y edición
 from app.logica.historial import armar_detalle_evento  # importa generador de texto descriptivo para el historial
 from app.logica.limite_mensual import supera_limite_mensual  # importa regla de validación de tope mensual de gastos
 from app.logica.metas import validar_reservas_intactas  # importa la regla que protege el dinero apartado en metas (Tarea 8)
 from app.logica.recurrencia import TEXTO_RECURRENCIA, siguiente_fecha  # importa mapeo de texto y función de próxima fecha recurrente
-from app.models import Movimiento, Usuario  # importa modelos de tabla Movimiento y Usuario
+from app.models import Movimiento, PresupuestoCategoria, Usuario  # importa modelos de tabla Movimiento, PresupuestoCategoria y Usuario
 from app.routers.historial import registrar_evento  # importa función para guardar eventos en el historial
 from app.routers.limites import calcular_gasto_total_mes, get_limit  # importa funciones para calcular gastos acumulados y consultar límites
 from app.routers.metas import obtener_saldo_calculado  # importa el cálculo de saldo disponible y fondos reservados (Tarea 8)
@@ -85,6 +87,73 @@ def _validar_limite_mensual(  # valida si el nuevo gasto excede el límite del m
 
 
 # Solo un gasto puede repetirse
+def _gasto_categoria_mes(  # Tarea 9: suma lo gastado (no cancelado) en una categoría durante un mes
+    db: Session, user_id: UUID, categoria: str, mes: str, excluir_id: UUID | None = None  # sesión, usuario, categoría, mes 'YYYY-MM' e id a excluir
+) -> float:  # retorna el total como float
+    anio, numero_mes = map(int, mes.split("-"))  # separa el año y el número de mes
+    primero = date(anio, numero_mes, 1)  # primer día del mes
+    ultimo = date(anio, numero_mes, monthrange(anio, numero_mes)[1])  # último día del mes
+    consulta = select(func.coalesce(func.sum(Movimiento.monto), 0)).where(  # suma los montos (0 si no hay)
+        Movimiento.user_id == user_id,  # solo del usuario
+        Movimiento.tipo == "gasto",  # solo gastos (los ingresos no cuentan)
+        Movimiento.estado != "cancelado",  # los cancelados no cuentan
+        Movimiento.categoria == categoria,  # solo de esa categoría
+        Movimiento.fecha >= primero,  # desde el primer día del mes
+        Movimiento.fecha <= ultimo,  # hasta el último día del mes
+    )  # fin de where
+    if excluir_id is not None:  # al editar
+        consulta = consulta.where(Movimiento.id != excluir_id)  # no se cuenta el propio gasto que se está editando
+    return float(db.scalar(consulta) or 0)  # ejecuta la suma
+
+
+def _avisar_si_supera_presupuesto(  # Tarea 9: pide confirmación si el gasto haría pasar el presupuesto de su categoría
+    db: Session, usuario: Usuario, payload: MovimientoWrite, existente: Movimiento | None = None  # existente: el movimiento antes de editarlo
+) -> None:  # no retorna nada; si hace falta confirmar lanza 409 con los datos del aviso
+    if payload.tipo != "gasto":  # los ingresos no generan aviso
+        return  # sale sin avisar
+    if existente is not None and existente.estado == "cancelado":  # un gasto cancelado no cuenta en el presupuesto
+        return  # sale sin avisar
+    mes = payload.fecha.strftime("%Y-%m")  # mes del gasto en formato YYYY-MM
+    presupuesto = db.scalar(  # busca el presupuesto de esa categoría y mes
+        select(PresupuestoCategoria.monto).where(  # solo el monto
+            PresupuestoCategoria.user_id == usuario.id,  # del usuario
+            PresupuestoCategoria.mes == mes,  # de ese mes
+            PresupuestoCategoria.categoria == payload.categoria,  # de esa categoría
+        )  # fin de where
+    )  # None si no hay presupuesto
+    excluir_id = existente.id if existente is not None else None  # al editar se excluye el propio gasto
+    gastado_otros = _gasto_categoria_mes(db, usuario.id, payload.categoria, mes, excluir_id)  # lo gastado sin este gasto
+    monto_anterior = 0.0  # lo que este gasto ya sumaba en la categoría (0 si es nuevo)
+    if (  # si se edita un gasto que ya contaba en esta misma categoría y mes
+        existente is not None  # es una edición
+        and existente.tipo == "gasto"  # y antes ya era un gasto
+        and existente.categoria == payload.categoria  # de la misma categoría
+        and existente.fecha.strftime("%Y-%m") == mes  # y del mismo mes
+    ):  # fin de la condición
+        monto_anterior = float(existente.monto)  # su monto ya estaba sumado
+    aviso = calcular_aviso_presupuesto(  # aplica la regla pura
+        float(presupuesto) if presupuesto is not None else None,  # presupuesto de la categoría
+        gastado_otros,  # gastado sin este gasto
+        monto_anterior,  # lo que sumaba antes
+        float(payload.monto),  # lo que sumará después
+    )  # fin de calcular_aviso_presupuesto
+    if aviso is None or payload.confirmar_exceso:  # no hace falta avisar, o el usuario ya confirmó
+        return  # se puede guardar
+    raise HTTPException(  # se detiene y le pide confirmación a la pantalla (no se guarda nada)
+        status_code=409,  # código HTTP 409 Conflicto
+        detail={  # datos para mostrar en el aviso
+            "codigo": "supera_presupuesto_categoria",  # código que la pantalla reconoce
+            "mensaje": (  # texto legible
+                f"Este gasto haría que te pases {aviso['exceso']:.2f} Bs del presupuesto de "  # cuánto se pasaría
+                f"{payload.categoria} ({aviso['presupuesto']:.2f} Bs)."  # de qué presupuesto
+            ),  # fin del mensaje
+            "categoria": payload.categoria,  # categoría afectada
+            "mes": mes,  # mes afectado
+            **aviso,  # presupuesto, gastado, monto, nuevo_total y exceso
+        },  # fin de detail
+    )  # fin de raise
+
+
 def _recurrencia(payload: MovimientoWrite) -> str | None:  # funcion recurrencia que recibe payload y devuelve la recurrencia o None
     return payload.recurrencia if payload.tipo == "gasto" else None  # retorna payload.recurrencia si payload.tipo es gasto, sino retorna None
 
@@ -169,6 +238,7 @@ def create(  # función controladora para registrar un nuevo movimiento
     usuario: Usuario = Depends(usuario_actual),  # inyecta el usuario autenticado
 ) -> Movimiento:  # retorna el movimiento recién creado
     _validar_limite_mensual(db, usuario, payload)  # valida que no supere el límite mensual si es un gasto
+    _avisar_si_supera_presupuesto(db, usuario, payload)  # Tarea 9: si pasaría el presupuesto de la categoría, pide confirmación
     movimiento = Movimiento(  # instancia el nuevo objeto Movimiento con los datos recibidos
         user_id=usuario.id,  # asigna el id del usuario autenticado
         tipo=payload.tipo,  # asigna gasto o ingreso
@@ -200,6 +270,7 @@ def update(  # función controladora para actualizar los datos de un movimiento
             detail="No es posible modificar el monto porque el movimiento ya fue pagado",  # detalle de la regla
         )  # fin de raise
     _validar_limite_mensual(db, usuario, payload, excluir_id=movimiento.id)  # valida el límite del mes excluyendo el monto anterior del mismo movimiento
+    _avisar_si_supera_presupuesto(db, usuario, payload, existente=movimiento)  # Tarea 9: un gasto editado también pide confirmación
     disponible_antes = _saldo_disponible(db, usuario)  # Tarea 8: saldo disponible antes de editar
 
     movimiento.tipo = payload.tipo  # actualiza el tipo

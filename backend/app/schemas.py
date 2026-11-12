@@ -51,6 +51,8 @@ class MovimientoWrite(BaseModel):  # esquema para crear o actualizar un movimien
     fecha: date  # fecha asignada al movimiento
     # Tarea 6: solo los gastos se repiten; None = no se repite
     recurrencia: Recurrencia | None = None  # frecuencia de repetición o None si es único
+    # Tarea 9: True cuando el usuario ya vio el aviso de presupuesto y confirmó que quiere guardar
+    confirmar_exceso: bool = False  # por defecto no está confirmado
 
 
 class MovimientoRead(BaseModel):  # esquema para serializar un movimiento en las respuestas de la API

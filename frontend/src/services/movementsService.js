@@ -8,10 +8,11 @@ export const MovementsService = {
     return api('/movimientos')
   },
 
-  async create({ tipo, monto, categoria, fecha, descripcion, recurrencia = null }) {
+  // Tarea 9: confirmar_exceso = true cuando el usuario ya aceptó pasarse del presupuesto de la categoría
+  async create({ tipo, monto, categoria, fecha, descripcion, recurrencia = null, confirmar_exceso = false }) {
     return api('/movimientos', {
       method: 'POST',
-      body: { tipo, monto, categoria, descripcion, fecha: fechaISO(fecha), recurrencia },
+      body: { tipo, monto, categoria, descripcion, fecha: fechaISO(fecha), recurrencia, confirmar_exceso },
     })
   },
 
@@ -24,10 +25,10 @@ export const MovementsService = {
     return api(`/movimientos/${id}/estado`, { method: 'PATCH', body: { estado: nuevoEstado } })
   },
 
-  async update({ id, tipo, monto, categoria, fecha, descripcion, recurrencia = null }) {
+  async update({ id, tipo, monto, categoria, fecha, descripcion, recurrencia = null, confirmar_exceso = false }) {
     return api(`/movimientos/${id}`, {
       method: 'PUT',
-      body: { tipo, monto, categoria, descripcion, fecha: fechaISO(fecha), recurrencia },
+      body: { tipo, monto, categoria, descripcion, fecha: fechaISO(fecha), recurrencia, confirmar_exceso },
     })
   },
 
