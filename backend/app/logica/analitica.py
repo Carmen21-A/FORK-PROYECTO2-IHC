@@ -16,7 +16,7 @@ EVENTOS_PERMITIDOS: dict[str, dict] = {  # nombre del evento -> {propiedad: valo
     "movimiento_rechazado": {"motivo": {"monto_vacio", "monto_invalido", "supera_limite_mensual", "rechazado_por_servidor"}},  # error que frena el registro
     # Flujo 2 · Aviso antes de superar el límite (Tarea 9 Parte B)
     "aviso_presupuesto_mostrado": {"categoria": CATEGORIAS},  # paso: se mostró el aviso de presupuesto
-    "aviso_presupuesto_confirmado": {"categoria": CATEGORIAS},  # éxito: guardó de todas formas
+    "aviso_presupuesto_confirmado": {"categoria": CATEGORIAS},  # éxito: eligió «Guardar y exceder»
     "aviso_presupuesto_cancelado": {"categoria": CATEGORIAS},  # salida: canceló y no se guardó nada
     # Flujo 3 · Pagar un movimiento pendiente
     "pago_iniciado": {"tipo": TIPOS},  # inicio: toca el estado «pendiente» para pagarlo

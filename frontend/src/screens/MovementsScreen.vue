@@ -1085,8 +1085,9 @@ function alternarMenu(id) {
         </dl>
       </div>
       <template #acciones>
-        <button class="btn btn-outlined" @click="cancelarAvisoPresupuesto">Cancelar</button>
-        <button class="btn btn-elevated" @click="confirmarAvisoPresupuesto">Guardar de todas formas</button>
+        <!-- Clase 22: consecuencia clara y botones iguales (ninguna opción empuja a pasarse) -->
+        <button class="btn btn-outlined" @click="cancelarAvisoPresupuesto">Volver y ajustar</button>
+        <button class="btn btn-outlined" @click="confirmarAvisoPresupuesto">Guardar y exceder</button>
       </template>
     </AppDialog>
 

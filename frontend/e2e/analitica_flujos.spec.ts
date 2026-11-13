@@ -35,14 +35,14 @@ test('Registrar movimiento: inicio, error por monto vacío y éxito', async ({ p
 })
 
 test('Aviso de presupuesto (Tarea 9): se muestra dos veces, se cancela una y se confirma otra', async ({ page }) => {
-  for (const accion of ['Cancelar', 'Guardar de todas formas']) {
+  for (const accion of ['Volver y ajustar', 'Guardar y exceder']) {
     await page.getByRole('button', { name: 'Nuevo Movimiento' }).click()
     await page.getByLabel('Categoría', { exact: true }).selectOption('Transporte')
     await page.getByLabel('Monto (Bs)').fill('80') // 40 + 80 = 120 de 100
     await page.getByRole('button', { name: 'Guardar' }).click()
     const aviso = page.getByRole('dialog', { name: 'Este gasto supera tu presupuesto' })
     await aviso.getByRole('button', { name: accion }).click()
-    if (accion === 'Cancelar') await page.reload()
+    if (accion === 'Volver y ajustar') await page.reload()
   }
   await expect(page.getByRole('status')).toContainText('Gasto registrado')
 

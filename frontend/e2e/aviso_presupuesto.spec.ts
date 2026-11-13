@@ -32,7 +32,7 @@ test('un gasto sin aviso, uno con aviso cancelado y otro confirmado que queda ex
   await expect(aviso(page)).toContainText('te pasarías 20.0 Bs')
   await expect(aviso(page)).toContainText('Quedaría en')
   await expect(aviso(page)).toContainText('120.0 Bs')
-  await aviso(page).getByRole('button', { name: 'Cancelar' }).click()
+  await aviso(page).getByRole('button', { name: 'Volver y ajustar' }).click()
 
   // Todo igual: no se guardó y el total no cambió
   await expect(aviso(page)).toHaveCount(0)
@@ -43,7 +43,7 @@ test('un gasto sin aviso, uno con aviso cancelado y otro confirmado que queda ex
   // 3. Gasto CON aviso CONFIRMADO: se guarda y queda excedido
   await llenarGasto(page, '50', 'Taxi')
   await expect(aviso(page)).toBeVisible()
-  await aviso(page).getByRole('button', { name: 'Guardar de todas formas' }).click()
+  await aviso(page).getByRole('button', { name: 'Guardar y exceder' }).click()
   await expect(page.getByRole('status')).toContainText('Gasto registrado: 50.0 Bs')
   await expect(page.getByText('Total gastos: 120.0 Bs')).toBeVisible()
 
