@@ -32,6 +32,8 @@ const QUE_CAMBIARIA = {
     'Simplificar el formulario de la meta: proponer una fecha límite y un monto de ejemplo, y marcar los campos obligatorios.',
   'Mover fondos en metas (Tarea 8)':
     'Mostrar el máximo que se puede mover y un botón «Usar todo», para no escribir montos imposibles.',
+  'Eliminar cuenta (Tarea 10)':
+    'Si muchos abren el diálogo y conservan la cuenta, revisar que el texto no asuste: quizás buscaban solo descargar sus datos.',
   'Presupuesto por categoría':
     'Usar los botones de montos rápidos y un ejemplo en el campo, para evitar presupuestos vacíos o con letras.',
 }

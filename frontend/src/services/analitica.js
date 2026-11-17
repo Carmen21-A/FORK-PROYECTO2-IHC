@@ -34,6 +34,15 @@ export function track(evento, props = {}) {
   return registro
 }
 
+// Tarea 10: «cuenta_eliminada» lo guarda el servidor al borrar la cuenta (el navegador ya no
+// tiene sesión para enviarlo). Aquí solo queda en la lista local y en la consola.
+export function trackSoloLocal(evento, props = {}) {
+  const registro = { evento, props, fecha: new Date().toISOString() }
+  eventos.push(registro)
+  console.log('[evento]', registro)
+  return registro
+}
+
 // Al tocar «Nuevo Movimiento»: la persona empieza el flujo
 export function iniciarMovimientoConTrack() {
   return track(MOVIMIENTO_INICIADO, {})
@@ -81,6 +90,11 @@ export const EVENTOS = Object.freeze({
   // Flujo 7 · Buscar y filtrar
   BUSQUEDA_REALIZADA: 'busqueda_realizada',
   BUSQUEDA_SIN_RESULTADOS: 'busqueda_sin_resultados',
+  // Flujo 8 · Mis datos y eliminar la cuenta (Tarea 10)
+  DATOS_DESCARGADOS: 'datos_descargados',
+  CUENTA_ELIMINACION_INICIADA: 'cuenta_eliminacion_iniciada',
+  CUENTA_ELIMINADA: 'cuenta_eliminada',
+  CUENTA_ELIMINACION_FRENADA: 'cuenta_eliminacion_frenada',
 })
 
 // Motivos de una lista fija: se traduce el mensaje de error a un código, nunca se envía el texto

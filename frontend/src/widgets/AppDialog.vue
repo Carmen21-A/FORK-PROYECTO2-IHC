@@ -15,7 +15,9 @@ function alPresionarTecla(evento) {
 
 onMounted(() => {
   document.addEventListener('keydown', alPresionarTecla)
-  dialogo.value?.querySelector('input, select, button')?.focus()
+  // Tarea 10: si una opción tiene data-autofocus (la salida segura), recibe el foco primero
+  const foco = dialogo.value?.querySelector('[data-autofocus]') ?? dialogo.value?.querySelector('input, select, button')
+  foco?.focus()
 })
 onBeforeUnmount(() => document.removeEventListener('keydown', alPresionarTecla))
 </script>

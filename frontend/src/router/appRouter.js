@@ -11,6 +11,7 @@ import ResetPasswordScreen from '../screens/ResetPasswordScreen.vue'
 import PresupuestoCategoriaScreen from '../screens/PresupuestoCategoriaScreen.vue'
 import MetasScreen from '../screens/MetasScreen.vue'
 import AnaliticaScreen from '../screens/AnaliticaScreen.vue'
+import MisDatosScreen from '../screens/MisDatosScreen.vue'
 
 export const privateRoutes = [
   '/movements',
@@ -19,6 +20,7 @@ export const privateRoutes = [
   '/presupuestos-categoria',
   '/metas',
   '/analitica',
+  '/mis-datos',
 ]
 export const publicRoutes = ['/', '/login', '/register', '/reset-password']
 
@@ -36,6 +38,8 @@ export const appRouter = createRouter({
     { path: '/metas', component: MetasScreen },
     /// Clase 21: panel propio de analítica (solo desarrollo)
     { path: '/analitica', component: AnaliticaScreen },
+    /// Tarea 10: ver y descargar mis datos, y eliminar la cuenta
+    { path: '/mis-datos', component: MisDatosScreen },
     { path: '/history', component: HistoryScreen },
     { path: '/reset-password', component: ResetPasswordScreen },
     { path: '/:pathMatch(.*)*', redirect: '/' },
