@@ -10,11 +10,11 @@
 
 | # | Parte | Dónde | Commit |
 |---|---|---|---|
-| 1 | Mis datos: ver y descargar (JSON o CSV) | Menú → **Mis datos** (`/mis-datos`) | `PENDIENTE` |
-| 2 | Eliminar la cuenta con la regla de la app | `DELETE /api/cuenta` | `PENDIENTE` |
-| 3 | Confirmación honesta | Diálogo «¿Eliminar tu cuenta?» | `PENDIENTE` |
-| 4 | Revisión de los seis patrones en toda la app | Sección 4 de este documento | `PENDIENTE` |
-| 5 | E2E, eventos y evidencia | `frontend/e2e/mis_datos.spec.ts`, `etica.spec.ts` | `PENDIENTE` |
+| 1 | Mis datos: ver y descargar (JSON o CSV) | Menú → **Mis datos** (`/mis-datos`) | `65005ba` |
+| 2 | Eliminar la cuenta con la regla de la app | `DELETE /api/cuenta` | `0f352ab` |
+| 3 | Confirmación honesta | Diálogo «¿Eliminar tu cuenta?» | `65005ba` |
+| 4 | Revisión de los seis patrones en toda la app | Sección 4 de este documento | El mismo commit que esta evidencia (el último de la Tarea 10) |
+| 5 | E2E, eventos y evidencia | `frontend/e2e/mis_datos.spec.ts`, `etica.spec.ts` | El mismo commit que esta evidencia (el último de la Tarea 10) |
 
 ---
 
