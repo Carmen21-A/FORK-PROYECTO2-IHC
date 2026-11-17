@@ -37,6 +37,11 @@ EVENTOS_PERMITIDOS: dict[str, dict] = {  # nombre del evento -> {propiedad: valo
     # Flujo 7 · Buscar y filtrar movimientos
     "busqueda_realizada": {"con_texto": BOOLEANO, "con_filtros": BOOLEANO},  # se buscó (sin guardar el texto buscado)
     "busqueda_sin_resultados": {"con_texto": BOOLEANO, "con_filtros": BOOLEANO},  # la búsqueda no encontró nada
+    # Flujo 8 · Mis datos y eliminar la cuenta (Tarea 10)
+    "datos_descargados": {"formato": {"json", "csv"}},  # descargó sus datos (solo el formato, nunca el contenido)
+    "cuenta_eliminacion_iniciada": {},  # inicio: abre el diálogo «¿Eliminar tu cuenta?»
+    "cuenta_eliminada": {},  # éxito: la cuenta y sus datos se borraron (lo registra el servidor)
+    "cuenta_eliminacion_frenada": {"motivo": {"conservo_la_cuenta", "rechazado_por_servidor"}},  # salida o bloqueo
 }  # fin de eventos permitidos
 
 FLUJOS = [  # embudos del panel /analitica: pasos en orden, de inicio a éxito
@@ -46,6 +51,7 @@ FLUJOS = [  # embudos del panel /analitica: pasos en orden, de inicio a éxito
     {"id": "meta", "nombre": "Crear meta de ahorro (Tarea 8)", "pasos": ["meta_creacion_iniciada", "meta_creada"], "error": "meta_rechazada"},  # flujo 4
     {"id": "fondos", "nombre": "Mover fondos en metas (Tarea 8)", "pasos": ["fondos_operacion_iniciada", "fondos_operacion_realizada"], "error": "fondos_operacion_rechazada"},  # flujo 5
     {"id": "presupuesto", "nombre": "Presupuesto por categoría", "pasos": ["presupuesto_edicion_iniciada", "presupuesto_categoria_guardado"], "error": "presupuesto_rechazado"},  # flujo 6
+    {"id": "eliminar_cuenta", "nombre": "Eliminar cuenta (Tarea 10)", "pasos": ["cuenta_eliminacion_iniciada", "cuenta_eliminada"], "error": "cuenta_eliminacion_frenada"},  # flujo 8
 ]  # fin de flujos (la búsqueda se muestra aparte: realizadas vs. sin resultados)
 
 

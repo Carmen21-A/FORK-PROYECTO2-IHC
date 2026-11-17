@@ -235,3 +235,12 @@ class PanelAnalitica(BaseModel):  # respuesta del panel /analitica
     mayor_caida: MayorCaida | None = None  # Tarea 9: paso con la mayor caída
     busquedas: ResumenBusquedas | None = None  # Tarea 9: búsquedas sin resultados
 
+
+
+# ---------- Tarea 10 · Mis datos y salida honesta ----------
+class ConfirmarEliminacion(BaseModel):  # cuerpo de DELETE /api/cuenta
+    confirmar: bool = False  # True solo cuando la persona tocó «Eliminar mi cuenta» en el diálogo
+
+
+class ResultadoEliminacion(BaseModel):  # respuesta al eliminar la cuenta
+    eliminado: dict[str, int]  # cuántos movimientos, límites, presupuestos, metas e historial se borraron
