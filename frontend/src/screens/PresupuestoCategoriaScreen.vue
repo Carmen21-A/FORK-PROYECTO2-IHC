@@ -499,8 +499,9 @@ function porcentajeBarra(valor) {
     >
       <p>¿Estás seguro de quitar el presupuesto de esta categoría para este mes?</p>
       <template #acciones>
-        <button class="btn btn-text" @click="eliminarCategoria = null">Cancelar</button>
-        <button class="btn btn-danger" @click="eliminarPresupuesto">Eliminar</button>
+        <!-- Tarea 10 (revisión de patrones): botones iguales y que dicen lo que hacen -->
+        <button class="btn btn-outlined" @click="eliminarCategoria = null">Conservar presupuesto</button>
+        <button class="btn btn-outlined" @click="eliminarPresupuesto">Eliminar presupuesto</button>
       </template>
     </AppDialog>
   </AppScaffold>

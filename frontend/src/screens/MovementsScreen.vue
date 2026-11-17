@@ -365,7 +365,8 @@ async function validarSiExcedioLimiteMensual(monto) {
 
   if (superaLimiteMensual({ gastoActualDelMes: gastoActual, nuevoGasto: monto, limite })) {
     showSnackBar(
-      `No se puede registrar, porque supera tu límite mensual de ${dartNum(limite)} Bs (llevas gastando ${dartNum(gastoActual)} Bs)`,
+      // Tarea 10 (revisión de patrones): dato neutral en vez de «llevas gastando» (tono de reproche)
+      `No se registró: este gasto supera tu límite mensual de ${dartNum(limite)} Bs. Te quedan ${dartNum(Math.max(limite - gastoActual, 0))} Bs disponibles este mes.`,
       'var(--error-default)',
     )
     return true // Se excedio
@@ -1054,10 +1055,11 @@ function alternarMenu(id) {
       titulo="Confirma que quieres eliminar este movimiento"
       @cerrar="eliminarId = null"
     >
-      <p>¿Estás seguro que quieres eliminar este movimiento?</p>
+      <p>El movimiento desaparecerá de tu lista y de tus totales. Esto no se puede deshacer.</p>
       <template #acciones>
-        <button class="btn btn-outlined" @click="eliminarId = null">Cancelar</button>
-        <button class="btn btn-elevated" @click="eliminar(eliminarId)">Eliminar</button>
+        <!-- Tarea 10 (revisión de patrones): botones iguales y que dicen lo que hacen -->
+        <button class="btn btn-outlined" @click="eliminarId = null">Conservar movimiento</button>
+        <button class="btn btn-outlined" @click="eliminar(eliminarId)">Eliminar movimiento</button>
       </template>
     </AppDialog>
 
@@ -1094,13 +1096,16 @@ function alternarMenu(id) {
     <!-- Confirmar cancelacion (irreversible) -->
     <AppDialog
       v-if="cancelarMovimiento"
-      titulo="Confirmar cancelacion"
+      titulo="Confirmar cancelación"
       @cerrar="cancelarMovimiento = null"
     >
-      <p>¿Seguro que quieres cancelar este movimiento? Esta acción no se puede deshacer.</p>
+      <p>
+        Quedará como «cancelado» y dejará de contar en tus totales y presupuestos. Esto no se puede deshacer.
+      </p>
       <template #acciones>
+        <!-- Tarea 10 (revisión de patrones): la acción irreversible ya no es el botón destacado -->
         <button class="btn btn-outlined" @click="cancelarMovimiento = null">Volver</button>
-        <button class="btn btn-elevated" @click="cambiarEstado(cancelarMovimiento, true)">
+        <button class="btn btn-outlined" @click="cambiarEstado(cancelarMovimiento, true)">
           Cancelar movimiento
         </button>
       </template>

@@ -646,10 +646,9 @@ function alternarMenu(id) {
           automáticamente a tu saldo disponible.
         </p>
         <div class="row modal-acciones">
-          <button class="btn btn-outlined" @click="dialogoEliminar = null">Cancelar</button>
-          <button class="btn btn-elevated btn-danger" @click="confirmarEliminar">
-            Eliminar meta
-          </button>
+          <!-- Tarea 10 (revisión de patrones): botones iguales y que dicen lo que hacen -->
+          <button class="btn btn-outlined" @click="dialogoEliminar = null">Conservar meta</button>
+          <button class="btn btn-outlined" @click="confirmarEliminar">Eliminar meta</button>
         </div>
       </div>
     </AppDialog>

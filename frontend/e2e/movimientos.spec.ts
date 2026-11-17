@@ -37,7 +37,7 @@ test.describe('Eliminar movimiento', () => {
   test('Martita elimina un gasto, lo confirma y el total baja', async ({ page }) => {
     await abrirOpcion(page, 'Pasaje de micro', 'Eliminar')
     const confirmar = page.getByRole('dialog', { name: 'Confirma que quieres eliminar este movimiento' })
-    await confirmar.getByRole('button', { name: 'Eliminar' }).click()
+    await confirmar.getByRole('button', { name: 'Eliminar movimiento' }).click()
 
     await expect(page.getByRole('status')).toContainText('Movimiento eliminado')
     await expect(page.getByText('Pasaje de micro')).toHaveCount(0)
@@ -46,7 +46,7 @@ test.describe('Eliminar movimiento', () => {
 
   test('si cancela la confirmación, el gasto no se borra', async ({ page }) => {
     await abrirOpcion(page, 'Pasaje de micro', 'Eliminar')
-    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await page.getByRole('button', { name: 'Conservar movimiento' }).click()
 
     await expect(filaDe(page, 'Pasaje de micro')).toBeVisible()
     await expect(page.getByText('Total gastos: 40.0 Bs')).toBeVisible()

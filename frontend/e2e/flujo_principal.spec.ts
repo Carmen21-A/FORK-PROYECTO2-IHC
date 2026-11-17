@@ -107,7 +107,7 @@ test.describe('Camino alternativo: registrar gasto', () => {
     await expect(page.getByText(/Supera tu límite mensual/)).toBeVisible()
     await page.getByRole('button', { name: 'Guardar' }).click()
 
-    await expect(page.getByRole('status')).toContainText('No se puede registrar, porque supera tu límite')
+    await expect(page.getByRole('status')).toContainText('No se registró: este gasto supera tu límite mensual')
     await page.keyboard.press('Escape')
     await expect(page.getByText('Total gastos: 40.0 Bs')).toBeVisible()
     await expect(page.getByText('Celular')).toHaveCount(0)
