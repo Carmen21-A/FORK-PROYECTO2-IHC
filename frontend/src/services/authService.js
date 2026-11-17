@@ -4,8 +4,8 @@ import { borrarSesion, guardarSesion, sesionActual } from './sesion.js'
 
 export const AuthService = {
   // registrar usuario
-  async signUp({ email, password }) {
-    const sesion = await api('/auth/register', { method: 'POST', body: { email, password } })
+  async signUp({ nombre, email, password }) {
+    const sesion = await api('/auth/register', { method: 'POST', body: { nombre, email, password } })
     guardarSesion(sesion)
     return sesion
   },
@@ -27,17 +27,19 @@ export const AuthService = {
     await api('/auth/password', { method: 'PATCH', body: { password: newPassword } })
   },
 
-  // recuperar contraseña x correo
+  // recuperar contraseña, paso 1: manda un código de 4 dígitos al correo
   async resetPasswordForEmail(email) {
     return api('/auth/password/recover', { method: 'POST', body: { email } })
   },
 
-  // abre sesion con el enlace del correo (verifyOTP de Supabase)
-  async verifyRecovery(tokenHash) {
-    const sesion = await api('/auth/password/verify', {
-      method: 'POST',
-      body: { token_hash: tokenHash },
-    })
+  // paso 2: revisa el código (todavía no lo gasta)
+  async verifyRecoveryCode(email, codigo) {
+    return api('/auth/password/verify', { method: 'POST', body: { email, codigo } })
+  },
+
+  // paso 3: guarda la contraseña nueva con el código y abre la sesión
+  async resetPasswordWithCode({ email, codigo, password }) {
+    const sesion = await api('/auth/password/reset', { method: 'POST', body: { email, codigo, password } })
     guardarSesion(sesion)
     return sesion
   },

@@ -27,6 +27,15 @@ export function sembrar() { // define y exporta la función sembrar para poblar 
   } // fin del bloque catch
 } // fin de la función sembrar
 
+// Recuperar contraseña: la prueba no puede leer el correo, así que deja un código de 4 dígitos conocido
+export function fijarCodigo(email, codigo) { // reemplaza el código sorteado por la app por uno que la prueba conoce
+  execFileSync(python, ['semilla_codigo.py', email, codigo], { // ejecuta backend/semilla_codigo.py
+    cwd: carpetaBackend, // se ejecuta desde la carpeta backend
+    env: { ...process.env, DATABASE_NAME: BASE_E2E }, // siempre en la base de pruebas
+    stdio: ['ignore', 'inherit', 'pipe'], // muestra la salida y guarda los errores
+  }) // fin de las opciones
+} // fin de la función fijarCodigo
+
 // Playwright lo usa como globalSetup: se siembra una vez antes de todas las pruebas
 export default sembrar // exporta la función sembrar por defecto para que playwright la use como setup global
 

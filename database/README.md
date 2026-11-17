@@ -17,7 +17,7 @@ database/
 | `limites_mensuales` | Límite de gasto por mes (`YYYY-MM`) |
 | `presupuestos_categoria` | Presupuesto por categoría y mes |
 | `historial` | Eventos: creado, editado, cambio_estado, eliminado |
-| `recuperaciones_password` | Enlaces de "¿Olvidaste tu contraseña?" |
+| `recuperaciones_password` | Códigos de 4 dígitos de "¿Olvidaste tu contraseña?" (cifrados, con sus intentos) |
 
 En Supabase cada usuario solo veía sus datos gracias a RLS. Ahora eso lo hace el backend: todas las consultas filtran por `user_id` del usuario con sesión.
 

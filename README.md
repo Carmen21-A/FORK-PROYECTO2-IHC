@@ -84,7 +84,7 @@ Abrir http://localhost:5173. La documentación interactiva de la API está en ht
 - ✅ Registro de usuario con email y contraseña
 - ✅ Inicio y cierre de sesión
 - ✅ Cambio de contraseña (usuario autenticado)
-- ✅ Recuperación de contraseña por email (enlace con token)
+- ✅ Recuperación de contraseña con un código de 4 dígitos que llega al correo (sirve 15 minutos, 5 intentos)
 - ✅ Persistencia de sesión (la app recuerda al usuario al recargar)
 - ✅ Rutas privadas protegidas (sin sesión no se puede acceder a movimientos)
 - ✅ Registrar, editar y eliminar ingresos y gastos

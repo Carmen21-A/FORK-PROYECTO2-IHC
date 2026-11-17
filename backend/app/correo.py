@@ -7,23 +7,23 @@ from app.config import get_settings  # importa get_settings para leer los parám
 logger = logging.getLogger("presupuesto.correo")  # crea un logger con el nombre del módulo de correo
 
 
-def enviar_enlace_recuperacion(email: str, enlace: str) -> None:  # función para enviar el enlace de restablecimiento de contraseña al usuario
+def enviar_codigo_recuperacion(email: str, codigo: str) -> None:  # función para enviar el código de 4 dígitos al usuario
     settings = get_settings()  # obtiene la configuración actual del sistema
 
-    # Sin SMTP configurado (desarrollo) el enlace se muestra en la consola del backend
+    # Sin SMTP configurado (desarrollo) el código se muestra en la consola del backend
     if not settings.smtp_host or not settings.smtp_from:  # comprueba si no se configuró servidor SMTP o remitente
-        logger.warning("Enlace de recuperación para %s: %s", email, enlace)  # imprime el enlace en la consola como advertencia
+        logger.warning("Código de recuperación para %s: %s", email, codigo)  # imprime el código en la consola como advertencia
         return  # termina la función sin intentar conexión de red
 
     mensaje = EmailMessage()  # crea una nueva instancia de mensaje de correo electrónico
-    mensaje["Subject"] = f"{settings.app_name}: restablece tu contraseña"  # define el asunto del correo
+    mensaje["Subject"] = f"{settings.app_name}: tu código es {codigo}"  # el código va en el asunto: se ve sin abrir el correo
     mensaje["From"] = settings.smtp_from  # define el correo del remitente
     mensaje["To"] = email  # define el correo destinatario
     mensaje.set_content(  # redacta el cuerpo en texto plano del correo
         "Recibimos una solicitud para cambiar tu contraseña.\n\n"  # primera línea del mensaje informando la solicitud
-        f"Abre este enlace para crear una nueva (válido por {settings.recovery_token_minutes} minutos):\n"  # especifica el tiempo de vigencia
-        f"{enlace}\n\n"  # incluye la URL del enlace de recuperación
-        "Si no lo pediste, ignora este correo."  # aviso de seguridad si no fue solicitado por el usuario
+        f"Tu código es: {codigo}\n\n"  # el código de 4 dígitos
+        f"Escríbelo en la pantalla de Presupuesto Estudiantil. Sirve por {settings.recovery_code_minutes} minutos.\n\n"  # dónde usarlo y cuánto dura
+        "Si no lo pediste, ignora este correo: tu contraseña sigue igual."  # aviso de seguridad si no fue solicitado por el usuario
     )  # fin de set_content
 
     cliente = SMTP_SSL if settings.smtp_port == 465 else SMTP  # selecciona conexión SSL directa para puerto 465 o SMTP estándar para otros

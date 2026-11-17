@@ -48,8 +48,9 @@ Documentación interactiva: http://localhost:8000/docs
 | POST | `/api/auth/login` | Iniciar sesión |
 | GET | `/api/auth/me` | Usuario actual |
 | PATCH | `/api/auth/password` | Cambiar contraseña |
-| POST | `/api/auth/password/recover` | Enviar enlace de recuperación |
-| POST | `/api/auth/password/verify` | Abrir sesión con el enlace |
+| POST | `/api/auth/password/recover` | Enviar un código de 4 dígitos al correo |
+| POST | `/api/auth/password/verify` | Revisar el código (no lo gasta) |
+| POST | `/api/auth/password/reset` | Guardar la contraseña nueva con el código y abrir sesión |
 | GET | `/api/movimientos` | Listar (con filtros `texto`, `tipo`, `categoria`, `estado`, `desde`, `hasta`) |
 | POST | `/api/movimientos` | Crear (valida el límite mensual) |
 | PUT | `/api/movimientos/{id}` | Editar (no cambia el monto si está pagado) |
@@ -64,7 +65,9 @@ Todas las rutas, excepto las de registro, login y recuperación, piden `Authoriz
 
 ## Recuperar contraseña
 
-Si `SMTP_HOST` está vacío, el enlace de recuperación se imprime en la consola del backend (útil para probar). Para enviarlo por correo de verdad, completar las variables `SMTP_*` del `.env` (por ejemplo, con una contraseña de aplicación de Gmail).
+Se manda un código de 4 dígitos al correo. Sirve por `RECOVERY_CODE_MINUTES` (15 minutos), solo el último código pedido es válido y con 5 errores deja de servir. En la base se guarda cifrado (hmac con `SECRET_KEY`), nunca el código en claro.
+
+Si `SMTP_HOST` está vacío, el código se imprime en la consola del backend (útil para probar). Para enviarlo por correo de verdad, completar las variables `SMTP_*` del `.env` (por ejemplo, con una contraseña de aplicación de Gmail).
 
 ## Pruebas
 

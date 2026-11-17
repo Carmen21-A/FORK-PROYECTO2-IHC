@@ -3,7 +3,7 @@ from decimal import Decimal  # importa Decimal para validación numérica precis
 from typing import Literal  # importa Literal para restringir valores a listas fijas de strings
 from uuid import UUID  # importa UUID para tipar identificadores únicos
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field  # importa componentes base de validación de Pydantic
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator  # importa componentes base de validación de Pydantic
 
 TipoMovimiento = Literal["gasto", "ingreso"]  # define los únicos dos tipos permitidos de movimiento
 EstadoMovimiento = Literal["pendiente", "pagado", "cancelado"]  # define los tres estados válidos de un movimiento
@@ -18,9 +18,22 @@ class Credenciales(BaseModel):  # esquema para recibir datos de inicio de sesió
     password: str = Field(min_length=6, max_length=128)  # contraseña con mínimo 6 caracteres y máximo 128
 
 
+class Registro(Credenciales):  # esquema para crear una cuenta: correo, contraseña y nombre completo
+    nombre: str | None = Field(default=None, max_length=100)  # nombre completo (opcional para la API, la pantalla lo pide)
+
+    @field_validator("nombre")  # limpia el nombre antes de guardarlo
+    @classmethod  # validador de clase de Pydantic
+    def limpiar_nombre(cls, valor: str | None) -> str | None:  # quita espacios sobrantes
+        if valor is None:  # no se envió nombre
+            return None  # se guarda vacío
+        limpio = " ".join(valor.split())  # quita espacios al inicio, al final y repetidos
+        return limpio or None  # un nombre en blanco se guarda como vacío
+
+
 class UsuarioRead(BaseModel):  # esquema para responder datos públicos de un usuario
     id: UUID  # identificador único del usuario
     email: EmailStr  # correo electrónico del usuario
+    nombre: str | None = None  # nombre completo (las cuentas antiguas no lo tienen)
     model_config = ConfigDict(from_attributes=True)  # permite leer datos directamente desde objetos SQLAlchemy
 
 
@@ -35,11 +48,16 @@ class NuevaPassword(BaseModel):  # esquema para peticiones de cambio de contrase
 
 
 class SolicitudRecuperacion(BaseModel):  # esquema para pedir recuperación de contraseña
-    email: EmailStr  # correo al cual enviar el enlace de recuperación
+    email: EmailStr  # correo al cual enviar el código de 4 dígitos
 
 
-class VerificarRecuperacion(BaseModel):  # esquema para verificar el enlace de recuperación
-    token_hash: str = Field(min_length=20, max_length=256)  # token recibido desde la URL
+class VerificarCodigo(BaseModel):  # esquema para comprobar el código que llegó al correo
+    email: EmailStr  # correo con el que se pidió el código
+    codigo: str = Field(pattern=r"^\d{4}$")  # exactamente 4 números
+
+
+class RestablecerPassword(VerificarCodigo):  # esquema para poner la contraseña nueva con el código
+    password: str = Field(min_length=6, max_length=128)  # contraseña nueva de al menos 6 caracteres
 
 
 # ---------- Movimientos ----------

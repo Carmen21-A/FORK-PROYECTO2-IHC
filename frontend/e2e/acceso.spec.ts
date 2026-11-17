@@ -32,7 +32,7 @@ test('al cerrar sesión, vuelve al inicio y ya no puede ver Movimientos', async 
 
   await irDesdeElMenu(page, 'Cerrar sesión')
 
-  await expect(page.getByRole('heading', { name: /Bienvenido/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Domina tus finanzas universitarias sin estrés' })).toBeVisible()
   await page.goto('/movements')
   await expect(page).toHaveURL(/\/login$/)
 })

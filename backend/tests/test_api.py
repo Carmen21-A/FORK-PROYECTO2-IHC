@@ -45,25 +45,7 @@ def test_cambiar_password(client, auth):
     assert login.status_code == 200
 
 
-def test_recuperar_password_con_enlace(client, auth, caplog):
-    caplog.set_level("WARNING")
-    respuesta = client.post("/api/auth/password/recover", json={"email": "ana@test.com"})
-    assert respuesta.status_code == 202
-
-    # Sin SMTP el enlace sale en la consola, con el mismo formato que Supabase
-    enlace = next(r.getMessage() for r in caplog.records if "token_hash=" in r.getMessage())
-    token = enlace.split("token_hash=")[1].split("&")[0]
-    assert "type=recovery" in enlace
-
-    sesion = client.post("/api/auth/password/verify", json={"token_hash": token})
-    assert sesion.status_code == 200
-    nueva_auth = {"Authorization": f"Bearer {sesion.json()['access_token']}"}
-    assert client.patch("/api/auth/password", json={"password": "otra456"}, headers=nueva_auth).status_code == 204
-
-    # El enlace solo sirve una vez
-    assert client.post("/api/auth/password/verify", json={"token_hash": token}).status_code == 400
-
-
+# El flujo completo con el código de 4 dígitos está en test_recuperar_codigo.py
 def test_recuperar_password_no_revela_si_el_correo_existe(client):
     assert client.post("/api/auth/password/recover", json={"email": "nadie@test.com"}).status_code == 202
 

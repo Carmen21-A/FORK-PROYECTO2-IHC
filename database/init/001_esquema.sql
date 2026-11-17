@@ -11,9 +11,12 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE IF NOT EXISTS usuarios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(320) NOT NULL UNIQUE,
+    nombre VARCHAR(100),
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Nombre completo que se pide al crear la cuenta (las bases ya creadas reciben la columna aquí)
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100);
 
 -- Ingresos y gastos (Tareas 2, 3 y 4)
 CREATE TABLE IF NOT EXISTS movimientos (
@@ -80,14 +83,17 @@ CREATE INDEX IF NOT EXISTS ix_historial_user_id ON historial (user_id);
 CREATE INDEX IF NOT EXISTS idx_historial_user_created
     ON historial (user_id, created_at DESC);
 
--- Enlaces de "¿Olvidaste tu contraseña?" (antes los manejaba Supabase)
+-- Códigos de 4 dígitos de "¿Olvidaste tu contraseña?" (antes eran enlaces de Supabase)
 CREATE TABLE IF NOT EXISTS recuperaciones_password (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,  -- hmac del código, nunca el código en claro
     expires_at TIMESTAMPTZ NOT NULL,
-    used_at TIMESTAMPTZ
+    used_at TIMESTAMPTZ,
+    intentos INT NOT NULL DEFAULT 0  -- veces que se escribió mal el código (máximo 5)
 );
+-- Bases creadas antes del código de 4 dígitos
+ALTER TABLE recuperaciones_password ADD COLUMN IF NOT EXISTS intentos INT NOT NULL DEFAULT 0;
 CREATE INDEX IF NOT EXISTS ix_recuperaciones_password_user_id ON recuperaciones_password (user_id);
 
 -- Metas de Ahorro con Fondos Disponibles (Tarea 8)

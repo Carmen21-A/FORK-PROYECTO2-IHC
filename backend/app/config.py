@@ -12,11 +12,11 @@ class Settings(BaseSettings):  # define la clase de configuración que hereda de
     database_name: str | None = None  # nombre de base de datos alternativo para pruebas o sobreescritura
     secret_key: str = "cambia-esta-clave-antes-de-desplegar"  # clave secreta para firmar tokens JWT
     access_token_minutes: int = 60 * 24 * 7  # duración del token de acceso en minutos (7 días)
-    recovery_token_minutes: int = 60  # duración del token de recuperación de contraseña (60 minutos)
+    recovery_code_minutes: int = 15  # minutos que sirve el código de 4 dígitos para recuperar la contraseña
     cors_origins: str = "http://localhost:5173"  # orígenes permitidos por CORS separados por comas
     frontend_url: str = "http://localhost:5173"  # URL base de la aplicación frontend para enlaces
 
-    # Correo para recuperar contraseña (si no se configura, el enlace sale en la consola)
+    # Correo para recuperar contraseña (si no se configura, el código sale en la consola)
     smtp_host: str | None = None  # servidor SMTP para envío de correos
     smtp_port: int = 587  # puerto del servidor SMTP por defecto (587 para TLS)
     smtp_user: str | None = None  # usuario o correo de la cuenta SMTP

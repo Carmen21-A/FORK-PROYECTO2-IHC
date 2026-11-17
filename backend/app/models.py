@@ -7,6 +7,7 @@ from sqlalchemy import (  # importa constructores de columnas y restricciones de
     Date,  # tipo de dato Date para fechas sin hora
     DateTime,  # tipo de dato DateTime para marcas temporales
     ForeignKey,  # clave foránea para enlazar con otras tablas
+    Integer,  # tipo entero (intentos del código de recuperación)
     JSON,  # tipo JSON genérico (Clase 21: propiedades de los eventos)
     Numeric,  # tipo numérico decimal de alta precisión
     String,  # tipo de texto con longitud máxima
@@ -31,6 +32,7 @@ class Usuario(Base):  # modelo que representa la tabla de usuarios registrados
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)  # llave primaria UUID generada automáticamente
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)  # correo electrónico único e indexado para búsquedas rápidas
+    nombre: Mapped[str | None] = mapped_column(String(100), nullable=True)  # nombre completo que la persona escribe al registrarse
     password_hash: Mapped[str] = mapped_column(String(255))  # hash criptográfico de la contraseña del usuario
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)  # fecha y hora de creación de la cuenta en UTC
 
@@ -114,17 +116,18 @@ class Historial(Base):  # modelo que registra una bitácora inmutable de eventos
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)  # marca de tiempo en la que ocurrió el evento
 
 
-# Enlaces de "olvidé mi contraseña" (reemplaza el token_hash de Supabase)
-class RecuperacionPassword(Base):  # modelo que almacena tokens para recuperar contraseñas
+# Códigos de 4 dígitos de "olvidé mi contraseña" (antes eran enlaces)
+class RecuperacionPassword(Base):  # modelo que almacena los códigos para recuperar contraseñas
     __tablename__ = "recuperaciones_password"  # nombre físico de la tabla en PostgreSQL
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)  # identificador único del registro
     user_id: Mapped[UUID] = mapped_column(  # usuario solicitante de la recuperación
         Uuid(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), index=True  # clave foránea en cascada
     )  # fin de user_id
-    token_hash: Mapped[str] = mapped_column(String(64), unique=True)  # hash SHA256 del token enviado por correo
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # fecha y hora límite de validez del enlace
-    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # fecha y hora en la que se usó el enlace
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)  # hmac del código enviado por correo (nunca el código en claro)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # fecha y hora límite de validez del código
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # fecha y hora en la que se usó el código
+    intentos: Mapped[int] = mapped_column(Integer, default=0)  # veces que se escribió mal el código (máximo 5)
 
 
 # Tarea 8: Metas de Ahorro con fondos disponibles

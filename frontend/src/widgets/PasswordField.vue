@@ -9,6 +9,7 @@ defineProps({
   placeholder: { type: String, default: 'password123' },
   error: { type: String, default: null },
   label: { type: String, default: null },
+  autocomplete: { type: String, default: 'current-password' }, // 'new-password' al crear una cuenta
 })
 </script>
 
@@ -23,7 +24,7 @@ defineProps({
       :placeholder="placeholder"
       :aria-label="label ?? undefined"
       :aria-invalid="error ? 'true' : 'false'"
-      autocomplete="current-password"
+      :autocomplete="autocomplete"
     />
     <button
       type="button"

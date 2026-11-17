@@ -5,7 +5,8 @@ import { useRouter } from 'vue-router'
 import { AuthService } from '../services/authService.js'
 import { ApiError } from '../services/api.js'
 import { showSnackBar } from '../widgets/snackbar.js'
-import AppScaffold from '../widgets/AppScaffold.vue'
+import BarraPublica from '../widgets/BarraPublica.vue'
+import '../theme/paginasPublicas.css'
 import PasswordField from '../widgets/PasswordField.vue'
 
 const router = useRouter()
@@ -40,38 +41,89 @@ async function handleLogin() {
 </script>
 
 <template>
-  <AppScaffold titulo="Iniciar Sesión" con-atras>
-    <main class="page centered">
-      <form class="stack" novalidate @submit.prevent="handleLogin">
-        <div class="field">
-          <label class="field-label" for="email">Correo electrónico</label>
-          <input
-            id="email"
-            v-model="email"
-            class="input"
-            :class="{ invalid: errores.email }"
-            type="email"
-            placeholder="ejemplo@gmail.com"
-            autocomplete="email"
-          />
-          <span v-if="errores.email" class="field-error">{{ errores.email }}</span>
-        </div>
-        <div class="field">
-          <label class="field-label" for="password">Contraseña</label>
-          <PasswordField
-            id="password"
-            v-model="password"
-            v-model:oculto="mostrarPassword"
-            :error="errores.password"
-          />
-        </div>
+  <div class="publico login-pagina">
+    <BarraPublica pagina="login" transparente sin-marca />
+    <main class="login-main">
+      <div class="pub-contenedor login-fila">
+        <div class="login-tarjeta">
+          <form class="auth-formulario" novalidate @submit.prevent="handleLogin">
+            <div>
+              <h1 class="auth-titulo">Iniciar Sesión</h1>
+              <p class="auth-subtitulo">Qué bueno verte de nuevo. Entra para revisar tus cuentas.</p>
+            </div>
+            <div class="field">
+              <label class="field-label" for="email">Correo electrónico</label>
+              <input
+                id="email"
+                v-model="email"
+                class="input"
+                :class="{ invalid: errores.email }"
+                type="email"
+                placeholder="ejemplo@gmail.com"
+                autocomplete="email"
+              />
+              <span v-if="errores.email" class="field-error">{{ errores.email }}</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="password">Contraseña</label>
+              <PasswordField
+                id="password"
+                v-model="password"
+                v-model:oculto="mostrarPassword"
+                :error="errores.password"
+              />
+            </div>
 
-        <button type="button" class="btn btn-outlined btn-block" @click="router.push('/reset-password')">
-          ¿Olvidaste tu contraseña?
-        </button>
+            <button type="button" class="auth-enlace" @click="router.push('/reset-password')">
+              ¿Olvidaste tu contraseña?
+            </button>
 
-        <button type="submit" class="btn btn-elevated btn-block">Iniciar Sesión</button>
-      </form>
+            <button type="submit" class="pub-btn pub-btn-primario pub-btn-bloque">Iniciar Sesión</button>
+            <p class="auth-pie">
+              ¿Aún no tienes cuenta?
+              <button type="button" class="auth-enlace" @click="router.push('/register')">Regístrate aquí</button>
+            </p>
+          </form>
+        </div>
+      </div>
     </main>
-  </AppScaffold>
+  </div>
 </template>
+
+<style scoped>
+/* Fondo del login: la imagen ya trae el logo y al estudiante a la izquierda; el formulario va a la derecha */
+.login-pagina {
+  background: url('../assets/inicio/fondo-login.jpg') left top / cover no-repeat, var(--pub-degradado);
+}
+
+.login-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 24px 0 48px;
+}
+
+.login-fila {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-tarjeta {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 28px;
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: var(--pub-sombra);
+}
+
+@media (max-width: 900px) {
+  /* En celular la imagen se recortaría (y su logo quedaría tapado): fondo de color y logo en la barra */
+  .login-pagina {
+    background: var(--pub-degradado);
+  }
+
+  .login-fila {
+    justify-content: center;
+  }
+}
+</style>

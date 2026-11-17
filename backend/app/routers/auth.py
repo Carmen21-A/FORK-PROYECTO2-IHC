@@ -1,25 +1,25 @@
 # Reemplaza a lib/services/auth_service.dart (Tarea 1: acceso)
 from datetime import datetime, timedelta, timezone  # importa utilidades para manejo de fechas, duraciones y zonas horarias
-from hashlib import sha256  # importa sha256 para computar hashes seguros de tokens de recuperación
-from secrets import token_urlsafe  # importa token_urlsafe para generar cadenas de texto aleatorias e impredecibles
-from urllib.parse import urlencode  # importa urlencode para estructurar parámetros de consulta en URLs
 
 from fastapi import APIRouter, Depends, HTTPException  # importa componentes principales de FastAPI para rutas y excepciones
-from sqlalchemy import select  # importa select para construir consultas SQL orientadas a objetos
+from sqlalchemy import delete, select  # importa select para consultas y delete para borrar códigos viejos
 from sqlalchemy.orm import Session  # importa Session para manipular la base de datos
 
 from app.config import get_settings  # importa get_settings para acceder a la configuración global
-from app.correo import enviar_enlace_recuperacion  # importa la función para enviar el email de restablecimiento
+from app.correo import enviar_codigo_recuperacion  # importa la función que manda el código de 4 dígitos
 from app.database import get_db  # importa la dependencia que provee la sesión de base de datos
 from app.dependencias import usuario_actual  # importa la dependencia que obtiene al usuario con sesión activa
+from app.logica.recuperacion import MAX_INTENTOS, codigo_correcto, generar_codigo, hash_codigo, vencido  # reglas del código
 from app.models import RecuperacionPassword, Usuario  # importa los modelos de recuperación y usuario
 from app.schemas import (  # importa los esquemas de datos para entrada y salida
     Credenciales,  # esquema con email y password
     NuevaPassword,  # esquema con la nueva contraseña
+    Registro,  # esquema para crear cuenta (con nombre completo)
+    RestablecerPassword,  # esquema con correo, código y contraseña nueva
     Sesion,  # esquema de respuesta con token y usuario
     SolicitudRecuperacion,  # esquema con email para recuperación
     UsuarioRead,  # esquema de lectura de datos del usuario
-    VerificarRecuperacion,  # esquema para verificar token de recuperación
+    VerificarCodigo,  # esquema con correo y código de 4 dígitos
 )  # fin de imports de schemas
 from app.security import create_access_token, hash_password, verify_password  # importa funciones criptográficas y de JWT
 
@@ -32,14 +32,14 @@ def _sesion(usuario: Usuario) -> Sesion:  # función auxiliar para empaquetar un
 
 # registrar usuario
 @router.post("/register", response_model=Sesion, status_code=201)  # endpoint POST para registrar una nueva cuenta de usuario
-def sign_up(payload: Credenciales, db: Session = Depends(get_db)) -> Sesion:  # función controladora del registro
+def sign_up(payload: Registro, db: Session = Depends(get_db)) -> Sesion:  # función controladora del registro
     email = payload.email.lower()  # normaliza el correo electrónico a minúsculas
     if db.scalar(select(Usuario).where(Usuario.email == email)):  # comprueba si ya existe algún usuario con ese correo
         raise HTTPException(  # lanza error 409 si el correo ya está en uso
             status_code=409,  # código de estado 409 Conflicto
             detail="Este correo ya esta registrado, inicia sesion o usa otro correo.",  # mensaje de error legible
         )  # fin de raise
-    usuario = Usuario(email=email, password_hash=hash_password(payload.password))  # instancia el usuario con su contraseña hasheada
+    usuario = Usuario(email=email, nombre=payload.nombre, password_hash=hash_password(payload.password))  # instancia el usuario con su nombre y su contraseña hasheada
     db.add(usuario)  # agrega el nuevo usuario a la sesión
     db.commit()  # guarda el registro permanentemente en la base de datos
     return _sesion(usuario)  # retorna la sesión iniciada automáticamente con el token JWT
@@ -80,53 +80,82 @@ def update_password(  # función controladora para actualizar contraseña
     db.commit()  # guarda el cambio en la base de datos
 
 
-# recuperar contraseña x correo
-@router.post("/password/recover", status_code=202)  # endpoint POST para solicitar enlace de recuperación de clave
+# recuperar contraseña x correo: paso 1, se manda un código de 4 dígitos
+@router.post("/password/recover", status_code=202)  # endpoint POST para pedir el código de recuperación
 def reset_password_for_email(  # función controladora para procesar solicitud de recuperación
     payload: SolicitudRecuperacion, db: Session = Depends(get_db)  # recibe el correo solicitado y la sesión de base de datos
-) -> dict[str, str]:  # retorna mensaje de confirmación
+) -> dict[str, str | int]:  # retorna mensaje de confirmación y minutos de vigencia
     settings = get_settings()  # carga la configuración del sistema
     usuario = db.scalar(select(Usuario).where(Usuario.email == payload.email.lower()))  # busca al usuario por correo
     if usuario is not None:  # si el correo sí pertenece a un usuario registrado
-        token = token_urlsafe(32)  # genera un token criptográfico seguro de 32 bytes
+        # Solo sirve el último código: pedir otro anula los anteriores
+        db.execute(delete(RecuperacionPassword).where(RecuperacionPassword.user_id == usuario.id))  # borra códigos viejos
+        codigo = generar_codigo()  # sortea el código de 4 dígitos
         db.add(  # guarda el registro de solicitud de recuperación
             RecuperacionPassword(  # instancia el modelo RecuperacionPassword
-                user_id=usuario.id,  # vincula el token al id del usuario
-                token_hash=sha256(token.encode()).hexdigest(),  # guarda el hash sha256 del token para seguridad
+                user_id=usuario.id,  # vincula el código al id del usuario
+                token_hash=hash_codigo(usuario.id, codigo),  # guarda solo el hmac del código, nunca el código
                 expires_at=datetime.now(timezone.utc)  # fecha actual en UTC
-                + timedelta(minutes=settings.recovery_token_minutes),  # suma los minutos de vigencia permitidos
+                + timedelta(minutes=settings.recovery_code_minutes),  # suma los minutos de vigencia permitidos
             )  # fin de RecuperacionPassword
         )  # fin de db.add
         db.commit()  # confirma el guardado en la base de datos
-        # Mismo formato de enlace que usaba Supabase: ?token_hash=...&type=recovery
-        enlace = f"{settings.frontend_url}/?{urlencode({'token_hash': token, 'type': 'recovery'})}"  # arma el enlace completo hacia el frontend
-        try:  # intenta enviar el correo con el enlace
-            enviar_enlace_recuperacion(usuario.email, enlace)  # llama a la función de envío de correo
+        try:  # intenta enviar el correo con el código
+            enviar_codigo_recuperacion(usuario.email, codigo)  # llama a la función de envío de correo
         except Exception as exc:  # captura si el servidor de correo falla
             raise HTTPException(  # lanza error 502 de pasarela si no pudo enviar
-                status_code=502, detail="No se pudo enviar el correo de recuperación."  # detalle del fallo de correo
+                status_code=502, detail="No se pudo enviar el correo con el código. Intenta de nuevo."  # detalle del fallo de correo
             ) from exc  # encadena la excepción original
     # No se revela si el correo existe o no
-    return {"message": "Si el correo está registrado, recibirás un enlace para cambiar tu contraseña."}  # respuesta genérica por seguridad
+    return {  # respuesta genérica por seguridad
+        "message": "Si el correo está registrado, te enviamos un código de 4 dígitos.",  # mismo texto exista o no
+        "minutos": settings.recovery_code_minutes,  # la pantalla dice cuánto sirve el código
+    }  # fin de la respuesta
 
 
-# Equivale a verifyOTP(type: recovery) de lib/main.dart: abre una sesion con el enlace
-@router.post("/password/verify", response_model=Sesion)  # endpoint POST para validar el token del enlace y abrir sesión
-def verify_otp(payload: VerificarRecuperacion, db: Session = Depends(get_db)) -> Sesion:  # función controladora de verificación
-    token_hash = sha256(payload.token_hash.encode()).hexdigest()  # computa el hash sha256 del token enviado
-    recuperacion = db.scalar(  # busca el registro de recuperación que coincida con el hash
-        select(RecuperacionPassword).where(RecuperacionPassword.token_hash == token_hash)  # filtra por el hash
-    )  # ejecuta la consulta
-    ahora = datetime.now(timezone.utc)  # obtiene la fecha y hora actual en UTC
-    if (  # verifica si el token es inválido, ya fue usado o ya expiró
-        recuperacion is None  # no existe ningún registro con ese hash
-        or recuperacion.used_at is not None  # el enlace ya fue utilizado previamente
-        or recuperacion.expires_at.replace(tzinfo=timezone.utc) <= ahora  # el enlace ya superó su tiempo límite de validez
-    ):  # si alguna de las tres condiciones se cumple
-        raise HTTPException(status_code=400, detail="El enlace no es válido o expiró.")  # rechaza con error 400
-    usuario = db.get(Usuario, recuperacion.user_id)  # busca al usuario dueño de la recuperación
-    if usuario is None:  # si el usuario ya no existe
-        raise HTTPException(status_code=400, detail="La cuenta ya no existe.")  # rechaza con error 400
-    recuperacion.used_at = ahora  # marca el enlace como utilizado en este momento
-    db.commit()  # confirma la marca en la base de datos
-    return _sesion(usuario)  # retorna una sesión válida para permitir al usuario cambiar su clave
+def _codigo_valido(payload: VerificarCodigo, db: Session) -> tuple[Usuario, RecuperacionPassword]:  # revisa el código escrito
+    usuario = db.scalar(select(Usuario).where(Usuario.email == payload.email.lower()))  # dueño del correo
+    recuperacion = (  # último código pedido con ese correo que no se usó
+        db.scalar(  # consulta un solo registro
+            select(RecuperacionPassword)  # tabla de códigos
+            .where(RecuperacionPassword.user_id == usuario.id, RecuperacionPassword.used_at.is_(None))  # del usuario y sin usar
+            .order_by(RecuperacionPassword.expires_at.desc())  # el más nuevo primero
+        )  # fin de la consulta
+        if usuario is not None  # solo si el correo existe
+        else None  # correo desconocido: no hay código
+    )  # fin de la búsqueda
+    if usuario is None or recuperacion is None:  # nunca se pidió un código (o el correo no existe)
+        raise HTTPException(status_code=400, detail="Este código no sirve. Pide uno nuevo.")  # mismo mensaje en ambos casos
+    if vencido(recuperacion.expires_at):  # pasó el tiempo de vigencia
+        raise HTTPException(status_code=400, detail="El código venció. Pide uno nuevo.")  # mensaje claro de qué hacer
+    if recuperacion.intentos >= MAX_INTENTOS:  # ya se equivocó demasiadas veces
+        raise HTTPException(status_code=400, detail="Escribiste mal el código 5 veces. Pide uno nuevo.")  # bloquea ese código
+    if not codigo_correcto(recuperacion.token_hash, usuario.id, payload.codigo):  # el código no coincide
+        recuperacion.intentos += 1  # cuenta el error
+        db.commit()  # guarda el intento antes de responder
+        quedan = MAX_INTENTOS - recuperacion.intentos  # intentos que le quedan
+        if quedan == 0:  # se acabaron los intentos
+            detalle = "Escribiste mal el código 5 veces. Pide uno nuevo."  # ese código ya no sirve
+        elif quedan == 1:  # último intento
+            detalle = "El código no es correcto. Te queda 1 intento."  # singular
+        else:  # todavía puede probar varias veces
+            detalle = f"El código no es correcto. Te quedan {quedan} intentos."  # plural
+        raise HTTPException(status_code=400, detail=detalle)  # rechaza con error 400
+    return usuario, recuperacion  # código correcto
+
+
+# paso 2: comprobar el código antes de pedir la contraseña nueva (no lo gasta)
+@router.post("/password/verify")  # endpoint POST para validar el código de 4 dígitos
+def verify_otp(payload: VerificarCodigo, db: Session = Depends(get_db)) -> dict[str, bool]:  # función controladora de verificación
+    _codigo_valido(payload, db)  # lanza error 400 si el código no sirve
+    return {"valido": True}  # el código es correcto: la pantalla pasa a la contraseña nueva
+
+
+# paso 3: con el código correcto se guarda la contraseña nueva y se abre la sesión
+@router.post("/password/reset", response_model=Sesion)  # endpoint POST para poner la contraseña nueva
+def reset_password(payload: RestablecerPassword, db: Session = Depends(get_db)) -> Sesion:  # función controladora del cambio
+    usuario, recuperacion = _codigo_valido(payload, db)  # se vuelve a revisar: nadie se salta el paso 2
+    usuario.password_hash = hash_password(payload.password)  # guarda el hash de la contraseña nueva
+    recuperacion.used_at = datetime.now(timezone.utc)  # el código ya se usó: no sirve una segunda vez
+    db.commit()  # confirma ambos cambios juntos
+    return _sesion(usuario)  # entra directo con la contraseña nueva
