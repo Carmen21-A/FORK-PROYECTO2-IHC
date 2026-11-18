@@ -322,6 +322,20 @@ const resumenLimite = computed(() => {
   return { gastoActual, limite, disponible }
 })
 
+// Naranja = advertencia: ya gastó el 80 % o más del límite (el mismo umbral que Presupuesto por Categoría)
+const limiteCasiAgotado = computed(() => {
+  const { gastoActual, limite, disponible } = resumenLimite.value
+  return limite !== null && limite > 0 && disponible > 0 && gastoActual / limite >= 0.8
+})
+
+// Rojo = ya no queda nada; naranja = queda poco; gris = va bien
+const colorDisponible = computed(() => {
+  const { disponible } = resumenLimite.value
+  if (disponible !== null && disponible <= 0) return 'var(--error-dark)'
+  if (limiteCasiAgotado.value) return 'var(--warning-dark)'
+  return 'var(--text-secondary)'
+})
+
 // Esto sirve para cambiar el limite mensual
 function dialogoCambiarLimite() {
   dialogoLimite.value = {
@@ -696,19 +710,13 @@ function alternarMenu(id) {
             Gastado: {{ dartNum(resumenLimite.gastoActual) }} Bs / Límite:
             {{ resumenLimite.limite !== null ? `${dartNum(resumenLimite.limite)} Bs` : 'Sin definir' }}
           </strong>
-          <span
-            :style="{
-              color:
-                resumenLimite.disponible !== null && resumenLimite.disponible <= 0
-                  ? 'var(--error-default)'
-                  : 'var(--text-secondary)',
-            }"
-          >
+          <span :style="{ color: colorDisponible }">
             {{
               resumenLimite.limite !== null
                 ? `Disponible: ${dartNum(resumenLimite.disponible >= 0 ? resumenLimite.disponible : 0)} Bs`
                 : 'Define un limite para controlar tus gastos'
             }}
+            <template v-if="limiteCasiAgotado"> · te queda poco este mes</template>
           </span>
         </div>
         <button class="btn btn-outlined btn-small" @click="dialogoCambiarLimite">
@@ -1148,7 +1156,12 @@ function alternarMenu(id) {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding-bottom: 96px;
+  padding: var(--space-m) 0 96px; /* aire arriba: las pestañas ya no quedan pegadas a la barra */
+}
+
+/* Las pestañas con el mismo margen lateral que la tarjeta del límite y la lista */
+.movimientos > .tabs-arquitectura {
+  margin-inline: var(--space-m);
 }
 
 .resumen-limite {
@@ -1246,6 +1259,7 @@ function alternarMenu(id) {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  white-space: nowrap; /* «CATEGORÍA:» y «DESCRIPCIÓN:» nunca se parten en dos líneas */
 }
 
 .meta-sep {
@@ -1253,9 +1267,7 @@ function alternarMenu(id) {
 }
 
 .badge-desc {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  display: inline; /* en celular la descripción larga baja de línea, la etiqueta queda entera */
   color: #0f172a;
   font-weight: 600;
 }
@@ -1339,7 +1351,7 @@ function alternarMenu(id) {
 .editando {
   justify-content: space-between;
   padding: var(--space-s);
-  color: #ff9800;
+  color: var(--primary-400);
 }
 
 .form-opciones {
@@ -1399,67 +1411,6 @@ function alternarMenu(id) {
   .list-tile {
     flex-wrap: wrap;
   }
-}
-
-/* ---------- Navegación por Intención (Arquitectura de Información - Clase 20) ---------- */
-.tabs-arquitectura {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: 6px;
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
-  border-radius: 12px;
-  margin-bottom: var(--space-m);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.tab-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex: 1;
-  padding: 10px 14px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-secondary, #64748b);
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab-item:hover {
-  background: rgba(237, 165, 88, 0.12);
-  color: var(--text-primary, #1e293b);
-}
-
-.tab-item.activa {
-  background: var(--primary-base, #eda558);
-  color: #1a0e04;
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: var(--estado-pendiente, #1565c0);
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.tab-item.activa .tab-badge {
-  background: #1a0e04;
-  color: #ffffff;
 }
 
 /* Tarjeta resumen específica de la intención "Por pagar" */

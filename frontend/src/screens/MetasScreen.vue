@@ -700,7 +700,7 @@ function alternarMenu(id) {
 }
 
 .valor-reservado {
-  color: var(--primary-400, #bc8244);
+  color: var(--primary-400);
 }
 
 .valor-disponible {
@@ -728,12 +728,12 @@ function alternarMenu(id) {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: rgba(237, 165, 88, 0.12);
-  border: 1px solid rgba(237, 165, 88, 0.3);
+  background: color-mix(in srgb, var(--primary-base) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-base) 30%, transparent);
   border-radius: 10px;
   margin-bottom: var(--space-l);
   font-size: 13px;
-  color: #5c3810;
+  color: var(--primary-600);
 }
 
 /* Grid de Metas */
@@ -852,49 +852,7 @@ function alternarMenu(id) {
 
 .aviso-liberacion {
   font-size: 13px;
-  color: var(--primary-500, #61411f);
-}
-
-/* Tabs Arquitectura */
-.tabs-arquitectura {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: 6px;
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
-  border-radius: 12px;
-  margin-bottom: var(--space-m);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.tab-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex: 1;
-  padding: 10px 14px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-secondary, #64748b);
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab-item:hover {
-  background: rgba(237, 165, 88, 0.12);
-  color: var(--text-primary, #1e293b);
-}
-
-.tab-item.activa {
-  background: var(--primary-base, #eda558);
-  color: #1a0e04;
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: var(--primary-500);
 }
 
 .menu-wrap {

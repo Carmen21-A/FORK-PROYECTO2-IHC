@@ -77,15 +77,15 @@ a {
   opacity: 0.55;
 }
 
-/* ElevatedButton: fondo primaryBase y texto oscuro (el blanco no llegaba al contraste 4.5:1) */
+/* ElevatedButton: fondo azul y texto blanco (6.7:1), igual que los botones de las páginas públicas */
 .btn-elevated {
   background: var(--primary-base);
-  color: var(--primary-600);
+  color: var(--text-inverse);
   box-shadow: var(--shadow);
 }
 
 .btn-elevated:hover:not(:disabled) {
-  filter: brightness(0.95);
+  background: var(--primary-400);
 }
 
 /* OutlinedButton: borde primaryBase 1.5, radio 12 */
@@ -258,11 +258,111 @@ a {
   color: var(--text-primary);
 }
 
+/* Barra índigo oscuro (el lila del Inicio, más profundo): separa el encabezado del contenido
+   sin competir con los botones verde agua ni con el azul de «pendiente». Texto blanco = 12:1 */
 .app-bar.primary {
+  background: var(--barra-fondo);
+  color: var(--barra-texto);
+  box-shadow: 0 2px 8px rgb(20 16 60 / 0.25);
+}
+
+/* Botones dentro de la barra («Ayuda», «Nueva Meta», «Actualizar»): borde blanco grueso */
+.app-bar.primary .btn-outlined,
+.app-bar.primary .btn-text {
+  background: transparent;
+  color: var(--barra-texto);
+  border: 2px solid rgb(255 255 255 / 0.9);
+}
+
+.app-bar.primary .btn-outlined:hover:not(:disabled),
+.app-bar.primary .btn-text:hover:not(:disabled),
+.app-bar.primary .icon-btn:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.app-bar.primary :focus-visible {
+  outline-color: var(--barra-texto);
+}
+
+/* ---------- Pestañas por intención (Movimientos, Por pagar, Presupuestos, Metas) ----------
+   Arquitectura de Información, Clase 20. Grilla: 4 columnas en pantallas anchas, 2 x 2 en
+   tablet y celular, para que los textos no queden apretados. */
+.tabs-arquitectura {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-s);
+  margin: var(--space-m) 0 var(--space-l);
+  padding: var(--space-s);
+  background: var(--surface-container);
+  border: 1px solid var(--gray-100);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.tab-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 10px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab-item:hover {
+  background: color-mix(in srgb, var(--primary-base) 10%, transparent);
+  color: var(--text-primary);
+}
+
+.tab-item.activa {
   background: var(--primary-base);
-  /* texto oscuro, igual que .btn-elevated: el blanco sobre naranja no se lee */
-  color: var(--primary-600);
-  box-shadow: var(--shadow);
+  color: var(--text-inverse);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--estado-pendiente);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tab-item.activa .tab-badge {
+  background: var(--text-inverse);
+  color: var(--primary-base);
+}
+
+@media (max-width: 760px) {
+  .tabs-arquitectura {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
+  .tab-item {
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 6px;
+    font-size: 13px;
+  }
 }
 
 .app-bar-title {
@@ -322,8 +422,8 @@ a {
   align-items: flex-end;
   height: 160px;
   padding: var(--space-m);
-  background: var(--primary-base);
-  color: var(--text-inverse);
+  background: var(--barra-fondo); /* mismo índigo que el encabezado */
+  color: var(--barra-texto);
 }
 
 .drawer-item {
@@ -484,10 +584,11 @@ a {
   padding: 0 20px;
   border: none;
   border-radius: 16px;
-  background: var(--primary-100);
-  color: var(--primary-600);
+  /* acción principal de la pantalla: lleno, como los demás botones principales */
+  background: var(--primary-base);
+  color: var(--text-inverse);
   font: inherit;
-  font-weight: 500;
+  font-weight: 600;
   box-shadow: var(--shadow-lg);
   cursor: pointer;
 }

@@ -211,7 +211,7 @@ function porcentajeBarra(valor) {
 </script>
 
 <template>
-  <AppScaffold titulo="Presupuesto por Categoría" con-drawer app-bar-primaria>
+  <AppScaffold titulo="Presupuesto por Categoría" con-drawer>
     <template #acciones>
       <button class="icon-btn" title="Actualizar" aria-label="Actualizar" @click="cargarDatos">
         <AppIcon name="refresh" />
@@ -537,7 +537,7 @@ function porcentajeBarra(valor) {
   gap: var(--space-m);
   padding: var(--space-l);
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary-base), var(--primary-300));
+  background: linear-gradient(135deg, var(--primary-base), var(--primary-500));
   box-shadow: 0 4px 10px color-mix(in srgb, var(--primary-base) 30%, transparent);
   color: var(--text-inverse);
 }

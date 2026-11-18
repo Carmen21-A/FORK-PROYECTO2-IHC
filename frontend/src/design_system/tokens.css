@@ -17,14 +17,24 @@
   --gray-700: #111111;
   --gray-base: #66666e;
 
-  --primary-100: #f7d5bd;
-  --primary-200: #eda558;
-  --primary-300: #bc8244;
-  --primary-400: #8d6131;
-  --primary-500: #61411f;
-  --primary-600: #38240e;
-  --primary-700: #1a0e04;
-  --primary-base: #eda558;
+  /* Paleta tomada del Inicio (verde agua, azul y lila), con un papel para cada color:
+       - primary (verde azulado): acciones (botones, pestaña activa, foco). Reemplaza al naranja.
+       - barra (índigo, del lila del Inicio): encabezado y menú.
+       - azul (--estado-pendiente) y gris (categorías): quedan solo para datos, así resaltan.
+       - rojo = error, verde = éxito, naranja (--warning-*) = advertencia: "cuidado, te acercas".
+     Contrastes (axe): blanco sobre base = 5.5:1; base sobre primary-100 = 4.7:1 */
+  --primary-100: #ccfbf1;
+  --primary-200: #5eead4;
+  --primary-300: #0f766e;
+  --primary-400: #115e59;
+  --primary-500: #134e4a;
+  --primary-600: #042f2e;
+  --primary-700: #022120;
+  --primary-base: #0f766e;
+
+  /* Encabezado y menú: índigo oscuro (texto blanco = 12:1) */
+  --barra-fondo: linear-gradient(100deg, #262058 0%, #3a3184 100%);
+  --barra-texto: #ffffff;
 
   --secondary-base: #ebed58;
 
@@ -51,10 +61,11 @@
   --estado-cancelado: #c62828;
 
   /* Superficies (Material 3 a partir del color semilla primaryBase) */
-  --surface: #fff8f4;
+  --surface: #f7f8fb; /* gris muy claro y neutro: deja que resalten los colores de los datos */
   --surface-container: #ffffff;
-  --surface-tint: #f8ece3;
-  --outline: #85736a;
+  --surface-container-high: #eef0f5;
+  --surface-tint: #eef1f6;
+  --outline: #667085;
   --shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
   --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.16);
 

@@ -4,6 +4,7 @@
  * Contraste revisado: todo texto cumple 4.5:1 sobre su fondo (axe lo revisa en diseno.spec.ts).
  */
 .publico {
+  /* El Inicio conserva su azul; la app con sesión toma de aquí el verde agua y el lila (tokens.css) */
   --pub-azul: #1d4ed8; /* botón principal: blanco sobre este azul = 6.7:1 */
   --pub-azul-hover: #1e40af;
   --pub-azul-claro: #0e7fc0;

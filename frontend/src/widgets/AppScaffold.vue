@@ -9,7 +9,7 @@ const props = defineProps({
   titulo: { type: String, required: true },
   conDrawer: { type: Boolean, default: false },
   conAtras: { type: Boolean, default: false },
-  appBarPrimaria: { type: Boolean, default: false },
+  appBarPrimaria: { type: Boolean, default: true }, // barra azul en todas las pantallas con sesión
 })
 
 const router = useRouter()
