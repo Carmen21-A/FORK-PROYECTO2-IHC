@@ -15,6 +15,7 @@ from app.config import get_settings  # importa la función que lee la configurac
 def sin_smtp(monkeypatch):  # desactiva el envío de correos durante las pruebas
     monkeypatch.setenv("SMTP_HOST", "")  # deja vacío el servidor de correo
     monkeypatch.setenv("SMTP_FROM", "")  # deja vacío el remitente
+    monkeypatch.setenv("BREVO_API_KEY", "")  # tampoco se usa Brevo: el código sale en la consola
     get_settings.cache_clear()  # borra la configuración guardada para que tome los valores vacíos
     yield  # aquí se ejecuta la prueba
     get_settings.cache_clear()  # al terminar, limpia otra vez la configuración

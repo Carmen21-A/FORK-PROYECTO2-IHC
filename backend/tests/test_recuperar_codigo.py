@@ -131,3 +131,40 @@ def test_contrasena_nueva_corta_no_gasta_el_codigo(client, auth, caplog):
     corta = client.post("/api/auth/password/reset", json={"email": CORREO, "codigo": codigo, "password": "123"})
     assert corta.status_code == 422
     assert client.post("/api/auth/password/verify", json={"email": CORREO, "codigo": codigo}).status_code == 200
+
+
+def test_en_la_nube_el_codigo_sale_por_brevo(monkeypatch):
+    # Render (plan gratis) bloquea SMTP: con BREVO_API_KEY el correo va por la API web de Brevo
+    import json
+
+    from app import correo
+    from app.config import get_settings
+
+    monkeypatch.setenv("BREVO_API_KEY", "clave-de-prueba")
+    monkeypatch.setenv("SMTP_FROM", "Presupuesto Estudiantil <app@gmail.com>")
+    get_settings.cache_clear()
+    enviado = {}
+
+    class Respuesta:
+        status = 201
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def urlopen_falso(peticion, timeout):
+        enviado["url"] = peticion.full_url
+        enviado["clave"] = peticion.get_header("Api-key")
+        enviado["datos"] = json.loads(peticion.data)
+        return Respuesta()
+
+    monkeypatch.setattr(correo, "urlopen", urlopen_falso)
+    correo.enviar_codigo_recuperacion("ana@test.com", "0427")
+
+    assert enviado["url"] == "https://api.brevo.com/v3/smtp/email"
+    assert enviado["clave"] == "clave-de-prueba"
+    assert enviado["datos"]["sender"] == {"name": "Presupuesto Estudiantil", "email": "app@gmail.com"}
+    assert enviado["datos"]["to"] == [{"email": "ana@test.com"}]
+    assert "0427" in enviado["datos"]["subject"]

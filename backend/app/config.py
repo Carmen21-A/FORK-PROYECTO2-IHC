@@ -23,6 +23,8 @@ class Settings(BaseSettings):  # define la clase de configuración que hereda de
     smtp_password: str | None = None  # contraseña de aplicación del correo SMTP
     smtp_from: str | None = None  # remitente visible del correo saliente
     smtp_use_tls: bool = True  # indica si se debe usar cifrado TLS para la conexión SMTP
+    # En la nube: Render (plan gratis) bloquea SMTP; con esta clave el correo sale por la API web de Brevo
+    brevo_api_key: str | None = None  # clave de API de Brevo (remitente = SMTP_FROM, verificado en Brevo)
 
     model_config = SettingsConfigDict(  # configuración interna del modelo de configuración
         env_file=".env",  # especifica que las variables se cargarán del archivo .env
