@@ -36,7 +36,7 @@ async function handleChangePassword() {
   } catch (e) {
     password1.value = ''
     password2.value = ''
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   }
 }
 </script>

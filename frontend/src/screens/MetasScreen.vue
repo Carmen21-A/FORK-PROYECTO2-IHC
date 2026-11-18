@@ -54,7 +54,7 @@ async function load() {
     metas.value = listaMetas
     resumenFondos.value = fondos
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   } finally {
     cargando.value = false
   }
@@ -154,7 +154,7 @@ async function confirmarEliminar() {
     dialogoEliminar.value = null
     await load()
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   }
 }
 
@@ -415,7 +415,7 @@ function alternarMenu(id) {
                 <button
                   class="menu-item"
                   role="menuitem"
-                  style="color: var(--error-default)"
+                  style="color: var(--error-dark)"
                   @click="dialogoEliminar = m; menuAbierto = null"
                 >
                   <AppIcon name="delete" :size="18" />
@@ -708,7 +708,7 @@ function alternarMenu(id) {
 }
 
 .valor-disponible.alerta-bajo {
-  color: var(--error-default, #ef4444);
+  color: var(--error-dark);
 }
 
 .balance-sub {
@@ -846,7 +846,7 @@ function alternarMenu(id) {
 }
 
 .btn-danger {
-  background: var(--error-default, #ef4444);
+  background: var(--error-dark);
   color: white;
 }
 

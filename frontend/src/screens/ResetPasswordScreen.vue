@@ -101,7 +101,7 @@ async function guardarPassword() {
       await irA('codigo')
       error.value = e.message
     } else {
-      showSnackBar(mensaje(e, 'No se pudo guardar la contraseña. Intenta de nuevo.'), 'var(--error-default)')
+      showSnackBar(mensaje(e, 'No se pudo guardar la contraseña. Intenta de nuevo.'), 'var(--error-dark)')
     }
   } finally {
     enviando.value = false

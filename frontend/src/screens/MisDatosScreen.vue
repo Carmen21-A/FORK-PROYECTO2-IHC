@@ -91,7 +91,7 @@ async function eliminar() {
     showSnackBar('Tu cuenta y todos tus datos se eliminaron.', 'var(--success-dark)', 8000)
   } catch (e) {
     track(EVENTOS.CUENTA_ELIMINACION_FRENADA, { motivo: 'rechazado_por_servidor' })
-    showSnackBar(`No se pudo eliminar la cuenta: ${e.message} Tus datos siguen intactos; intenta de nuevo.`, 'var(--error-default)')
+    showSnackBar(`No se pudo eliminar la cuenta: ${e.message} Tus datos siguen intactos; intenta de nuevo.`, 'var(--error-dark)')
   } finally {
     eliminando.value = false
   }

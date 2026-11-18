@@ -44,7 +44,7 @@ async function cargar() {
   try {
     panel.value = await AnaliticaService.getPanel()
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   } finally {
     cargado.value = true
   }
@@ -280,7 +280,7 @@ function esMayorCaida(embudo, paso) {
   padding: 14px 16px;
   border-radius: 12px;
   background: var(--error-light);
-  color: var(--error-default);
+  color: var(--error-dark);
 }
 
 .mayor-caida p {
@@ -365,7 +365,7 @@ h3 {
 }
 
 .caida.peor {
-  color: var(--error-default);
+  color: var(--error-dark);
 }
 
 .errores {
@@ -378,7 +378,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--error-default);
+  color: var(--error-dark);
 }
 
 .motivos {

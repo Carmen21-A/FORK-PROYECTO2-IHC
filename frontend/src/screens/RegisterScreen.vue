@@ -43,7 +43,7 @@ async function handleRegister() {
   } catch (e) {
     showSnackBar(
       e instanceof ApiError ? e.message : 'Error al crear la cuenta, intenta nuevamente.',
-      'var(--error-default)',
+      'var(--error-dark)',
     )
   }
 }

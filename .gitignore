@@ -28,3 +28,7 @@ docs1/
 
 # Carpeta ignorada para apuntes e imagenes
 .ignore/**
+
+# Datos temporales de cobertura (el reporte HTML va en reportes/)
+.coverage
+coverage/

@@ -111,7 +111,7 @@ a {
 }
 
 .btn-danger {
-  background: var(--error-default);
+  background: var(--error-dark); /* blanco sobre #B91C1C = 6.5:1 (sobre #EF4444 era 3.8:1) */
   color: var(--text-inverse);
 }
 

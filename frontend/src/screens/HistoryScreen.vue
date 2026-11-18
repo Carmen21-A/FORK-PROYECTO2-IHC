@@ -22,7 +22,7 @@ async function load() {
     const data = await HistorialService.getHistorial()
     eventos.value = ordenarRecientePrimero(data)
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   } finally {
     cargado.value = true
   }
@@ -54,7 +54,7 @@ const ACCIONES = {
     texto: 'Movimiento eliminado',
     icono: 'delete',
     fondo: 'var(--error-light)',
-    color: 'var(--error-default)',
+    color: 'var(--error-dark)',
   },
   cambio_estado: {
     texto: 'Estado cambiado',
@@ -73,7 +73,7 @@ const ACCIONES = {
     texto: 'Meta de ahorro eliminada',
     icono: 'delete',
     fondo: 'var(--error-light)',
-    color: 'var(--error-default)',
+    color: 'var(--error-dark)',
   },
   fondos_asignados: {
     texto: 'Fondos asignados a meta',

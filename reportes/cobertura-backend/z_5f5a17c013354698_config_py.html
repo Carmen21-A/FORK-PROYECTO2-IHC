@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage for app\config.py: 100%</title>
+    <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
+    <link rel="stylesheet" href="style_cb_0853b3de.css" type="text/css">
+    <script src="coverage_html_cb_c74880ea.js" defer></script>
+</head>
+<body class="pyfile">
+<header>
+    <div class="content">
+        <h1>
+            <span class="text">Coverage for </span><b>app<span class="sep">\</span>config.py</b>:
+            <span class="pc_cov">100%</span>
+        </h1>
+        <aside id="help_panel_wrapper">
+            <input id="help_panel_state" type="checkbox">
+            <label for="help_panel_state">
+                <img id="keyboard_icon" src="keybd_closed_cb_900cfef5.png" alt="Show/hide keyboard shortcuts">
+            </label>
+            <div id="help_panel">
+                <p class="legend">Shortcuts on this page</p>
+                <div class="keyhelp">
+                    <p>
+                        <kbd>r</kbd>
+                        <kbd>m</kbd>
+                        <kbd>x</kbd>
+                        &nbsp; toggle line displays
+                    </p>
+                    <p>
+                        <kbd>j</kbd>
+                        <kbd>k</kbd>
+                        &nbsp; next/prev highlighted chunk
+                    </p>
+                    <p>
+                        <kbd>0</kbd> &nbsp; (zero) top of page
+                    </p>
+                    <p>
+                        <kbd>1</kbd> &nbsp; (one) first highlighted chunk
+                    </p>
+                    <p>
+                        <kbd>[</kbd>
+                        <kbd>]</kbd>
+                        &nbsp; prev/next file
+                    </p>
+                    <p>
+                        <kbd>u</kbd> &nbsp; up to the index
+                    </p>
+                    <p>
+                        <kbd>?</kbd> &nbsp; show/hide this help
+                    </p>
+                </div>
+            </div>
+        </aside>
+        <h2>
+            <span class="text">30 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">30<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
+            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
+        </h2>
+        <p class="text">
+            <a id="prevFileLink" class="nav" href="z_5f5a17c013354698___init___py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
+            <a id="nextFileLink" class="nav" href="z_5f5a17c013354698_correo_py.html">&#xbb; next</a>
+            &nbsp; &nbsp; &nbsp;
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.17.3">coverage.py v7.17.3</a>,
+            created at 2026-11-18 14:46 -0400
+        </p>
+        <aside class="hidden">
+            <button type="button" class="button_next_chunk" data-shortcut="j"></button>
+            <button type="button" class="button_prev_chunk" data-shortcut="k"></button>
+            <button type="button" class="button_top_of_page" data-shortcut="0"></button>
+            <button type="button" class="button_first_chunk" data-shortcut="1"></button>
+            <button type="button" class="button_prev_file" data-shortcut="["></button>
+            <button type="button" class="button_next_file" data-shortcut="]"></button>
+            <button type="button" class="button_to_index" data-shortcut="u"></button>
+            <button type="button" class="button_show_hide_help" data-shortcut="?"></button>
+        </aside>
+    </div>
+</header>
+<main id="source">
+    <p class="run"><span class="n"><a id="t1" href="#t1">1</a></span><span class="t"><span class="key">from</span> <span class="nam">functools</span> <span class="key">import</span> <span class="nam">lru_cache</span>  <span class="com"># importa lru_cache para memorizar la instancia de configuraci&#243;n sin releer el archivo .env</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t2" href="#t2">2</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t3" href="#t3">3</a></span><span class="t"><span class="key">from</span> <span class="nam">pydantic_settings</span> <span class="key">import</span> <span class="nam">BaseSettings</span><span class="op">,</span> <span class="nam">SettingsConfigDict</span>  <span class="com"># importa clases de pydantic para gestionar configuraciones con variables de entorno</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t4" href="#t4">4</a></span><span class="t"><span class="key">from</span> <span class="nam">sqlalchemy</span><span class="op">.</span><span class="nam">engine</span> <span class="key">import</span> <span class="nam">URL</span><span class="op">,</span> <span class="nam">make_url</span>  <span class="com"># importa utilidades de SQLAlchemy para parsear y manipular URLs de bases de datos</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t5" href="#t5">5</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t6" href="#t6">6</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t7" href="#t7">7</a></span><span class="t"><span class="com"># Reemplaza a lib/env.dart: las variables se leen de backend/.env</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">class</span> <span class="nam">Settings</span><span class="op">(</span><span class="nam">BaseSettings</span><span class="op">)</span><span class="op">:</span>  <span class="com"># define la clase de configuraci&#243;n que hereda de BaseSettings</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t">    <span class="nam">app_name</span><span class="op">:</span> <span class="nam">str</span> <span class="op">=</span> <span class="str">&quot;Presupuesto Estudiantil&quot;</span>  <span class="com"># nombre de la aplicaci&#243;n con valor por defecto</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t10" href="#t10">10</a></span><span class="t">    <span class="nam">database_url</span><span class="op">:</span> <span class="nam">str</span> <span class="op">=</span> <span class="str">&quot;postgresql+psycopg://budget:budget@localhost:5432/budget&quot;</span>  <span class="com"># URL de conexi&#243;n por defecto a PostgreSQL</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t">    <span class="com"># Si se define, cambia solo el nombre de la base (las pruebas E2E usan budget_e2e)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t">    <span class="nam">database_name</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>  <span class="com"># nombre de base de datos alternativo para pruebas o sobreescritura</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">    <span class="nam">secret_key</span><span class="op">:</span> <span class="nam">str</span> <span class="op">=</span> <span class="str">&quot;cambia-esta-clave-antes-de-desplegar&quot;</span>  <span class="com"># clave secreta para firmar tokens JWT</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t">    <span class="nam">access_token_minutes</span><span class="op">:</span> <span class="nam">int</span> <span class="op">=</span> <span class="num">60</span> <span class="op">*</span> <span class="num">24</span> <span class="op">*</span> <span class="num">7</span>  <span class="com"># duraci&#243;n del token de acceso en minutos (7 d&#237;as)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">    <span class="nam">recovery_code_minutes</span><span class="op">:</span> <span class="nam">int</span> <span class="op">=</span> <span class="num">15</span>  <span class="com"># minutos que sirve el c&#243;digo de 4 d&#237;gitos para recuperar la contrase&#241;a</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">    <span class="nam">cors_origins</span><span class="op">:</span> <span class="nam">str</span> <span class="op">=</span> <span class="str">&quot;http://localhost:5173&quot;</span>  <span class="com"># or&#237;genes permitidos por CORS separados por comas</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">    <span class="nam">frontend_url</span><span class="op">:</span> <span class="nam">str</span> <span class="op">=</span> <span class="str">&quot;http://localhost:5173&quot;</span>  <span class="com"># URL base de la aplicaci&#243;n frontend para enlaces</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">    <span class="com"># Correo para recuperar contrase&#241;a (si no se configura, el c&#243;digo sale en la consola)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">    <span class="nam">smtp_host</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>  <span class="com"># servidor SMTP para env&#237;o de correos</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">    <span class="nam">smtp_port</span><span class="op">:</span> <span class="nam">int</span> <span class="op">=</span> <span class="num">587</span>  <span class="com"># puerto del servidor SMTP por defecto (587 para TLS)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">    <span class="nam">smtp_user</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>  <span class="com"># usuario o correo de la cuenta SMTP</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">    <span class="nam">smtp_password</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>  <span class="com"># contrase&#241;a de aplicaci&#243;n del correo SMTP</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">    <span class="nam">smtp_from</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>  <span class="com"># remitente visible del correo saliente</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">    <span class="nam">smtp_use_tls</span><span class="op">:</span> <span class="nam">bool</span> <span class="op">=</span> <span class="key">True</span>  <span class="com"># indica si se debe usar cifrado TLS para la conexi&#243;n SMTP</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">    <span class="com"># En la nube: Render (plan gratis) bloquea SMTP; con esta clave el correo sale por la API web de Brevo</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">    <span class="nam">brevo_api_key</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>  <span class="com"># clave de API de Brevo (remitente = SMTP_FROM, verificado en Brevo)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">    <span class="nam">model_config</span> <span class="op">=</span> <span class="nam">SettingsConfigDict</span><span class="op">(</span>  <span class="com"># configuraci&#243;n interna del modelo de configuraci&#243;n</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">        <span class="nam">env_file</span><span class="op">=</span><span class="str">&quot;.env&quot;</span><span class="op">,</span>  <span class="com"># especifica que las variables se cargar&#225;n del archivo .env</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="nam">env_file_encoding</span><span class="op">=</span><span class="str">&quot;utf-8&quot;</span><span class="op">,</span>  <span class="com"># codificaci&#243;n de caracteres del archivo .env</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">        <span class="nam">extra</span><span class="op">=</span><span class="str">&quot;ignore&quot;</span><span class="op">,</span>  <span class="com"># ignora variables adicionales que no est&#233;n definidas en la clase</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">    <span class="op">)</span>  <span class="com"># fin de SettingsConfigDict</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">    <span class="op">@</span><span class="nam">property</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">    <span class="key">def</span> <span class="nam">url_base_de_datos</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="nam">URL</span><span class="op">:</span>  <span class="com"># propiedad calculada que devuelve la URL de conexi&#243;n final a la base de datos</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">        <span class="nam">url</span> <span class="op">=</span> <span class="nam">make_url</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">database_url</span><span class="op">)</span>  <span class="com"># convierte el texto de database_url a un objeto URL de SQLAlchemy</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">        <span class="key">return</span> <span class="nam">url</span><span class="op">.</span><span class="nam">set</span><span class="op">(</span><span class="nam">database</span><span class="op">=</span><span class="nam">self</span><span class="op">.</span><span class="nam">database_name</span><span class="op">)</span> <span class="key">if</span> <span class="nam">self</span><span class="op">.</span><span class="nam">database_name</span> <span class="key">else</span> <span class="nam">url</span>  <span class="com"># sustituye la base de datos si se defini&#243; database_name</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">    <span class="op">@</span><span class="nam">property</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">    <span class="key">def</span> <span class="nam">allowed_origins</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="nam">list</span><span class="op">[</span><span class="nam">str</span><span class="op">]</span><span class="op">:</span>  <span class="com"># propiedad calculada que devuelve la lista de or&#237;genes permitidos para CORS</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t">        <span class="key">return</span> <span class="op">[</span><span class="nam">origin</span><span class="op">.</span><span class="nam">strip</span><span class="op">(</span><span class="op">)</span> <span class="key">for</span> <span class="nam">origin</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">cors_origins</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">&quot;,&quot;</span><span class="op">)</span> <span class="key">if</span> <span class="nam">origin</span><span class="op">.</span><span class="nam">strip</span><span class="op">(</span><span class="op">)</span><span class="op">]</span>  <span class="com"># divide la cadena por comas y elimina espacios</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t"><span class="op">@</span><span class="nam">lru_cache</span>  <span class="com"># decorador que almacena en cach&#233; el resultado para devolver siempre la misma instancia</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t"><span class="key">def</span> <span class="nam">get_settings</span><span class="op">(</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="nam">Settings</span><span class="op">:</span>  <span class="com"># funci&#243;n para obtener la instancia &#250;nica de configuraci&#243;n</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t">    <span class="key">return</span> <span class="nam">Settings</span><span class="op">(</span><span class="op">)</span>  <span class="com"># instancia y retorna el objeto Settings</span>&nbsp;</span><span class="r"></span></p>
+</main>
+<footer>
+    <div class="content">
+        <p>
+            <a class="nav" href="z_5f5a17c013354698___init___py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
+            <a class="nav" href="z_5f5a17c013354698_correo_py.html">&#xbb; next</a>
+            &nbsp; &nbsp; &nbsp;
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.17.3">coverage.py v7.17.3</a>,
+            created at 2026-11-18 14:46 -0400
+        </p>
+    </div>
+</footer>
+</body>
+</html>

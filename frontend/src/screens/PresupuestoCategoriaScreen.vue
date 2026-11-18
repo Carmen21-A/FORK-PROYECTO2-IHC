@@ -134,7 +134,7 @@ async function guardarPresupuesto() {
   } catch (e) {
     track(EVENTOS.PRESUPUESTO_RECHAZADO, { motivo: 'rechazado_por_servidor' })
     d.guardando = false
-    showSnackBar(`Error al guardar: ${e.message}`, 'var(--error-default)')
+    showSnackBar(`Error al guardar: ${e.message}`, 'var(--error-dark)')
   }
 }
 
@@ -146,7 +146,7 @@ async function eliminarPresupuesto() {
     cargarDatos()
     showSnackBar(`Presupuesto de ${categoria} eliminado`, 'var(--gray-600)')
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   }
 }
 
@@ -173,7 +173,7 @@ const porcentajeVisual = computed(() =>
 const estaExcedidoTotal = computed(() => resumen.value.totalRestante < 0)
 const colorBarraTotal = computed(() =>
   estaExcedidoTotal.value
-    ? 'var(--error-default)'
+    ? 'var(--error-dark)'
     : resumen.value.porcentajeTotal >= 0.8
       ? 'var(--warning-default)'
       : '#ffffff',
@@ -223,7 +223,7 @@ function porcentajeBarra(valor) {
     </div>
 
     <div v-else-if="error" class="centro">
-      <AppIcon name="error" :size="48" color="var(--error-default)" />
+      <AppIcon name="error" :size="48" color="var(--error-dark)" />
       <p class="medium-body-medium">{{ error }}</p>
       <button class="btn btn-elevated" @click="cargarDatos">Reintentar</button>
     </div>
@@ -348,7 +348,7 @@ function porcentajeBarra(valor) {
               :aria-label="`Eliminar presupuesto de ${item.categoria}`"
               @click="eliminarCategoria = item.categoria"
             >
-              <AppIcon name="delete" :size="20" color="var(--error-default)" />
+              <AppIcon name="delete" :size="20" color="var(--error-dark)" />
             </button>
           </div>
 

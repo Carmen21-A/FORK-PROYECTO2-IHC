@@ -132,7 +132,7 @@ async function load() {
     movimientosFiltrados.value = filtrados
     limiteMensual.value = limite
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   }
 }
 
@@ -381,7 +381,7 @@ async function validarSiExcedioLimiteMensual(monto) {
     showSnackBar(
       // Tarea 10 (revisión de patrones): dato neutral en vez de «llevas gastando» (tono de reproche)
       `No se registró: este gasto supera tu límite mensual de ${dartNum(limite)} Bs. Te quedan ${dartNum(Math.max(limite - gastoActual, 0))} Bs disponibles este mes.`,
-      'var(--error-default)',
+      'var(--error-dark)',
     )
     return true // Se excedio
   }
@@ -478,7 +478,7 @@ async function save(confirmarExceso = false) {
       return
     }
     trackRechazoMovimiento(/límite mensual/.test(e.message) ? 'supera_limite_mensual' : 'rechazado_por_servidor')
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   } finally {
     guardando.value = false
   }
@@ -491,7 +491,7 @@ async function eliminar(id) {
     load()
     showSnackBar('Movimiento eliminado', 'var(--success-dark)')
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   }
 }
 
@@ -587,12 +587,12 @@ async function cambiarEstado(m, confirmado = false) {
         'var(--success-dark)',
       )
     } else if (respuesta?.aviso) {
-      showSnackBar(respuesta.aviso, 'var(--error-default)')
+      showSnackBar(respuesta.aviso, 'var(--error-dark)')
     }
   } catch (e) {
     // Tarea 9 Parte A: permiso denegado (p. ej. el dinero está reservado en metas)
     if (esPago) track(EVENTOS.PAGO_RECHAZADO, { motivo: motivoRechazoServidor(e) })
-    showSnackBar(e.message, 'var(--error-default)')
+    showSnackBar(e.message, 'var(--error-dark)')
   }
 }
 
@@ -1345,7 +1345,7 @@ function alternarMenu(id) {
 }
 
 .aviso-exceso {
-  color: var(--error-default);
+  color: var(--error-dark);
 }
 
 .editando {
@@ -1382,7 +1382,7 @@ function alternarMenu(id) {
 
 .aviso-monto {
   font-size: 12px;
-  color: var(--error-default);
+  color: var(--error-dark);
 }
 
 .aviso-pagado {

@@ -34,7 +34,7 @@ async function handleLogin() {
       e instanceof ApiError
         ? e.message
         : 'Ha ocurrido un error de conexion, intenta de nuevo.',
-      'var(--error-default)',
+      'var(--error-dark)',
     )
   }
 }
