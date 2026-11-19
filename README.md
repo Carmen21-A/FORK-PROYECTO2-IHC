@@ -251,3 +251,20 @@ Estos son los datos de la base de pruebas E2E. Los usuarios de la app en la nube
 
 - Los archivos `.env` y `.env.*` nunca se suben al repositorio (están en `.gitignore`). La excepción es `.env.example`, que no tiene claves.
 - Para pasar los datos que había en Supabase, ver [database/README.md](database/README.md).
+
+## Cobertura del código del fork (diff-cover)
+
+La cobertura se mide solo sobre las líneas agregadas en el fork. El fork empieza después del commit `f1619c6` (último commit del repositorio original).
+
+```bash
+# Backend
+cd backend
+pip install pytest-cov diff-cover
+pytest --cov=app --cov-report=xml
+diff-cover coverage.xml --compare-branch=f1619c6 --html-report ../reportes/diff-cover-backend.html
+
+# Frontend
+cd ../frontend
+npx vitest run --coverage --coverage.reporter=cobertura
+diff-cover coverage/cobertura-coverage.xml --compare-branch=f1619c6 --html-report ../reportes/diff-cover-frontend.html
+```
