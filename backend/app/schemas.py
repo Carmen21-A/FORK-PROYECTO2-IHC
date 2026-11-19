@@ -1,246 +1,246 @@
-from datetime import date, datetime  # importa tipos de fecha y fecha-hora para esquemas de validación
-from decimal import Decimal  # importa Decimal para validación numérica precisa en peticiones
-from typing import Literal  # importa Literal para restringir valores a listas fijas de strings
-from uuid import UUID  # importa UUID para tipar identificadores únicos
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Literal
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator  # importa componentes base de validación de Pydantic
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-TipoMovimiento = Literal["gasto", "ingreso"]  # define los únicos dos tipos permitidos de movimiento
-EstadoMovimiento = Literal["pendiente", "pagado", "cancelado"]  # define los tres estados válidos de un movimiento
-Categoria = Literal["Transporte", "Comida", "Estudios", "Ocio", "Otros"]  # define las categorías permitidas
-Recurrencia = Literal["semanal", "mensual"]  # define los tipos de frecuencia recurrente permitidos
+TipoMovimiento = Literal["gasto", "ingreso"]
+EstadoMovimiento = Literal["pendiente", "pagado", "cancelado"]
+Categoria = Literal["Transporte", "Comida", "Estudios", "Ocio", "Otros"]
+Recurrencia = Literal["semanal", "mensual"]
 PATRON_MES = r"^\d{4}-(0[1-9]|1[0-2])$"  # expresión regular para validar el formato de mes 'YYYY-MM'
 
 
 # ---------- Autenticacion ----------
-class Credenciales(BaseModel):  # esquema para recibir datos de inicio de sesión o registro
-    email: EmailStr  # campo de correo electrónico validado con formato estándar
-    password: str = Field(min_length=6, max_length=128)  # contraseña con mínimo 6 caracteres y máximo 128
+class Credenciales(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
 
 
-class Registro(Credenciales):  # esquema para crear una cuenta: correo, contraseña y nombre completo
-    nombre: str | None = Field(default=None, max_length=100)  # nombre completo (opcional para la API, la pantalla lo pide)
+class Registro(Credenciales):
+    nombre: str | None = Field(default=None, max_length=100)
 
-    @field_validator("nombre")  # limpia el nombre antes de guardarlo
-    @classmethod  # validador de clase de Pydantic
-    def limpiar_nombre(cls, valor: str | None) -> str | None:  # quita espacios sobrantes
-        if valor is None:  # no se envió nombre
-            return None  # se guarda vacío
-        limpio = " ".join(valor.split())  # quita espacios al inicio, al final y repetidos
-        return limpio or None  # un nombre en blanco se guarda como vacío
+    @field_validator("nombre")
+    @classmethod
+    def limpiar_nombre(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+        limpio = " ".join(valor.split())
+        return limpio or None
 
 
 class UsuarioRead(BaseModel):  # esquema para responder datos públicos de un usuario
     id: UUID  # identificador único del usuario
-    email: EmailStr  # correo electrónico del usuario
-    nombre: str | None = None  # nombre completo (las cuentas antiguas no lo tienen)
-    model_config = ConfigDict(from_attributes=True)  # permite leer datos directamente desde objetos SQLAlchemy
+    email: EmailStr
+    nombre: str | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
-class Sesion(BaseModel):  # esquema devuelto al autenticar exitosamente
-    access_token: str  # token JWT generado para autenticar siguientes peticiones
+class Sesion(BaseModel):
+    access_token: str
     token_type: str = "bearer"  # tipo de token fijado en 'bearer'
     user: UsuarioRead  # información básica del usuario autenticado
 
 
-class NuevaPassword(BaseModel):  # esquema para peticiones de cambio de contraseña
-    password: str = Field(min_length=6, max_length=128)  # nueva contraseña que debe tener al menos 6 caracteres
+class NuevaPassword(BaseModel):
+    password: str = Field(min_length=6, max_length=128)
 
 
-class SolicitudRecuperacion(BaseModel):  # esquema para pedir recuperación de contraseña
-    email: EmailStr  # correo al cual enviar el código de 4 dígitos
+class SolicitudRecuperacion(BaseModel):
+    email: EmailStr
 
 
-class VerificarCodigo(BaseModel):  # esquema para comprobar el código que llegó al correo
-    email: EmailStr  # correo con el que se pidió el código
-    codigo: str = Field(pattern=r"^\d{4}$")  # exactamente 4 números
+class VerificarCodigo(BaseModel):
+    email: EmailStr
+    codigo: str = Field(pattern=r"^\d{4}$")
 
 
-class RestablecerPassword(VerificarCodigo):  # esquema para poner la contraseña nueva con el código
-    password: str = Field(min_length=6, max_length=128)  # contraseña nueva de al menos 6 caracteres
+class RestablecerPassword(VerificarCodigo):
+    password: str = Field(min_length=6, max_length=128)
 
 
 # ---------- Movimientos ----------
-class MovimientoWrite(BaseModel):  # esquema para crear o actualizar un movimiento
-    tipo: TipoMovimiento  # tipo de movimiento: gasto o ingreso
-    monto: Decimal = Field(gt=0, max_digits=12)  # monto mayor a cero con hasta 12 dígitos
-    categoria: Categoria  # categoría seleccionada de la lista permitida
-    descripcion: str = Field(default="", max_length=500)  # descripción opcional de hasta 500 caracteres
-    fecha: date  # fecha asignada al movimiento
+class MovimientoWrite(BaseModel):
+    tipo: TipoMovimiento
+    monto: Decimal = Field(gt=0, max_digits=12)
+    categoria: Categoria
+    descripcion: str = Field(default="", max_length=500)
+    fecha: date
     # Tarea 6: solo los gastos se repiten; None = no se repite
-    recurrencia: Recurrencia | None = None  # frecuencia de repetición o None si es único
+    recurrencia: Recurrencia | None = None
     # Tarea 9: True cuando el usuario ya vio el aviso de presupuesto y confirmó que quiere guardar
-    confirmar_exceso: bool = False  # por defecto no está confirmado
+    confirmar_exceso: bool = False
 
 
-class MovimientoRead(BaseModel):  # esquema para serializar un movimiento en las respuestas de la API
-    id: UUID  # identificador único del movimiento
-    user_id: UUID  # identificador del usuario dueño del movimiento
-    tipo: TipoMovimiento  # gasto o ingreso
-    monto: float  # monto convertido a float para formato JSON
-    categoria: str  # nombre de la categoría
-    descripcion: str  # descripción del movimiento
-    estado: EstadoMovimiento  # estado actual: pendiente, pagado o cancelado
-    fecha: date  # fecha del movimiento
-    recurrencia: Recurrencia | None = None  # frecuencia de repetición semanal, mensual o nula
-    created_at: datetime  # fecha y hora de creación
-    model_config = ConfigDict(from_attributes=True)  # mapeo directo desde el modelo ORM
+class MovimientoRead(BaseModel):
+    id: UUID
+    user_id: UUID
+    tipo: TipoMovimiento
+    monto: float
+    categoria: str
+    descripcion: str
+    estado: EstadoMovimiento
+    fecha: date
+    recurrencia: Recurrencia | None = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
-class CambioEstado(BaseModel):  # esquema para la petición de transición de estado
-    estado: EstadoMovimiento  # nuevo estado al que se desea pasar el movimiento
+class CambioEstado(BaseModel):
+    estado: EstadoMovimiento
 
 
 # Respuesta al cambiar de estado: si un gasto recurrente se paga, trae el siguiente
 # que se genero, o el aviso de por que no se pudo generar
-class EstadoCambiado(MovimientoRead):  # esquema de respuesta extendido al cambiar de estado
-    siguiente: MovimientoRead | None = None  # siguiente ocurrencia generada si el gasto era recurrente
-    aviso: str | None = None  # mensaje de advertencia si no se pudo generar la siguiente ocurrencia
+class EstadoCambiado(MovimientoRead):
+    siguiente: MovimientoRead | None = None
+    aviso: str | None = None
 
 
 # ---------- Limite mensual ----------
-class LimiteRead(BaseModel):  # esquema de respuesta con la información del límite mensual
-    mes: str  # mes en formato YYYY-MM
-    limite: float | None  # monto del límite fijado o None si no se definió
+class LimiteRead(BaseModel):
+    mes: str
+    limite: float | None
 
 
-class LimiteWrite(BaseModel):  # esquema para fijar o modificar el límite mensual
-    limite: Decimal = Field(gt=0, max_digits=12)  # monto del límite mayor a cero
+class LimiteWrite(BaseModel):
+    limite: Decimal = Field(gt=0, max_digits=12)
 
 
 # ---------- Presupuesto por categoria ----------
-class PresupuestoRead(BaseModel):  # esquema de respuesta para el presupuesto de una categoría
-    categoria: str  # categoría correspondiente
-    monto: float  # monto presupuestado asignado
-    model_config = ConfigDict(from_attributes=True)  # lectura directa desde SQLAlchemy
+class PresupuestoRead(BaseModel):
+    categoria: str
+    monto: float
+    model_config = ConfigDict(from_attributes=True)
 
 
-class PresupuestoWrite(BaseModel):  # esquema para asignar monto a una categoría
-    monto: Decimal = Field(gt=0, max_digits=12)  # monto asignado mayor a cero
+class PresupuestoWrite(BaseModel):
+    monto: Decimal = Field(gt=0, max_digits=12)
 
 
 # ---------- Historial ----------
-class HistorialRead(BaseModel):  # esquema de lectura para eventos del historial
-    id: UUID  # identificador del evento de historial
-    movimiento_id: UUID | None  # id del movimiento referenciado
-    accion: str  # tipo de acción realizada (creado, editado, etc.)
-    detalle: str  # texto descriptivo del evento
-    created_at: datetime  # fecha y hora en la que ocurrió el evento
-    model_config = ConfigDict(from_attributes=True)  # lectura directa desde atributos del ORM
+class HistorialRead(BaseModel):
+    id: UUID
+    movimiento_id: UUID | None
+    accion: str
+    detalle: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ---------- Tarea 8: Metas de Ahorro y Fondos Disponibles ----------
-class MetaWrite(BaseModel):  # esquema de entrada para crear una meta
-    nombre: str = Field(min_length=1, max_length=100)  # nombre obligatorio de 1 a 100 caracteres
-    monto_objetivo: Decimal = Field(gt=0, max_digits=12)  # objetivo mayor a cero
-    fecha_limite: date  # fecha límite obligatoria
+class MetaWrite(BaseModel):
+    nombre: str = Field(min_length=1, max_length=100)
+    monto_objetivo: Decimal = Field(gt=0, max_digits=12)
+    fecha_limite: date
 
 
-class MetaUpdate(BaseModel):  # esquema de entrada para editar una meta (todos los campos opcionales)
-    nombre: str | None = Field(default=None, min_length=1, max_length=100)  # nuevo nombre, si se envía
-    monto_objetivo: Decimal | None = Field(default=None, gt=0, max_digits=12)  # nuevo objetivo, si se envía
-    fecha_limite: date | None = None  # nueva fecha límite, si se envía
+class MetaUpdate(BaseModel):
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    monto_objetivo: Decimal | None = Field(default=None, gt=0, max_digits=12)
+    fecha_limite: date | None = None
 
 
-class MetaRead(BaseModel):  # esquema de salida con los datos de una meta
-    id: UUID  # identificador de la meta
-    user_id: UUID  # dueño de la meta
-    nombre: str  # nombre de la meta
-    monto_objetivo: float  # monto que se quiere alcanzar
-    monto_ahorrado: float  # dinero reservado en la meta
-    fecha_limite: date  # fecha límite
-    porcentaje: float = 0.0  # porcentaje de avance calculado
-    cumplida: bool = False  # indica si ya se alcanzó el objetivo
-    created_at: datetime  # fecha y hora de creación
-    model_config = ConfigDict(from_attributes=True)  # permite leer directamente desde objetos del ORM
+class MetaRead(BaseModel):
+    id: UUID
+    user_id: UUID
+    nombre: str
+    monto_objetivo: float
+    monto_ahorrado: float
+    fecha_limite: date
+    porcentaje: float = 0.0
+    cumplida: bool = False
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
-class MontoOperacion(BaseModel):  # esquema de entrada para asignar o retirar fondos
-    monto: Decimal = Field(gt=0, max_digits=12)  # monto mayor a cero
+class MontoOperacion(BaseModel):
+    monto: Decimal = Field(gt=0, max_digits=12)
 
 
-class TransferenciaMetas(BaseModel):  # esquema de entrada para transferir entre metas
-    meta_destino_id: UUID  # meta que recibe el dinero
-    monto: Decimal = Field(gt=0, max_digits=12)  # monto mayor a cero
+class TransferenciaMetas(BaseModel):
+    meta_destino_id: UUID
+    monto: Decimal = Field(gt=0, max_digits=12)
 
 
-class ResumenFondos(BaseModel):  # esquema de salida con el resumen de saldos del usuario
-    total_ingresos: float  # suma de ingresos pagados
-    total_gastos: float  # suma de gastos pagados
-    saldo_total: float  # ingresos menos gastos
-    fondos_reservados: float  # dinero apartado en metas
-    saldo_disponible: float  # saldo total menos fondos reservados
+class ResumenFondos(BaseModel):
+    total_ingresos: float
+    total_gastos: float
+    saldo_total: float
+    fondos_reservados: float
+    saldo_disponible: float
 
 
 # ---------- Clase 21: Analítica de interacción ----------
-class EventoWrite(BaseModel):  # esquema de entrada de un evento enviado por track()
-    evento: str = Field(min_length=1, max_length=50)  # nombre del evento
-    props: dict = Field(default_factory=dict)  # propiedades mínimas (se validan en logica/analitica.py)
-    fecha: datetime | None = None  # fecha en que ocurrió; si no llega se usa la hora del servidor
+class EventoWrite(BaseModel):
+    evento: str = Field(min_length=1, max_length=50)
+    props: dict = Field(default_factory=dict)
+    fecha: datetime | None = None
 
 
-class EventoRead(BaseModel):  # esquema de salida de un evento
-    evento: str  # nombre del evento
-    props: dict  # propiedades guardadas
-    fecha: datetime  # fecha y hora
-    model_config = ConfigDict(from_attributes=True)  # permite leer directamente desde objetos del ORM
+class EventoRead(BaseModel):
+    evento: str
+    props: dict
+    fecha: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
-class ConteoEvento(BaseModel):  # una fila de SELECT evento, COUNT(*) ... GROUP BY evento
-    evento: str  # nombre del evento
-    total: int  # cuántas veces ocurrió
+class ConteoEvento(BaseModel):
+    evento: str
+    total: int
 
 
-class PasoEmbudo(BaseModel):  # Tarea 9: un paso de un embudo
-    evento: str  # evento que marca el paso
-    total: int  # cuántos llegaron a este paso
-    caida: int  # % que se perdió desde el paso anterior
+class PasoEmbudo(BaseModel):
+    evento: str
+    total: int
+    caida: int
 
 
-class MotivoError(BaseModel):  # Tarea 9: errores de un flujo agrupados por motivo
-    motivo: str  # motivo de la lista fija
-    total: int  # cuántas veces pasó
+class MotivoError(BaseModel):
+    motivo: str
+    total: int
 
 
-class Embudo(BaseModel):  # Tarea 9: embudo de un flujo principal
-    id: str  # identificador del flujo
-    nombre: str  # nombre legible del flujo
-    pasos: list[PasoEmbudo]  # pasos en orden, de inicio a éxito
-    porcentaje_terminan: int  # % que llega al éxito
-    evento_error: str  # evento de error o salida del flujo
-    total_errores: int  # cuántas veces se frenó el flujo
-    motivos: list[MotivoError]  # errores por motivo
+class Embudo(BaseModel):
+    id: str
+    nombre: str
+    pasos: list[PasoEmbudo]
+    porcentaje_terminan: int
+    evento_error: str
+    total_errores: int
+    motivos: list[MotivoError]
 
 
-class MayorCaida(BaseModel):  # Tarea 9: el paso donde más gente se pierde
-    flujo: str  # nombre del flujo
-    desde: str  # paso anterior
-    hasta: str  # paso donde se pierde la gente
-    caida: int  # % perdido
+class MayorCaida(BaseModel):
+    flujo: str
+    desde: str
+    hasta: str
+    caida: int
 
 
-class ResumenBusquedas(BaseModel):  # Tarea 9: búsquedas y filtros sin resultados
-    realizadas: int  # búsquedas hechas
-    sin_resultados: int  # búsquedas que no encontraron nada
-    porcentaje_sin_resultados: int  # % sin resultados
+class ResumenBusquedas(BaseModel):
+    realizadas: int
+    sin_resultados: int
+    porcentaje_sin_resultados: int
 
 
-class PanelAnalitica(BaseModel):  # respuesta del panel /analitica
-    conteos: list[ConteoEvento]  # cantidad por cada evento
-    iniciados: int  # total de movimiento_iniciado
-    guardados: int  # total de movimiento_guardado
-    porcentaje_terminan: int  # % de los que empiezan y terminan
-    ultimos: list[EventoRead]  # últimos eventos, el más reciente primero
-    embudos: list[Embudo] = []  # Tarea 9: un embudo por flujo principal
-    mayor_caida: MayorCaida | None = None  # Tarea 9: paso con la mayor caída
-    busquedas: ResumenBusquedas | None = None  # Tarea 9: búsquedas sin resultados
+class PanelAnalitica(BaseModel):
+    conteos: list[ConteoEvento]
+    iniciados: int
+    guardados: int
+    porcentaje_terminan: int
+    ultimos: list[EventoRead]
+    embudos: list[Embudo] = []
+    mayor_caida: MayorCaida | None = None
+    busquedas: ResumenBusquedas | None = None
 
 
 
 # ---------- Tarea 10 · Mis datos y salida honesta ----------
-class ConfirmarEliminacion(BaseModel):  # cuerpo de DELETE /api/cuenta
-    confirmar: bool = False  # True solo cuando la persona tocó «Eliminar mi cuenta» en el diálogo
+class ConfirmarEliminacion(BaseModel):
+    confirmar: bool = False
 
 
-class ResultadoEliminacion(BaseModel):  # respuesta al eliminar la cuenta
-    eliminado: dict[str, int]  # cuántos movimientos, límites, presupuestos, metas e historial se borraron
+class ResultadoEliminacion(BaseModel):
+    eliminado: dict[str, int]

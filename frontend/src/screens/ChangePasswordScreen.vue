@@ -31,12 +31,12 @@ async function handleChangePassword() {
 
   try {
     await AuthService.updatePassword(password1.value.trim())
-    showSnackBar('Contraseña actualizada', 'var(--success-dark)')
+    showSnackBar('Contraseña actualizada', 'var(--color-exito)')
     router.push('/movements')
   } catch (e) {
     password1.value = ''
     password2.value = ''
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   }
 }
 </script>

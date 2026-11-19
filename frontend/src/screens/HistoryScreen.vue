@@ -22,7 +22,7 @@ async function load() {
     const data = await HistorialService.getHistorial()
     eventos.value = ordenarRecientePrimero(data)
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   } finally {
     cargado.value = true
   }
@@ -41,57 +41,57 @@ const ACCIONES = {
   creado: {
     texto: 'Movimiento creado',
     icono: 'add_circle',
-    fondo: 'var(--success-light)',
-    color: 'var(--success-dark)',
+    fondo: 'var(--color-exito-claro)',
+    color: 'var(--color-exito)',
   },
   editado: {
     texto: 'Movimiento editado',
     icono: 'edit',
-    fondo: 'var(--primary-100)',
-    color: 'var(--primary-300)',
+    fondo: 'var(--color-accion-claro)',
+    color: 'var(--color-accion)',
   },
   eliminado: {
     texto: 'Movimiento eliminado',
     icono: 'delete',
-    fondo: 'var(--error-light)',
-    color: 'var(--error-dark)',
+    fondo: 'var(--color-error-claro)',
+    color: 'var(--color-error)',
   },
   cambio_estado: {
     texto: 'Estado cambiado',
     icono: 'swap_horiz',
-    fondo: 'var(--warning-light)',
-    color: 'var(--warning-dark)',
+    fondo: 'var(--color-advertencia-claro)',
+    color: 'var(--color-advertencia)',
   },
   // Tarea 8: eventos de metas de ahorro (no son movimientos, pero quedan en la historia)
   meta_creada: {
     texto: 'Meta de ahorro creada',
     icono: 'savings',
-    fondo: 'var(--success-light)',
-    color: 'var(--success-dark)',
+    fondo: 'var(--color-exito-claro)',
+    color: 'var(--color-exito)',
   },
   meta_eliminada: {
     texto: 'Meta de ahorro eliminada',
     icono: 'delete',
-    fondo: 'var(--error-light)',
-    color: 'var(--error-dark)',
+    fondo: 'var(--color-error-claro)',
+    color: 'var(--color-error)',
   },
   fondos_asignados: {
     texto: 'Fondos asignados a meta',
     icono: 'add_card',
-    fondo: 'var(--primary-100)',
-    color: 'var(--primary-300)',
+    fondo: 'var(--color-accion-claro)',
+    color: 'var(--color-accion)',
   },
   fondos_retirados: {
     texto: 'Fondos retirados de meta',
     icono: 'account_balance_wallet',
-    fondo: 'var(--warning-light)',
-    color: 'var(--warning-dark)',
+    fondo: 'var(--color-advertencia-claro)',
+    color: 'var(--color-advertencia)',
   },
   fondos_transferidos: {
     texto: 'Fondos transferidos entre metas',
     icono: 'sync_alt',
-    fondo: 'var(--primary-100)',
-    color: 'var(--primary-300)',
+    fondo: 'var(--color-accion-claro)',
+    color: 'var(--color-accion)',
   },
 }
 
@@ -100,8 +100,8 @@ function accion(nombre) {
     ACCIONES[nombre] ?? {
       texto: nombre,
       icono: 'history',
-      fondo: 'var(--gray-100)',
-      color: 'var(--gray-base)',
+      fondo: 'var(--color-gris-100)',
+      color: 'var(--color-gris-base)',
     }
   )
 }
@@ -117,7 +117,7 @@ function accion(nombre) {
 
     <!-- Estado vacio -->
     <div v-if="cargado && eventos.length === 0" class="centro">
-      <AppIcon name="history" :size="64" color="var(--gray-300)" />
+      <AppIcon name="history" :size="64" color="var(--color-gris-300)" />
       <p class="bold-body-large">Aún no hay movimientos registrados</p>
       <p class="regular-body-small text-secondary">
         Registra tu primer movimiento y aparecerá aquí.
@@ -149,7 +149,7 @@ function accion(nombre) {
 
       <!-- Sin resultados -->
       <div v-if="eventosFiltrados.length === 0" class="centro">
-        <AppIcon name="search_off" :size="64" color="#9e9e9e" />
+        <AppIcon name="search_off" :size="64" color="var(--color-icono-apagado)" />
         <p class="bold-body-large">Sin resultados para "{{ busqueda }}"</p>
         <p class="regular-body-small">Prueba buscando por otra palabra clave o categoría.</p>
       </div>
@@ -200,8 +200,8 @@ function accion(nombre) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
-  padding: var(--space-l);
+  gap: var(--espacio-1);
+  padding: var(--espacio-6);
   text-align: center;
 }
 
@@ -219,7 +219,7 @@ function accion(nombre) {
 }
 
 .busqueda {
-  padding: 12px var(--space-m) var(--space-s);
+  padding: 12px var(--espacio-4) var(--espacio-2);
 }
 
 .busqueda-input {
@@ -233,7 +233,7 @@ function accion(nombre) {
 }
 
 .lista li + li {
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--color-gris-100);
 }
 
 .detalle {
@@ -246,7 +246,7 @@ function accion(nombre) {
 dl {
   display: grid;
   grid-template-columns: 100px 1fr;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
   margin: 0;
 }
 

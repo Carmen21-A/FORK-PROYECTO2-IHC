@@ -55,7 +55,7 @@ function fechaCorta(iso) {
 function descargarCsv() {
   descargarArchivo(movimientosACsv(movimientos.value), nombreArchivo('movimientos', 'csv'), 'text/csv;charset=utf-8')
   track(EVENTOS.DATOS_DESCARGADOS, { formato: 'csv' })
-  showSnackBar('Se descargaron tus movimientos (CSV)', 'var(--success-dark)')
+  showSnackBar('Se descargaron tus movimientos (CSV)', 'var(--color-exito)')
 }
 
 function descargarJson() {
@@ -65,7 +65,7 @@ function descargarJson() {
     'application/json;charset=utf-8',
   )
   track(EVENTOS.DATOS_DESCARGADOS, { formato: 'json' })
-  showSnackBar('Se descargaron todos tus datos (JSON)', 'var(--success-dark)')
+  showSnackBar('Se descargaron todos tus datos (JSON)', 'var(--color-exito)')
 }
 
 // ---------- Eliminar la cuenta ----------
@@ -88,10 +88,10 @@ async function eliminar() {
     trackSoloLocal(EVENTOS.CUENTA_ELIMINADA, {})
     dialogoEliminar.value = false
     await router.push('/')
-    showSnackBar('Tu cuenta y todos tus datos se eliminaron.', 'var(--success-dark)', 8000)
+    showSnackBar('Tu cuenta y todos tus datos se eliminaron.', 'var(--color-exito)', 8000)
   } catch (e) {
     track(EVENTOS.CUENTA_ELIMINACION_FRENADA, { motivo: 'rechazado_por_servidor' })
-    showSnackBar(`No se pudo eliminar la cuenta: ${e.message} Tus datos siguen intactos; intenta de nuevo.`, 'var(--error-dark)')
+    showSnackBar(`No se pudo eliminar la cuenta: ${e.message} Tus datos siguen intactos; intenta de nuevo.`, 'var(--color-error)')
   } finally {
     eliminando.value = false
   }
@@ -249,33 +249,33 @@ async function eliminar() {
 .mis-datos {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
+  gap: var(--espacio-4);
 }
 
 .bloque {
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
-  padding: var(--space-m);
+  gap: var(--espacio-2);
+  padding: var(--espacio-4);
 }
 
 .titulo-bloque {
   display: flex;
   align-items: center;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
   margin: 0;
-  font-size: var(--text-body-large, 18px);
+  font-size: var(--texto-grande);
 }
 
 .datos-cuenta {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: var(--space-xs) var(--space-m);
+  gap: var(--espacio-1) var(--espacio-4);
   margin: 0;
 }
 
 .datos-cuenta dt {
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .datos-cuenta dd {
@@ -286,7 +286,7 @@ async function eliminar() {
 .resumen {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -294,20 +294,20 @@ async function eliminar() {
 
 .resumen li {
   padding: 4px 12px;
-  border: 1px solid var(--outline);
+  border: 1px solid var(--color-borde);
   border-radius: 8px;
 }
 
 .nota {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--text-caption);
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-pequeno);
 }
 
 .acciones {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
 }
 
 .acciones .btn {
@@ -321,13 +321,13 @@ async function eliminar() {
 .tabla {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-caption);
+  font-size: var(--texto-pequeno);
 }
 
 .tabla th,
 .tabla td {
   padding: 6px 8px;
-  border-bottom: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--color-gris-100);
   text-align: left;
   white-space: nowrap;
 }
@@ -337,13 +337,13 @@ async function eliminar() {
 }
 
 .lista-simple {
-  margin: var(--space-s) 0 0;
-  padding-left: var(--space-l);
+  margin: var(--espacio-2) 0 0;
+  padding-left: var(--espacio-6);
 }
 
 .consecuencias {
   margin: 0;
-  padding-left: var(--space-l);
+  padding-left: var(--espacio-6);
 }
 
 .confirmacion p {
@@ -354,6 +354,6 @@ async function eliminar() {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--espacio-1);
 }
 </style>

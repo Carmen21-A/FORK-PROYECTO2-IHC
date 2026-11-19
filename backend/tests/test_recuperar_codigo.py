@@ -1,35 +1,35 @@
 # Recuperar la contraseña con un código de 4 dígitos (reemplaza al enlace por correo)
-from datetime import datetime, timedelta, timezone  # fechas para hacer vencer un código
+from datetime import datetime, timedelta, timezone
 
-from app.database import get_db  # dependencia de la base para leer y cambiar registros en la prueba
-from app.logica.recuperacion import vencido  # regla de vencimiento del código
-from app.main import app  # app de FastAPI (tiene el override de la base de pruebas)
-from app.models import RecuperacionPassword  # tabla de códigos de recuperación
+from app.database import get_db
+from app.logica.recuperacion import vencido
+from app.main import app
+from app.models import RecuperacionPassword
 
-CORREO = "ana@test.com"  # usuaria que crea el fixture auth
-
-
-def pedir_codigo(client, caplog, email: str = CORREO) -> str:  # pide un código y lo lee de la consola
-    caplog.clear()  # olvida mensajes de pedidos anteriores
-    caplog.set_level("WARNING")  # el código sale como advertencia cuando no hay SMTP
-    respuesta = client.post("/api/auth/password/recover", json={"email": email})  # paso 1: pedir el código
-    assert respuesta.status_code == 202  # aceptado
-    assert respuesta.json()["minutos"] == 15  # la pantalla puede decir cuánto sirve
-    mensaje = next(r.getMessage() for r in caplog.records if "Código de recuperación" in r.getMessage())  # línea del código
-    return mensaje.rsplit(": ", 1)[1]  # lo que va después de los dos puntos
+CORREO = "ana@test.com"
 
 
-def con_la_base(funcion):  # ejecuta algo con la misma sesión de base que usa la app
-    db = next(app.dependency_overrides[get_db]())  # abre una sesión de la base en memoria
-    try:  # siempre se cierra
-        return funcion(db)  # hace el cambio o la consulta
-    finally:  # al terminar
-        db.close()  # cierra la sesión
+def pedir_codigo(client, caplog, email: str = CORREO) -> str:
+    caplog.clear()
+    caplog.set_level("WARNING")
+    respuesta = client.post("/api/auth/password/recover", json={"email": email})
+    assert respuesta.status_code == 202
+    assert respuesta.json()["minutos"] == 15
+    mensaje = next(r.getMessage() for r in caplog.records if "Código de recuperación" in r.getMessage())
+    return mensaje.rsplit(": ", 1)[1]
+
+
+def con_la_base(funcion):
+    db = next(app.dependency_overrides[get_db]())
+    try:
+        return funcion(db)
+    finally:
+        db.close()
 
 
 def test_codigo_de_4_digitos_cambia_la_contrasena_y_entra(client, auth, caplog):
     codigo = pedir_codigo(client, caplog)
-    assert len(codigo) == 4 and codigo.isdigit()  # exactamente 4 números
+    assert len(codigo) == 4 and codigo.isdigit()
 
     # Paso 2: el código correcto se acepta y todavía no se gasta
     assert client.post("/api/auth/password/verify", json={"email": CORREO, "codigo": codigo}).json() == {"valido": True}
@@ -50,7 +50,7 @@ def test_codigo_de_4_digitos_cambia_la_contrasena_y_entra(client, auth, caplog):
 
 def test_codigo_incorrecto_dice_cuantos_intentos_quedan_y_bloquea_al_quinto(client, auth, caplog):
     codigo = pedir_codigo(client, caplog)
-    malo = "0000" if codigo != "0000" else "1111"  # un código que seguro es distinto
+    malo = "0000" if codigo != "0000" else "1111"
 
     mensajes = [
         client.post("/api/auth/password/verify", json={"email": CORREO, "codigo": malo}).json()["detail"]
@@ -72,7 +72,7 @@ def test_codigo_incorrecto_dice_cuantos_intentos_quedan_y_bloquea_al_quinto(clie
 def test_pedir_otro_codigo_anula_el_anterior(client, auth, caplog):
     primero = pedir_codigo(client, caplog)
     segundo = pedir_codigo(client, caplog)
-    if primero != segundo:  # (1 en 10 000 veces salen iguales)
+    if primero != segundo:
         assert client.post("/api/auth/password/verify", json={"email": CORREO, "codigo": primero}).status_code == 400
     assert client.post("/api/auth/password/verify", json={"email": CORREO, "codigo": segundo}).status_code == 200
 
@@ -80,7 +80,7 @@ def test_pedir_otro_codigo_anula_el_anterior(client, auth, caplog):
 def test_codigo_vencido_pide_uno_nuevo(client, auth, caplog):
     codigo = pedir_codigo(client, caplog)
 
-    def vencer(db):  # mueve la fecha límite al pasado
+    def vencer(db):
         recuperacion = db.query(RecuperacionPassword).one()
         recuperacion.expires_at = datetime.now(timezone.utc) - timedelta(minutes=1)
         db.commit()
@@ -114,7 +114,7 @@ def test_correo_desconocido_no_revela_nada(client, caplog):
     respuesta = client.post("/api/auth/password/recover", json={"email": "nadie@test.com"})
     assert respuesta.status_code == 202
     assert respuesta.json()["message"] == "Si el correo está registrado, te enviamos un código de 4 dígitos."
-    assert not any("Código de recuperación" in r.getMessage() for r in caplog.records)  # no se mandó nada
+    assert not any("Código de recuperación" in r.getMessage() for r in caplog.records)
 
     falso = client.post("/api/auth/password/verify", json={"email": "nadie@test.com", "codigo": "1234"})
     assert falso.json()["detail"] == "Este código no sirve. Pide uno nuevo."

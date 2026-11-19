@@ -34,7 +34,7 @@ async function handleLogin() {
       e instanceof ApiError
         ? e.message
         : 'Ha ocurrido un error de conexion, intenta de nuevo.',
-      'var(--error-dark)',
+      'var(--color-error)',
     )
   }
 }
@@ -93,7 +93,7 @@ async function handleLogin() {
 <style scoped>
 /* Fondo del login: la imagen ya trae el logo y al estudiante a la izquierda; el formulario va a la derecha */
 .login-pagina {
-  background: url('../assets/inicio/fondo-login.jpg') left top / cover no-repeat, var(--pub-degradado);
+  background: url('../assets/inicio/fondo-login.jpg') left top / cover no-repeat, var(--degradado-publico);
 }
 
 .login-main {
@@ -112,14 +112,14 @@ async function handleLogin() {
   width: 100%;
   max-width: 460px;
   border-radius: 28px;
-  background: rgb(255 255 255 / 0.96);
-  box-shadow: var(--pub-sombra);
+  background: var(--color-publico-tarjeta-translucida);
+  box-shadow: var(--sombra-publica);
 }
 
 @media (max-width: 900px) {
   /* En celular la imagen se recortaría (y su logo quedaría tapado): fondo de color y logo en la barra */
   .login-pagina {
-    background: var(--pub-degradado);
+    background: var(--degradado-publico);
   }
 
   .login-fila {

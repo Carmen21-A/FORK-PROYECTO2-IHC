@@ -43,7 +43,7 @@ async function handleRegister() {
   } catch (e) {
     showSnackBar(
       e instanceof ApiError ? e.message : 'Error al crear la cuenta, intenta nuevamente.',
-      'var(--error-dark)',
+      'var(--color-error)',
     )
   }
 }
@@ -129,7 +129,7 @@ async function handleRegister() {
 
 <style scoped>
 .registro-pagina {
-  background: #cdeaf4 url('../assets/inicio/fondo-registro.jpg') center / cover no-repeat;
+  background: var(--color-publico-fondo-registro) url('../assets/inicio/fondo-registro.jpg') center / cover no-repeat;
 }
 
 .registro-main {
@@ -142,8 +142,8 @@ async function handleRegister() {
 .registro-tarjeta {
   padding: 36px 48px 44px;
   border-radius: 28px;
-  background: #ffffff;
-  box-shadow: var(--pub-sombra);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-publica);
 }
 
 .registro-encabezado {
@@ -151,7 +151,7 @@ async function handleRegister() {
 }
 
 .registro-titulo {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
   font-size: 44px;
   font-weight: 700;
   line-height: 1.15;
@@ -159,7 +159,7 @@ async function handleRegister() {
 
 .registro-sub {
   margin-top: 6px;
-  color: var(--pub-texto);
+  color: var(--color-publico-texto);
   font-size: 19px;
 }
 
@@ -191,22 +191,22 @@ async function handleRegister() {
 }
 
 .registro-form :deep(.field-label) {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
   font-size: 16px;
   font-weight: 500;
 }
 
 .registro-form :deep(.input) {
-  border: 1.5px solid #c9cdd8;
+  border: 1.5px solid var(--color-publico-borde-campo);
   border-radius: 12px;
 }
 
 .registro-form :deep(.input:focus) {
-  border: 2px solid var(--pub-azul);
+  border: 2px solid var(--color-publico-accion);
 }
 
 .registro-form :deep(.field-error) {
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .registro-boton {

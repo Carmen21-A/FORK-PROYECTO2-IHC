@@ -19,7 +19,7 @@ import logo from '../assets/inicio/logo.png'
   gap: 10px;
   padding: 4px 6px 4px 0;
   border-radius: 10px;
-  color: #1b2440;
+  color: var(--color-publico-titulo);
   text-decoration: none;
 }
 

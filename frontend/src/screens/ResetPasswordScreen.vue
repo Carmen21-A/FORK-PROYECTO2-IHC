@@ -101,7 +101,7 @@ async function guardarPassword() {
       await irA('codigo')
       error.value = e.message
     } else {
-      showSnackBar(mensaje(e, 'No se pudo guardar la contraseña. Intenta de nuevo.'), 'var(--error-dark)')
+      showSnackBar(mensaje(e, 'No se pudo guardar la contraseña. Intenta de nuevo.'), 'var(--color-error)')
     }
   } finally {
     enviando.value = false
@@ -234,19 +234,19 @@ async function guardarPassword() {
   max-width: 480px;
   margin: 0 auto;
   border-radius: 28px;
-  background: #ffffff;
-  box-shadow: var(--pub-sombra);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-publica);
 }
 
 .recuperar-paso {
   margin-bottom: 4px;
-  color: var(--pub-azul);
+  color: var(--color-publico-accion);
   font-size: 15px;
   font-weight: 600;
 }
 
 .recuperar-correo {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
   overflow-wrap: anywhere;
 }
 

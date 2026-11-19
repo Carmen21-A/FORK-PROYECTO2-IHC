@@ -132,7 +132,7 @@ async function load() {
     movimientosFiltrados.value = filtrados
     limiteMensual.value = limite
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   }
 }
 
@@ -331,9 +331,9 @@ const limiteCasiAgotado = computed(() => {
 // Rojo = ya no queda nada; naranja = queda poco; gris = va bien
 const colorDisponible = computed(() => {
   const { disponible } = resumenLimite.value
-  if (disponible !== null && disponible <= 0) return 'var(--error-dark)'
-  if (limiteCasiAgotado.value) return 'var(--warning-dark)'
-  return 'var(--text-secondary)'
+  if (disponible !== null && disponible <= 0) return 'var(--color-error)'
+  if (limiteCasiAgotado.value) return 'var(--color-advertencia)'
+  return 'var(--color-texto-secundario)'
 })
 
 // Esto sirve para cambiar el limite mensual
@@ -362,7 +362,7 @@ async function guardarLimite() {
     dialogoLimite.value = null
     load()
     cargarLimiteForm()
-    showSnackBar(`Límite actualizado a ${dartNum(parseDouble(dialogo.texto))} Bs`, 'var(--success-dark)')
+    showSnackBar(`Límite actualizado a ${dartNum(parseDouble(dialogo.texto))} Bs`, 'var(--color-exito)')
   } catch (e) {
     dialogo.guardando = false
     dialogo.error = e.message
@@ -381,7 +381,7 @@ async function validarSiExcedioLimiteMensual(monto) {
     showSnackBar(
       // Tarea 10 (revisión de patrones): dato neutral en vez de «llevas gastando» (tono de reproche)
       `No se registró: este gasto supera tu límite mensual de ${dartNum(limite)} Bs. Te quedan ${dartNum(Math.max(limite - gastoActual, 0))} Bs disponibles este mes.`,
-      'var(--error-dark)',
+      'var(--color-error)',
     )
     return true // Se excedio
   }
@@ -468,7 +468,7 @@ async function save(confirmarExceso = false) {
     montoTexto.value = ''
     descripcion.value = ''
     recurrencia.value = ''
-    showSnackBar(mensaje, 'var(--success-dark)')
+    showSnackBar(mensaje, 'var(--color-exito)')
   } catch (e) {
     // Tarea 9: el gasto pasaría el presupuesto de su categoría -> mostrar cuánto y pedir confirmación
     if (e.status === 409 && e.datos?.codigo === 'supera_presupuesto_categoria') {
@@ -478,7 +478,7 @@ async function save(confirmarExceso = false) {
       return
     }
     trackRechazoMovimiento(/límite mensual/.test(e.message) ? 'supera_limite_mensual' : 'rechazado_por_servidor')
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   } finally {
     guardando.value = false
   }
@@ -489,9 +489,9 @@ async function eliminar(id) {
   try {
     await MovementsService.delete(id)
     load()
-    showSnackBar('Movimiento eliminado', 'var(--success-dark)')
+    showSnackBar('Movimiento eliminado', 'var(--color-exito)')
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   }
 }
 
@@ -584,22 +584,22 @@ async function cambiarEstado(m, confirmado = false) {
     if (respuesta?.siguiente) {
       showSnackBar(
         `Se generó el próximo gasto: ${fechaTexto(respuesta.siguiente.fecha)}`,
-        'var(--success-dark)',
+        'var(--color-exito)',
       )
     } else if (respuesta?.aviso) {
-      showSnackBar(respuesta.aviso, 'var(--error-dark)')
+      showSnackBar(respuesta.aviso, 'var(--color-error)')
     }
   } catch (e) {
     // Tarea 9 Parte A: permiso denegado (p. ej. el dinero está reservado en metas)
     if (esPago) track(EVENTOS.PAGO_RECHAZADO, { motivo: motivoRechazoServidor(e) })
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   }
 }
 
 const estadoXColor = {
-  pendiente: 'var(--estado-pendiente)',
-  pagado: 'var(--estado-pagado)',
-  cancelado: 'var(--estado-cancelado)',
+  pendiente: 'var(--color-pendiente)',
+  pagado: 'var(--color-pagado)',
+  cancelado: 'var(--color-cancelado)',
 }
 
 function montoLista(m) {
@@ -689,7 +689,7 @@ function alternarMenu(id) {
       <!-- Tarjeta específica cuando la intención es "Por pagar" -->
       <section v-if="pestanaActiva === 'por_pagar'" class="card resumen-por-pagar">
         <div class="resumen-por-pagar-icono">
-          <AppIcon name="schedule" :size="32" color="var(--estado-pendiente)" />
+          <AppIcon name="schedule" :size="32" color="var(--color-pendiente)" />
         </div>
         <div class="resumen-por-pagar-texto">
           <strong>Por pagar este mes: {{ dartNum(totalPorPagar) }} Bs</strong>
@@ -728,7 +728,7 @@ function alternarMenu(id) {
           aria-label="Presupuestos por Categoría"
           @click="router.push('/presupuestos-categoria')"
         >
-          <AppIcon name="pie_chart" filled color="var(--primary-base)" />
+          <AppIcon name="pie_chart" filled color="var(--color-accion)" />
         </button>
       </section>
 
@@ -863,7 +863,7 @@ function alternarMenu(id) {
           <div class="list-tile-main">
             <div
               class="monto"
-              :style="{ color: m.tipo === 'gasto' ? 'var(--error-dark)' : 'var(--success-dark)' }"
+              :style="{ color: m.tipo === 'gasto' ? 'var(--color-error)' : 'var(--color-exito)' }"
             >
               {{ montoLista(m) }}
             </div>
@@ -899,7 +899,7 @@ function alternarMenu(id) {
               <button
                 class="menu-item"
                 role="menuitem"
-                style="color: var(--estado-cancelado)"
+                style="color: var(--color-cancelado)"
                 @click="eliminarId = m.id"
               >
                 <AppIcon name="delete" :size="20" />
@@ -1122,7 +1122,7 @@ function alternarMenu(id) {
     <!-- Ayuda -->
     <AppDialog v-if="dialogoAyuda" @cerrar="dialogoAyuda = false">
       <template #titulo>
-        <AppIcon name="help" color="var(--estado-pendiente)" />
+        <AppIcon name="help" color="var(--color-pendiente)" />
         Ayuda
       </template>
       <div class="ayuda">
@@ -1156,19 +1156,19 @@ function alternarMenu(id) {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-m) 0 96px; /* aire arriba: las pestañas ya no quedan pegadas a la barra */
+  padding: var(--espacio-4) 0 96px; /* aire arriba: las pestañas ya no quedan pegadas a la barra */
 }
 
 /* Las pestañas con el mismo margen lateral que la tarjeta del límite y la lista */
 .movimientos > .tabs-arquitectura {
-  margin-inline: var(--space-m);
+  margin-inline: var(--espacio-4);
 }
 
 .resumen-limite {
   display: flex;
   align-items: center;
-  gap: var(--space-s);
-  margin: var(--space-s) var(--space-m);
+  gap: var(--espacio-2);
+  margin: var(--espacio-2) var(--espacio-4);
   padding: 12px;
 }
 
@@ -1181,14 +1181,14 @@ function alternarMenu(id) {
 .filtros {
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
-  padding: var(--space-s) var(--space-m);
+  gap: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-4);
 }
 
 .filtros-extra {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-m);
+  gap: var(--espacio-4);
 }
 
 .filtros-extra .field {
@@ -1198,7 +1198,7 @@ function alternarMenu(id) {
 .form-busqueda {
   display: flex;
   align-items: center;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
 }
 
 .input-busqueda-wrapper {
@@ -1223,13 +1223,13 @@ function alternarMenu(id) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
   border-radius: 50%;
 }
 
 .btn-limpiar-input:hover {
-  background: var(--surface-container-high);
-  color: var(--text-primary);
+  background: var(--color-superficie-alta);
+  color: var(--color-texto);
 }
 
 .meta-movimiento {
@@ -1245,16 +1245,16 @@ function alternarMenu(id) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: var(--color-categoria-fondo);
+  border: 1px solid var(--color-categoria-borde);
   padding: 1px 8px;
   border-radius: 4px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-texto-etiqueta);
 }
 
 .meta-label {
-  color: #334155;
+  color: var(--color-texto-etiqueta-suave);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1263,12 +1263,12 @@ function alternarMenu(id) {
 }
 
 .meta-sep {
-  color: #334155;
+  color: var(--color-texto-etiqueta-suave);
 }
 
 .badge-desc {
   display: inline; /* en celular la descripción larga baja de línea, la etiqueta queda entera */
-  color: #0f172a;
+  color: var(--color-texto-etiqueta);
   font-weight: 600;
 }
 
@@ -1279,7 +1279,7 @@ function alternarMenu(id) {
 }
 
 .vacio {
-  padding: var(--space-l);
+  padding: var(--espacio-6);
   text-align: center;
 }
 
@@ -1287,12 +1287,12 @@ function alternarMenu(id) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
 }
 
 .vacio-accion p {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .monto {
@@ -1308,7 +1308,7 @@ function alternarMenu(id) {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: var(--estado-pendiente);
+  color: var(--color-pendiente);
 }
 
 .menu-wrap {
@@ -1331,11 +1331,11 @@ function alternarMenu(id) {
   margin: 0;
   padding: 12px 16px;
   border-radius: 10px;
-  background: var(--warning-light);
+  background: var(--color-advertencia-claro);
 }
 
 .aviso-detalle dt {
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .aviso-detalle dd {
@@ -1345,13 +1345,13 @@ function alternarMenu(id) {
 }
 
 .aviso-exceso {
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .editando {
   justify-content: space-between;
-  padding: var(--space-s);
-  color: var(--primary-400);
+  padding: var(--espacio-2);
+  color: var(--color-accion-hover);
 }
 
 .form-opciones {
@@ -1359,7 +1359,7 @@ function alternarMenu(id) {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-around;
-  gap: var(--space-s);
+  gap: var(--espacio-2);
 }
 
 .selector-fecha {
@@ -1377,21 +1377,21 @@ function alternarMenu(id) {
   margin: 6px 0 4px;
   font-size: 13px;
   font-weight: 700;
-  color: #000000;
+  color: var(--color-texto-fuerte);
 }
 
 .aviso-monto {
   font-size: 12px;
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .aviso-pagado {
   font-size: 12px;
-  color: var(--estado-cancelado);
+  color: var(--color-cancelado);
 }
 
 .ayuda p {
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--espacio-1);
 }
 
 .ayuda-separada {
@@ -1417,12 +1417,12 @@ function alternarMenu(id) {
 .resumen-por-pagar {
   display: flex;
   align-items: center;
-  gap: var(--space-m);
-  padding: var(--space-m);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  gap: var(--espacio-4);
+  padding: var(--espacio-4);
+  background: var(--color-info-fondo);
+  border: 1px solid var(--color-info-borde);
   border-radius: 12px;
-  margin-bottom: var(--space-m);
+  margin-bottom: var(--espacio-4);
 }
 
 .resumen-por-pagar-icono {
@@ -1432,7 +1432,7 @@ function alternarMenu(id) {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: #dbeafe;
+  background: var(--color-info-icono-fondo);
   flex-shrink: 0;
 }
 
@@ -1444,12 +1444,12 @@ function alternarMenu(id) {
 
 .resumen-por-pagar-texto strong {
   font-size: 16px;
-  color: #1e3a8a;
+  color: var(--color-info-texto);
 }
 
 .resumen-por-pagar-texto span {
   font-size: 13px;
-  color: #3b82f6;
+  color: var(--color-info-icono);
   font-weight: 500;
 }
 </style>

@@ -28,7 +28,7 @@ def test_get_db_abre_y_cierra_una_sesion():
     generador = get_db()
     sesion = next(generador)
     assert sesion is not None
-    generador.close()  # ejecuta el finally: cierra la sesión
+    generador.close()
 
 
 def test_token_invalido_responde_401(client):

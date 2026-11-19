@@ -4,29 +4,15 @@
  * Contraste revisado: todo texto cumple 4.5:1 sobre su fondo (axe lo revisa en diseno.spec.ts).
  */
 .publico {
-  /* El Inicio conserva su azul; la app con sesión toma de aquí el verde agua y el lila (tokens.css) */
-  --pub-azul: #1d4ed8; /* botón principal: blanco sobre este azul = 6.7:1 */
-  --pub-azul-hover: #1e40af;
-  --pub-azul-claro: #0e7fc0;
-  --pub-tinta: #1b2440; /* títulos */
-  --pub-texto: #2b3654; /* párrafos */
-  --pub-suave: #4b5675; /* texto secundario sobre blanco (7:1) */
-  --pub-borde: #d7dcef;
-  --pub-tarjeta: #ffffff;
-  --pub-icono-fondo: #e6e9fa;
-  --pub-degradado: linear-gradient(120deg, #a3e9d9 0%, #92d5ee 35%, #7a9bec 70%, #a58bf2 100%);
-  --pub-sombra: 0 12px 32px rgb(40 55 120 / 0.14);
-  --pub-radio: 20px;
-
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  color: var(--pub-texto);
+  background: var(--color-superficie);
+  color: var(--color-publico-texto);
 }
 
 .publico :focus-visible {
-  outline: 3px solid var(--pub-azul);
+  outline: 3px solid var(--color-publico-accion);
   outline-offset: 3px;
 }
 
@@ -57,34 +43,34 @@
 }
 
 .pub-btn-primario {
-  background: linear-gradient(90deg, var(--pub-azul) 0%, #1f5fd1 100%);
+  background: linear-gradient(90deg, var(--color-publico-accion) 0%, var(--color-publico-accion-fin) 100%);
   /* color de base: al pasar el mouse la transición va de azul a azul oscuro, sin parpadeo pálido */
-  background-color: var(--pub-azul);
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgb(29 78 216 / 0.3);
+  background-color: var(--color-publico-accion);
+  color: var(--color-texto-inverso);
+  box-shadow: var(--sombra-boton-publico);
 }
 
 .pub-btn-primario:hover {
-  background: var(--pub-azul-hover);
+  background: var(--color-publico-accion-hover);
 }
 
 .pub-btn-secundario {
-  background: #ffffff;
-  color: var(--pub-tinta);
-  border-color: #c3c9de;
+  background: var(--color-superficie);
+  color: var(--color-publico-titulo);
+  border-color: var(--color-publico-borde-boton);
 }
 
 .pub-btn-secundario:hover {
-  background: #f3f5fc;
+  background: var(--color-publico-hover-secundario);
 }
 
 .pub-btn-texto {
   background: transparent;
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
 }
 
 .pub-btn-texto:hover {
-  background: #f1f3fa;
+  background: var(--color-publico-hover);
 }
 
 .pub-btn-bloque {
@@ -94,8 +80,8 @@
 
 /* ---------- Barra superior ---------- */
 .pub-barra {
-  background: #ffffff;
-  border-bottom: 1px solid #eef0f7;
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-publico-separador);
 }
 
 .pub-barra-transparente {
@@ -112,14 +98,14 @@
 
 .pub-barra-transparente .pub-nav a,
 .pub-barra-transparente .pub-btn-texto {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
 }
 
 .pub-barra-transparente .pub-nav {
   margin: 0 0 0 auto;
   padding: 4px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.85);
+  background: var(--color-publico-nav-translucida);
 }
 
 .pub-barra-fila {
@@ -138,13 +124,13 @@
 .pub-nav a {
   padding: 10px 14px;
   border-radius: 10px;
-  color: var(--pub-texto);
+  color: var(--color-publico-texto);
   font-size: 17px;
   text-decoration: none;
 }
 
 .pub-nav a:hover {
-  background: #f1f3fa;
+  background: var(--color-publico-hover);
 }
 
 .pub-acciones {
@@ -164,7 +150,7 @@
   display: grid;
   place-items: center;
   padding: 40px 0 56px;
-  background: var(--pub-degradado);
+  background: var(--degradado-publico);
 }
 
 .auth-tarjeta {
@@ -173,8 +159,8 @@
   width: 100%;
   overflow: hidden;
   border-radius: 28px;
-  background: var(--pub-tarjeta);
-  box-shadow: var(--pub-sombra);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-publica);
 }
 
 .auth-formulario {
@@ -185,7 +171,7 @@
 }
 
 .auth-titulo {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
   font-size: 34px;
   font-weight: 700;
   line-height: 1.2;
@@ -193,29 +179,29 @@
 
 .auth-subtitulo {
   margin-top: 6px;
-  color: var(--pub-suave);
+  color: var(--color-publico-texto-suave);
   font-size: 17px;
 }
 
 .auth-formulario .field-label {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
   font-size: 16px;
   font-weight: 500;
 }
 
 .auth-formulario .input {
-  border-color: var(--pub-borde);
+  border-color: var(--color-publico-borde);
   border-radius: 12px;
-  background: #f8f9fe;
+  background: var(--color-publico-campo);
 }
 
 .auth-formulario .input:focus {
-  border-color: var(--pub-azul);
-  background: #ffffff;
+  border-color: var(--color-publico-accion);
+  background: var(--color-superficie);
 }
 
 .auth-formulario .field-error {
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .auth-enlace {
@@ -223,7 +209,7 @@
   padding: 6px 4px;
   border: none;
   background: none;
-  color: var(--pub-azul);
+  color: var(--color-publico-accion);
   font: inherit;
   font-size: 15px;
   font-weight: 500;
@@ -233,7 +219,7 @@
 }
 
 .auth-pie {
-  color: var(--pub-suave);
+  color: var(--color-publico-texto-suave);
   font-size: 15px;
   text-align: center;
 }
@@ -246,7 +232,7 @@
 .auth-ilustracion {
   position: relative;
   min-height: 100%;
-  background: #8aa6ee;
+  background: var(--color-publico-ilustracion);
 }
 
 .auth-ilustracion img {
@@ -302,14 +288,14 @@
 
 .pub-barra-transparente .pub-nav a,
 .pub-barra-transparente .pub-btn-texto {
-  color: var(--pub-tinta);
+  color: var(--color-publico-titulo);
 }
 
 .pub-barra-transparente .pub-nav {
   margin: 0 0 0 auto;
   padding: 4px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.85);
+  background: var(--color-publico-nav-translucida);
 }
 
 .pub-barra-fila {

@@ -17,7 +17,7 @@ Permite registrarse, iniciar sesión y gestionar ingresos y gastos, con límite 
 | Documentación interactiva de la API | https://presupuesto-api-80t4.onrender.com/docs |
 | Repositorio (fork) | https://github.com/Carmen21-A/FORK-PROYECTO2-IHC |
 | Reportes de pruebas y cobertura | [reportes/README.md](reportes/README.md) |
-| Diseño en Figma | (se agrega con el enlace del archivo) |
+| Diseño en Figma | [https://www.figma.com/design/jsgAZTQJxWdZGsgzzknWwB/PRESUPUESTO-ESTUDIANTIL](https://www.figma.com/design/jsgAZTQJxWdZGsgzzknWwB/PRESUPUESTO-ESTUDIANTIL) |
 
 > El backend usa el plan gratis de Render: si nadie lo usó en los últimos 15 minutos, **la primera petición tarda unos 50 segundos** en responder. Después va normal.
 

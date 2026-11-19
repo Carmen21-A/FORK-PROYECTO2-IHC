@@ -1,47 +1,46 @@
-from functools import lru_cache  # importa lru_cache para memorizar la instancia de configuración sin releer el archivo .env
+from functools import lru_cache  
 
-from pydantic_settings import BaseSettings, SettingsConfigDict  # importa clases de pydantic para gestionar configuraciones con variables de entorno
-from sqlalchemy.engine import URL, make_url  # importa utilidades de SQLAlchemy para parsear y manipular URLs de bases de datos
+from pydantic_settings import BaseSettings, SettingsConfigDict  
+from sqlalchemy.engine import URL, make_url  
 
 
 # Reemplaza a lib/env.dart: las variables se leen de backend/.env
-class Settings(BaseSettings):  # define la clase de configuración que hereda de BaseSettings
-    app_name: str = "Presupuesto Estudiantil"  # nombre de la aplicación con valor por defecto
-    database_url: str = "postgresql+psycopg://budget:budget@localhost:5432/budget"  # URL de conexión por defecto a PostgreSQL
-    # Si se define, cambia solo el nombre de la base (las pruebas E2E usan budget_e2e)
-    database_name: str | None = None  # nombre de base de datos alternativo para pruebas o sobreescritura
-    secret_key: str = "cambia-esta-clave-antes-de-desplegar"  # clave secreta para firmar tokens JWT
+class Settings(BaseSettings):  
+    app_name: str = "Presupuesto Estudiantil" 
+    database_url: str = "postgresql+psycopg://budget:budget@localhost:5432/budget"  
+    database_name: str | None = None  
+    secret_key: str = "cambia-esta-clave-antes-de-desplegar"  
     access_token_minutes: int = 60 * 24 * 7  # duración del token de acceso en minutos (7 días)
     recovery_code_minutes: int = 15  # minutos que sirve el código de 4 dígitos para recuperar la contraseña
-    cors_origins: str = "http://localhost:5173"  # orígenes permitidos por CORS separados por comas
-    frontend_url: str = "http://localhost:5173"  # URL base de la aplicación frontend para enlaces
+    cors_origins: str = "http://localhost:5173"  
+    frontend_url: str = "http://localhost:5173"  
 
     # Correo para recuperar contraseña (si no se configura, el código sale en la consola)
-    smtp_host: str | None = None  # servidor SMTP para envío de correos
-    smtp_port: int = 587  # puerto del servidor SMTP por defecto (587 para TLS)
-    smtp_user: str | None = None  # usuario o correo de la cuenta SMTP
-    smtp_password: str | None = None  # contraseña de aplicación del correo SMTP
-    smtp_from: str | None = None  # remitente visible del correo saliente
-    smtp_use_tls: bool = True  # indica si se debe usar cifrado TLS para la conexión SMTP
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+    smtp_use_tls: bool = True
     # En la nube: Render (plan gratis) bloquea SMTP; con esta clave el correo sale por la API web de Brevo
-    brevo_api_key: str | None = None  # clave de API de Brevo (remitente = SMTP_FROM, verificado en Brevo)
+    brevo_api_key: str | None = None
 
-    model_config = SettingsConfigDict(  # configuración interna del modelo de configuración
-        env_file=".env",  # especifica que las variables se cargarán del archivo .env
+    model_config = SettingsConfigDict(
+        env_file=".env",
         env_file_encoding="utf-8",  # codificación de caracteres del archivo .env
         extra="ignore",  # ignora variables adicionales que no estén definidas en la clase
     )  # fin de SettingsConfigDict
 
     @property
-    def url_base_de_datos(self) -> URL:  # propiedad calculada que devuelve la URL de conexión final a la base de datos
-        url = make_url(self.database_url)  # convierte el texto de database_url a un objeto URL de SQLAlchemy
-        return url.set(database=self.database_name) if self.database_name else url  # sustituye la base de datos si se definió database_name
+    def url_base_de_datos(self) -> URL:
+        url = make_url(self.database_url)
+        return url.set(database=self.database_name) if self.database_name else url
 
     @property
-    def allowed_origins(self) -> list[str]:  # propiedad calculada que devuelve la lista de orígenes permitidos para CORS
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]  # divide la cadena por comas y elimina espacios
+    def allowed_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
-@lru_cache  # decorador que almacena en caché el resultado para devolver siempre la misma instancia
-def get_settings() -> Settings:  # función para obtener la instancia única de configuración
-    return Settings()  # instancia y retorna el objeto Settings
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

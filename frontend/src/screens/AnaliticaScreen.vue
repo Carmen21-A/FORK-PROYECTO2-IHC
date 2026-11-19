@@ -44,7 +44,7 @@ async function cargar() {
   try {
     panel.value = await AnaliticaService.getPanel()
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   } finally {
     cargado.value = true
   }
@@ -207,10 +207,10 @@ function esMayorCaida(embudo, paso) {
 .analitica-screen {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-m);
+  padding: var(--espacio-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
+  gap: var(--espacio-4);
 }
 
 .encabezado {
@@ -231,34 +231,34 @@ function esMayorCaida(embudo, paso) {
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--warning-light);
-  color: var(--warning-dark);
+  background: var(--color-advertencia-claro);
+  color: var(--color-advertencia);
 }
 
 .pregunta {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .tarjetas {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-m);
+  gap: var(--espacio-4);
 }
 
 .tarjeta {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: var(--space-l);
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
+  padding: var(--espacio-6);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-gris-200);
   border-radius: 14px;
 }
 
 .tarjeta code {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
   overflow-wrap: anywhere;
 }
 
@@ -268,9 +268,9 @@ function esMayorCaida(embudo, paso) {
 }
 
 .destacada {
-  background: var(--success-light);
-  border-color: var(--success-dark);
-  color: var(--success-dark);
+  background: var(--color-exito-claro);
+  border-color: var(--color-exito);
+  color: var(--color-exito);
 }
 
 .mayor-caida {
@@ -279,13 +279,13 @@ function esMayorCaida(embudo, paso) {
   align-items: flex-start;
   padding: 14px 16px;
   border-radius: 12px;
-  background: var(--error-light);
-  color: var(--error-dark);
+  background: var(--color-error-claro);
+  color: var(--color-error);
 }
 
 .mayor-caida p {
   margin: 4px 0 0;
-  color: var(--text-primary, #0f172a);
+  color: var(--color-texto);
   font-size: 14px;
 }
 
@@ -297,16 +297,16 @@ h3 {
 .embudos {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
+  gap: var(--espacio-4);
 }
 
 .embudo {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: var(--space-m) var(--space-l);
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
+  padding: var(--espacio-4) var(--espacio-6);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-gris-200);
   border-radius: 14px;
 }
 
@@ -326,7 +326,7 @@ h3 {
 .terminan {
   font-size: 13px;
   font-weight: 700;
-  color: var(--success-dark);
+  color: var(--color-exito);
 }
 
 .paso-fila {
@@ -343,33 +343,33 @@ h3 {
 .barra-fondo {
   height: 12px;
   border-radius: 999px;
-  background: var(--gray-100, #f1f5f9);
+  background: var(--color-gris-100);
   overflow: hidden;
 }
 
 .barra {
   height: 100%;
   border-radius: 999px;
-  background: var(--primary-300, #6366f1);
+  background: var(--color-accion);
 }
 
 .barra.exito {
-  background: var(--success-dark);
+  background: var(--color-exito);
 }
 
 .caida {
   margin: 0;
   font-size: 13px;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .caida.peor {
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .errores {
-  border-top: 1px solid var(--gray-200, #e2e8f0);
+  border-top: 1px solid var(--color-gris-200);
   padding-top: 8px;
   font-size: 13px;
 }
@@ -378,20 +378,20 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .motivos {
   margin: 6px 0 0;
   padding-left: 22px;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .busquedas,
 .ultimos {
-  padding: var(--space-m) var(--space-l);
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
+  padding: var(--espacio-4) var(--espacio-6);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-gris-200);
   border-radius: 14px;
 }
 
@@ -413,7 +413,7 @@ h3 {
   flex-direction: column;
   gap: 2px;
   padding: 10px 14px;
-  border: 1px solid var(--gray-200, #e2e8f0);
+  border: 1px solid var(--color-gris-200);
   border-radius: 10px;
 }
 
@@ -423,11 +423,11 @@ h3 {
 
 .detalle {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .vacio {
-  color: var(--text-secondary);
+  color: var(--color-texto-secundario);
 }
 
 .privacidad {
@@ -436,8 +436,8 @@ h3 {
   align-items: flex-start;
   padding: 12px 16px;
   border-radius: 10px;
-  background: var(--primary-100);
-  color: var(--text-primary, #0f172a);
+  background: var(--color-accion-claro);
+  color: var(--color-texto);
   font-size: 13px;
 }
 

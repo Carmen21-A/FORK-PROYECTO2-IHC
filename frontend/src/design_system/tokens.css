@@ -1,105 +1,169 @@
 /*
- * Portado de lib/design_system/color_styles.dart, spacing_tokens.dart y app_text_style.dart
- * (generados desde Figma con Very Good Flutter Styles).
+ * Tokens de diseño de Presupuesto Estudiantil.
+ * ÚNICO lugar del proyecto donde se escriben valores de color, espacio, texto, radio y sombra.
+ * El resto del CSS solo los llama con var(--nombre). Los nombres dicen PARA QUÉ sirve cada valor
+ * (acción, error, fondo...), no qué color es, y son los mismos que las variables de Figma:
+ * --color-accion  <->  Figma «color/accion».
+ * La prueba tests/unit/tokens.test.js falla si aparece un color escrito a mano fuera de este archivo.
  */
 :root {
-  /* ---------- ColorStyles ---------- */
-  --error-dark: #b91c1c;
-  --error-default: #ef4444;
-  --error-light: #fee2e2;
+  /* ---------- Acción (botones, pestaña activa, foco) · verde agua del Inicio ---------- */
+  --color-accion: #0f766e; /* blanco encima = 5.5:1 */
+  --color-accion-hover: #115e59;
+  --color-accion-claro: #ccfbf1; /* filtro elegido, fondo de chips */
+  --color-accion-suave: #5eead4;
+  --color-accion-oscuro: #134e4a;
+  --color-texto-sobre-accion-claro: #042f2e;
 
-  --gray-100: #d8d8da;
-  --gray-200: #b0b0b5;
-  --gray-300: #8a8a91;
-  --gray-400: #666666;
-  --gray-500: #44444c;
-  --gray-600: #25252a;
-  --gray-700: #111111;
-  --gray-base: #66666e;
+  /* ---------- Barra superior y menú · índigo ---------- */
+  --color-barra: #262058;
+  --color-barra-fin: #3a3184;
+  --degradado-barra: linear-gradient(100deg, var(--color-barra) 0%, var(--color-barra-fin) 100%);
+  --color-borde-sobre-barra: rgb(255 255 255 / 0.9);
+  --color-hover-sobre-barra: rgb(255 255 255 / 0.14);
 
-  /* Paleta tomada del Inicio (verde agua, azul y lila), con un papel para cada color:
-       - primary (verde azulado): acciones (botones, pestaña activa, foco). Reemplaza al naranja.
-       - barra (índigo, del lila del Inicio): encabezado y menú.
-       - azul (--estado-pendiente) y gris (categorías): quedan solo para datos, así resaltan.
-       - rojo = error, verde = éxito, naranja (--warning-*) = advertencia: "cuidado, te acercas".
-     Contrastes (axe): blanco sobre base = 5.5:1; base sobre primary-100 = 4.7:1 */
-  --primary-100: #ccfbf1;
-  --primary-200: #5eead4;
-  --primary-300: #0f766e;
-  --primary-400: #115e59;
-  --primary-500: #134e4a;
-  --primary-600: #042f2e;
-  --primary-700: #022120;
-  --primary-base: #0f766e;
+  /* ---------- Superficies ---------- */
+  --color-fondo: #f7f8fb; /* fondo de las pantallas */
+  --color-superficie: #ffffff; /* tarjetas, diálogos, campos */
+  --color-superficie-alta: #eef0f5;
+  --color-superficie-tenue: #eef1f6;
+  --color-borde: #667085; /* borde de los campos */
+  --color-campo-deshabilitado: #f3f3f3;
 
-  /* Encabezado y menú: índigo oscuro (texto blanco = 12:1) */
-  --barra-fondo: linear-gradient(100deg, #262058 0%, #3a3184 100%);
-  --barra-texto: #ffffff;
+  /* ---------- Texto ---------- */
+  --color-texto: #1f2937;
+  --color-texto-secundario: #6b7280;
+  --color-texto-deshabilitado: #9ca3af;
+  --color-texto-inverso: #ffffff;
+  --color-texto-fuerte: #000000;
+  --color-texto-etiqueta: #0f172a;
+  --color-texto-etiqueta-suave: #334155;
+  --color-icono-apagado: #9e9e9e;
 
-  --secondary-base: #ebed58;
+  /* ---------- Grises ---------- */
+  --color-gris-100: #d8d8da;
+  --color-gris-200: #b0b0b5;
+  --color-gris-300: #8a8a91;
+  --color-gris-400: #666666;
+  --color-gris-500: #44444c;
+  --color-gris-600: #25252a;
+  --color-gris-700: #111111;
+  --color-gris-base: #66666e;
 
-  --success-dark: #15803d;
-  --success-default: #22c55e;
-  --success-light: #dcfce7;
+  /* ---------- Estados: rojo = error, verde = éxito, naranja = advertencia ---------- */
+  --color-error: #b91c1c; /* texto: 6.5:1 sobre blanco */
+  --color-error-vivo: #ef4444; /* solo bordes e íconos (3:1) */
+  --color-error-claro: #fee2e2;
+  --color-exito: #15803d;
+  --color-exito-vivo: #22c55e;
+  --color-exito-claro: #dcfce7;
+  --color-advertencia: #b45309; /* 4.51:1 sobre su fondo claro */
+  --color-advertencia-vivo: #f59e0b;
+  --color-advertencia-claro: #fef3c7;
 
-  --tertiary-base: #ed5a58;
+  /* ---------- Estado del movimiento ---------- */
+  --color-pendiente: #1565c0;
+  --color-pagado: #2e7d32;
+  --color-cancelado: #c62828;
 
-  --text-base: #000000;
-  --text-disabled: #9ca3af;
-  --text-inverse: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
+  /* ---------- Categorías ---------- */
+  --color-categoria-fondo: #f1f5f9;
+  --color-categoria-borde: #cbd5e1;
+  --color-categoria-transporte: #0284c7;
+  --color-categoria-comida: #ea580c;
+  --color-categoria-estudios: #7c3aed;
+  --color-categoria-ocio: #db2777;
+  --color-categoria-otros: #475569;
 
-  --warning-dark: #b45309;
-  --warning-default: #f59e0b;
-  --warning-light: #fef3c7;
+  /* ---------- Información («Por pagar») ---------- */
+  --color-info-fondo: #eff6ff;
+  --color-info-borde: #bfdbfe;
+  --color-info-icono-fondo: #dbeafe;
+  --color-info-texto: #1e3a8a;
+  --color-info-icono: #3b82f6;
 
-  /* Colores de estado del movimiento (movements_screen.dart).
-     Tonos oscuros: axe pide contraste de 4.5:1 para el texto sobre el fondo claro */
-  --estado-pendiente: #1565c0;
-  --estado-pagado: #2e7d32;
-  --estado-cancelado: #c62828;
+  /* ---------- Sobre la tarjeta de color (resumen de Presupuesto) ---------- */
+  --color-sobre-accion-pastilla: rgb(255 255 255 / 0.2);
+  --color-sobre-accion-texto-suave: rgb(255 255 255 / 0.75);
+  --color-sobre-accion-separador: rgb(255 255 255 / 0.3);
+  --color-sobre-accion-pista: rgb(255 255 255 / 0.25);
 
-  /* Superficies (Material 3 a partir del color semilla primaryBase) */
-  --surface: #f7f8fb; /* gris muy claro y neutro: deja que resalten los colores de los datos */
-  --surface-container: #ffffff;
-  --surface-container-high: #eef0f5;
-  --surface-tint: #eef1f6;
-  --outline: #667085;
-  --shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
-  --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.16);
+  /* ---------- Velos, hover y avisos ---------- */
+  --color-velo: rgb(0 0 0 / 0.4); /* detrás de los diálogos */
+  --color-velo-fuerte: rgb(0 0 0 / 0.45);
+  --color-hover-oscuro: rgb(0 0 0 / 0.06);
+  --color-hover-suave: rgb(0 0 0 / 0.05);
+  --color-hover-tenue: rgb(0 0 0 / 0.04);
+  --color-aviso-fondo: #323232; /* snackbar */
 
-  /* ---------- SpacingTokens ---------- */
-  --space-xs: 4px;
-  --space-s: 8px;
-  --space-m: 16px;
-  --space-l: 24px;
-  --space-xl: 32px;
-  --space-xxl: 48px;
+  /* ---------- Páginas públicas (Inicio, login, registro, recuperar) · azul ---------- */
+  --color-publico-accion: #1d4ed8; /* blanco encima = 6.7:1 */
+  --color-publico-accion-fin: #1f5fd1;
+  --color-publico-accion-hover: #1e40af;
+  --color-publico-accion-claro: #0e7fc0;
+  --color-publico-titulo: #1b2440;
+  --color-publico-texto: #2b3654;
+  --color-publico-texto-suave: #4b5675;
+  --color-publico-borde: #d7dcef;
+  --color-publico-borde-boton: #c3c9de;
+  --color-publico-borde-campo: #c9cdd8;
+  --color-publico-borde-tarjeta: #e6e9f4;
+  --color-publico-separador: #eef0f7;
+  --color-publico-hover: #f1f3fa;
+  --color-publico-hover-secundario: #f3f5fc;
+  --color-publico-campo: #f8f9fe;
+  --color-publico-tarjeta-suave: #fafbff;
+  --color-publico-icono-fondo: #e6e9fa;
+  --color-publico-ilustracion: #8aa6ee;
+  --color-publico-fondo-registro: #cdeaf4;
+  --color-publico-tarjeta-translucida: rgb(255 255 255 / 0.96);
+  --color-publico-nav-translucida: rgb(255 255 255 / 0.85);
+  --degradado-publico: linear-gradient(120deg, #a3e9d9 0%, #92d5ee 35%, #7a9bec 70%, #a58bf2 100%);
 
-  /* ---------- AppTextStyle (Inter, altura 150%) ---------- */
-  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --text-micro: 12px;
-  --text-caption: 14px;
-  --text-body-small: 16px;
-  --text-body-medium: 18px;
-  --text-body-large: 20px;
-  --text-subtitle: 24px;
-  --text-heading-small: 30px;
+  /* ---------- Sombras ---------- */
+  --sombra: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
+  --sombra-grande: 0 8px 24px rgb(0 0 0 / 0.16);
+  --sombra-suave: 0 1px 3px rgb(0 0 0 / 0.05);
+  --sombra-minima: 0 1px 2px rgb(0 0 0 / 0.04);
+  --sombra-pestana: 0 1px 3px rgb(0 0 0 / 0.1);
+  --sombra-barra: 0 2px 8px rgb(20 16 60 / 0.25);
+  --sombra-publica: 0 12px 32px rgb(40 55 120 / 0.14);
+  --sombra-boton-publico: 0 8px 20px rgb(29 78 216 / 0.3);
+
+  /* ---------- Espacios (múltiplos de 4 px) ---------- */
+  --espacio-1: 4px;
+  --espacio-2: 8px;
+  --espacio-4: 16px;
+  --espacio-6: 24px;
+  --espacio-8: 32px;
+  --espacio-12: 48px;
+
+  /* ---------- Radios ---------- */
+  --radio-tarjeta-publica: 20px;
+
+  /* ---------- Tipografía (Inter, altura 150%) ---------- */
+  --fuente: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --texto-micro: 12px;
+  --texto-pequeno: 14px;
+  --texto-normal: 16px;
+  --texto-mediano: 18px;
+  --texto-grande: 20px;
+  --texto-subtitulo: 24px;
+  --texto-titulo: 30px;
 }
 
-.regular-micro { font-size: var(--text-micro); font-weight: 400; line-height: 1.5; }
-.medium-micro { font-size: var(--text-micro); font-weight: 500; line-height: 1.5; }
-.bold-micro { font-size: var(--text-micro); font-weight: 700; line-height: 1.5; }
-.regular-caption { font-size: var(--text-caption); font-weight: 400; line-height: 1.5; }
-.medium-caption { font-size: var(--text-caption); font-weight: 500; line-height: 1.5; }
-.bold-caption { font-size: var(--text-caption); font-weight: 700; line-height: 1.5; }
-.regular-body-small { font-size: var(--text-body-small); font-weight: 400; line-height: 1.5; }
-.bold-body-small { font-size: var(--text-body-small); font-weight: 700; line-height: 1.5; }
-.medium-body-medium { font-size: var(--text-body-medium); font-weight: 500; line-height: 1.5; }
-.bold-body-medium { font-size: var(--text-body-medium); font-weight: 700; line-height: 1.5; }
-.bold-body-large { font-size: var(--text-body-large); font-weight: 700; line-height: 1.5; }
-.bold-heading-small { font-size: var(--text-heading-small); font-weight: 700; line-height: 1.5; }
+.regular-micro { font-size: var(--texto-micro); font-weight: 400; line-height: 1.5; }
+.medium-micro { font-size: var(--texto-micro); font-weight: 500; line-height: 1.5; }
+.bold-micro { font-size: var(--texto-micro); font-weight: 700; line-height: 1.5; }
+.regular-caption { font-size: var(--texto-pequeno); font-weight: 400; line-height: 1.5; }
+.medium-caption { font-size: var(--texto-pequeno); font-weight: 500; line-height: 1.5; }
+.bold-caption { font-size: var(--texto-pequeno); font-weight: 700; line-height: 1.5; }
+.regular-body-small { font-size: var(--texto-normal); font-weight: 400; line-height: 1.5; }
+.bold-body-small { font-size: var(--texto-normal); font-weight: 700; line-height: 1.5; }
+.medium-body-medium { font-size: var(--texto-mediano); font-weight: 500; line-height: 1.5; }
+.bold-body-medium { font-size: var(--texto-mediano); font-weight: 700; line-height: 1.5; }
+.bold-body-large { font-size: var(--texto-grande); font-weight: 700; line-height: 1.5; }
+.bold-heading-small { font-size: var(--texto-titulo); font-weight: 700; line-height: 1.5; }
 
-.text-secondary { color: var(--text-secondary); }
-.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--color-texto-secundario); }
+.text-primary { color: var(--color-texto); }

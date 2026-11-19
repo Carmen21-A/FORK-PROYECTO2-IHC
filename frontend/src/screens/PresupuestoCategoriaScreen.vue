@@ -40,11 +40,11 @@ const iconosCategoria = {
 }
 
 const coloresCategoria = {
-  Transporte: '#0284C7',
-  Comida: '#EA580C',
-  Estudios: '#7C3AED',
-  Ocio: '#DB2777',
-  Otros: '#475569',
+  Transporte: 'var(--color-categoria-transporte)',
+  Comida: 'var(--color-categoria-comida)',
+  Estudios: 'var(--color-categoria-estudios)',
+  Ocio: 'var(--color-categoria-ocio)',
+  Otros: 'var(--color-categoria-otros)',
 }
 
 const NOMBRES_MES = [
@@ -129,12 +129,12 @@ async function guardarPresupuesto() {
     cargarDatos()
     showSnackBar(
       `Presupuesto para ${d.categoria} actualizado a Bs. ${fixed(nuevoMonto)}`,
-      'var(--success-dark)',
+      'var(--color-exito)',
     )
   } catch (e) {
     track(EVENTOS.PRESUPUESTO_RECHAZADO, { motivo: 'rechazado_por_servidor' })
     d.guardando = false
-    showSnackBar(`Error al guardar: ${e.message}`, 'var(--error-dark)')
+    showSnackBar(`Error al guardar: ${e.message}`, 'var(--color-error)')
   }
 }
 
@@ -144,9 +144,9 @@ async function eliminarPresupuesto() {
   try {
     await PresupuestosService.deletePresupuestoCategoria({ mes: mesClave.value, categoria })
     cargarDatos()
-    showSnackBar(`Presupuesto de ${categoria} eliminado`, 'var(--gray-600)')
+    showSnackBar(`Presupuesto de ${categoria} eliminado`, 'var(--color-gris-600)')
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   }
 }
 
@@ -173,10 +173,10 @@ const porcentajeVisual = computed(() =>
 const estaExcedidoTotal = computed(() => resumen.value.totalRestante < 0)
 const colorBarraTotal = computed(() =>
   estaExcedidoTotal.value
-    ? 'var(--error-dark)'
+    ? 'var(--color-error)'
     : resumen.value.porcentajeTotal >= 0.8
-      ? 'var(--warning-default)'
-      : '#ffffff',
+      ? 'var(--color-advertencia-vivo)'
+      : 'var(--color-superficie)',
 )
 
 // Tonos oscuros: el texto de estado debe tener contraste 4.5:1 (axe)
@@ -184,24 +184,24 @@ function estadoVisual(item) {
   switch (item.estado) {
     case EstadoPresupuesto.excedido:
       return {
-        color: 'var(--error-dark)',
+        color: 'var(--color-error)',
         texto: `Excedido por Bs. ${fixed(Math.abs(item.restante))}`,
         icono: 'cancel',
       }
     case EstadoPresupuesto.alerta:
       return {
-        color: 'var(--warning-dark)',
+        color: 'var(--color-advertencia)',
         texto: `Alerta: ${(item.porcentaje * 100).toFixed(0)}% consumido`,
         icono: 'warning',
       }
     case EstadoPresupuesto.optimo:
       return {
-        color: 'var(--success-dark)',
+        color: 'var(--color-exito)',
         texto: `En orden: ${(item.porcentaje * 100).toFixed(0)}% consumido`,
         icono: 'check_circle',
       }
     default:
-      return { color: 'var(--gray-base)', texto: 'Sin presupuesto fijado', icono: 'info' }
+      return { color: 'var(--color-gris-base)', texto: 'Sin presupuesto fijado', icono: 'info' }
   }
 }
 
@@ -223,7 +223,7 @@ function porcentajeBarra(valor) {
     </div>
 
     <div v-else-if="error" class="centro">
-      <AppIcon name="error" :size="48" color="var(--error-dark)" />
+      <AppIcon name="error" :size="48" color="var(--color-error)" />
       <p class="medium-body-medium">{{ error }}</p>
       <button class="btn btn-elevated" @click="cargarDatos">Reintentar</button>
     </div>
@@ -235,7 +235,7 @@ function porcentajeBarra(valor) {
           <AppIcon name="chevron_left" />
         </button>
         <div class="row">
-          <AppIcon name="calendar_month" :size="20" color="var(--primary-base)" />
+          <AppIcon name="calendar_month" :size="20" color="var(--color-accion)" />
           <h2 class="bold-body-large text-primary">{{ tituloMes }}</h2>
         </div>
         <button class="icon-btn" title="Mes siguiente" aria-label="Mes siguiente" @click="cambiarMes(1)">
@@ -289,13 +289,13 @@ function porcentajeBarra(valor) {
         >
           <AppIcon
             :name="resumen.categoriasExcedidas.length ? 'error' : 'warning'"
-            :color="resumen.categoriasExcedidas.length ? 'var(--error-dark)' : 'var(--warning-dark)'"
+            :color="resumen.categoriasExcedidas.length ? 'var(--color-error)' : 'var(--color-advertencia)'"
           />
           <div>
-            <p v-if="resumen.categoriasExcedidas.length" class="bold-caption" style="color: var(--error-dark)">
+            <p v-if="resumen.categoriasExcedidas.length" class="bold-caption" style="color: var(--color-error)">
               ¡Límite superado en: {{ resumen.categoriasExcedidas.join(', ') }}!
             </p>
-            <p v-if="resumen.categoriasAlerta.length" class="regular-caption" style="color: var(--warning-dark)">
+            <p v-if="resumen.categoriasAlerta.length" class="regular-caption" style="color: var(--color-advertencia)">
               Cerca del límite (>= 80%): {{ resumen.categoriasAlerta.join(', ') }}
             </p>
           </div>
@@ -338,7 +338,7 @@ function porcentajeBarra(valor) {
               <AppIcon
                 :name="item.tienePresupuesto ? 'edit' : 'add_circle'"
                 :filled="!item.tienePresupuesto"
-                color="var(--primary-base)"
+                color="var(--color-accion)"
               />
             </button>
             <button
@@ -348,7 +348,7 @@ function porcentajeBarra(valor) {
               :aria-label="`Eliminar presupuesto de ${item.categoria}`"
               @click="eliminarCategoria = item.categoria"
             >
-              <AppIcon name="delete" :size="20" color="var(--error-dark)" />
+              <AppIcon name="delete" :size="20" color="var(--color-error)" />
             </button>
           </div>
 
@@ -383,7 +383,7 @@ function porcentajeBarra(valor) {
               </span>
               <strong
                 class="bold-caption"
-                :style="{ color: item.estaExcedido ? 'var(--error-dark)' : 'var(--success-dark)' }"
+                :style="{ color: item.estaExcedido ? 'var(--color-error)' : 'var(--color-exito)' }"
               >
                 {{ item.tienePresupuesto ? `Bs. ${fixed(Math.abs(item.restante))}` : '—' }}
               </strong>
@@ -421,7 +421,7 @@ function porcentajeBarra(valor) {
                     {{ m.fecha }} • Estado: {{ m.estado ?? 'pendiente' }}
                   </div>
                 </div>
-                <strong class="bold-caption" style="color: var(--error-dark)">
+                <strong class="bold-caption" style="color: var(--color-error)">
                   -Bs. {{ fixed(m.monto) }}
                 </strong>
               </li>
@@ -441,7 +441,7 @@ function porcentajeBarra(valor) {
       <template #titulo>
         <AppIcon
           :name="iconosCategoria[dialogo.categoria] ?? 'pie_chart'"
-          :color="coloresCategoria[dialogo.categoria] ?? 'var(--primary-base)'"
+          :color="coloresCategoria[dialogo.categoria] ?? 'var(--color-accion)'"
         />
         <span class="bold-body-large">Presupuesto: {{ dialogo.categoria }}</span>
       </template>
@@ -514,32 +514,32 @@ function porcentajeBarra(valor) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-m);
-  padding: var(--space-l);
+  gap: var(--espacio-4);
+  padding: var(--espacio-6);
   text-align: center;
 }
 
 .page {
   max-width: 850px;
-  padding: var(--space-m);
+  padding: var(--espacio-4);
 }
 
 .navegacion-mes {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-s) var(--space-m);
+  padding: var(--espacio-2) var(--espacio-4);
 }
 
 .tarjeta-resumen {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
-  padding: var(--space-l);
+  gap: var(--espacio-4);
+  padding: var(--espacio-6);
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary-base), var(--primary-500));
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--primary-base) 30%, transparent);
-  color: var(--text-inverse);
+  background: linear-gradient(135deg, var(--color-accion), var(--color-accion-oscuro));
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-accion) 30%, transparent);
+  color: var(--color-texto-inverso);
 }
 
 .resumen-cabecera {
@@ -550,7 +550,7 @@ function porcentajeBarra(valor) {
 .pastilla {
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgb(255 255 255 / 0.2);
+  background: var(--color-sobre-accion-pastilla);
 }
 
 .metricas {
@@ -569,48 +569,48 @@ function porcentajeBarra(valor) {
 
 .metrica .icon,
 .metrica span {
-  color: rgb(255 255 255 / 0.75);
+  color: var(--color-sobre-accion-texto-suave);
 }
 
 .separador {
   width: 1px;
   height: 40px;
-  background: rgb(255 255 255 / 0.3);
+  background: var(--color-sobre-accion-separador);
 }
 
 .progreso-total {
-  background: rgb(255 255 255 / 0.25);
+  background: var(--color-sobre-accion-pista);
 }
 
 .banner {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-m);
-  padding: var(--space-m);
+  gap: var(--espacio-4);
+  padding: var(--espacio-4);
   border-radius: 12px;
 }
 
 .banner-error {
-  background: var(--error-light);
-  border: 1px solid color-mix(in srgb, var(--error-default) 40%, transparent);
+  background: var(--color-error-claro);
+  border: 1px solid color-mix(in srgb, var(--color-error-vivo) 40%, transparent);
 }
 
 .banner-alerta {
-  background: var(--warning-light);
-  border: 1px solid color-mix(in srgb, var(--warning-default) 40%, transparent);
+  background: var(--color-advertencia-claro);
+  border: 1px solid color-mix(in srgb, var(--color-advertencia-vivo) 40%, transparent);
 }
 
 .tarjeta-categoria {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
-  padding: var(--space-m);
+  gap: var(--espacio-4);
+  padding: var(--espacio-4);
   border: 1.5px solid transparent;
   border-radius: 14px;
 }
 
 .tarjeta-categoria.excedida {
-  border-color: color-mix(in srgb, var(--error-default) 50%, transparent);
+  border-color: color-mix(in srgb, var(--color-error-vivo) 50%, transparent);
 }
 
 .tarjeta-categoria .divider {
@@ -620,8 +620,8 @@ function porcentajeBarra(valor) {
 .cifras {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-s);
-  margin-top: calc(var(--space-s) - var(--space-m));
+  gap: var(--espacio-2);
+  margin-top: calc(var(--espacio-2) - var(--espacio-4));
 }
 
 .cifras > div {
@@ -646,16 +646,16 @@ function porcentajeBarra(valor) {
   gap: 2px;
   border: none;
   background: transparent;
-  color: var(--primary-400);
+  color: var(--color-accion-hover);
   cursor: pointer;
 }
 
 .detalle {
   margin: 0;
-  padding: var(--space-s);
+  padding: var(--espacio-2);
   list-style: none;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--gray-100) 30%, transparent);
+  background: color-mix(in srgb, var(--color-gris-100) 30%, transparent);
 }
 
 .detalle li {

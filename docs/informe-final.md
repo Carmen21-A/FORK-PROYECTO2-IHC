@@ -111,7 +111,7 @@ En este proyecto usé un asistente de IA (Claude Code) para programar, probar y 
 
 > Espacio reservado para las capturas del sistema de diseño y de las pantallas en Figma.
 
-**Enlace al archivo de Figma:** _(pegar aquí)_
+**Enlace al archivo de Figma:** [https://www.figma.com/design/jsgAZTQJxWdZGsgzzknWwB/PRESUPUESTO-ESTUDIANTIL](https://www.figma.com/design/jsgAZTQJxWdZGsgzzknWwB/PRESUPUESTO-ESTUDIANTIL)
 
 ### Sistema de diseño
 - Logo: _(captura)_

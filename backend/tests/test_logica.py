@@ -82,4 +82,4 @@ def test_mensual_es_el_mismo_dia_del_mes_siguiente():
 
 def test_mensual_usa_el_ultimo_dia_si_el_dia_no_existe():
     assert siguiente_fecha(date(2026, 1, 31), "mensual") == date(2026, 2, 28)
-    assert siguiente_fecha(date(2028, 1, 31), "mensual") == date(2028, 2, 29)  # bisiesto
+    assert siguiente_fecha(date(2028, 1, 31), "mensual") == date(2028, 2, 29)

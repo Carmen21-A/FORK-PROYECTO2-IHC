@@ -54,7 +54,7 @@ async function load() {
     metas.value = listaMetas
     resumenFondos.value = fondos
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   } finally {
     cargando.value = false
   }
@@ -124,7 +124,7 @@ async function guardarMeta() {
         monto_objetivo: obj,
         fecha_limite: f.fecha_limite,
       })
-      showSnackBar('Meta de ahorro actualizada', 'var(--success-dark)')
+      showSnackBar('Meta de ahorro actualizada', 'var(--color-exito)')
     } else {
       await MetasService.create({
         nombre: f.nombre.trim(),
@@ -133,7 +133,7 @@ async function guardarMeta() {
       })
       // Tarea 9 Parte A: éxito del embudo «Crear meta» (sin nombre ni montos)
       track(EVENTOS.META_CREADA, {})
-      showSnackBar('Meta de ahorro creada', 'var(--success-dark)')
+      showSnackBar('Meta de ahorro creada', 'var(--color-exito)')
     }
     dialogoCrear.value = false
     await load()
@@ -150,11 +150,11 @@ async function confirmarEliminar() {
   const m = dialogoEliminar.value
   try {
     await MetasService.delete(m.id)
-    showSnackBar(`Meta "${m.nombre}" eliminada`, 'var(--success-dark)')
+    showSnackBar(`Meta "${m.nombre}" eliminada`, 'var(--color-exito)')
     dialogoEliminar.value = null
     await load()
   } catch (e) {
-    showSnackBar(e.message, 'var(--error-dark)')
+    showSnackBar(e.message, 'var(--color-error)')
   }
 }
 
@@ -244,13 +244,13 @@ async function ejecutarOperacion() {
   try {
     if (op.tipo === 'asignar') {
       await MetasService.asignar(op.meta.id, monto)
-      showSnackBar(`Asignaste ${dartNum(monto)} Bs a "${op.meta.nombre}"`, 'var(--success-dark)')
+      showSnackBar(`Asignaste ${dartNum(monto)} Bs a "${op.meta.nombre}"`, 'var(--color-exito)')
     } else if (op.tipo === 'retirar') {
       await MetasService.retirar(op.meta.id, monto)
-      showSnackBar(`Retiraste ${dartNum(monto)} Bs hacia el saldo disponible`, 'var(--success-dark)')
+      showSnackBar(`Retiraste ${dartNum(monto)} Bs hacia el saldo disponible`, 'var(--color-exito)')
     } else if (op.tipo === 'transferir') {
       await MetasService.transferir(op.meta.id, op.destinoId, monto)
-      showSnackBar(`Transferiste ${dartNum(monto)} Bs entre metas`, 'var(--success-dark)')
+      showSnackBar(`Transferiste ${dartNum(monto)} Bs entre metas`, 'var(--color-exito)')
     }
     // Tarea 9 Parte A: éxito del embudo «Mover fondos»
     track(EVENTOS.FONDOS_REALIZADA, { operacion: op.tipo })
@@ -358,7 +358,7 @@ function alternarMenu(id) {
 
       <!-- Banner explicativo de reglas de negocio (Tarea 8) -->
       <div class="banner-regla">
-        <AppIcon name="info" :size="18" color="var(--primary-300)" />
+        <AppIcon name="info" :size="18" color="var(--color-accion)" />
         <span>
           <strong>Metas con fondos disponibles:</strong> Apartar dinero para tus metas reduce tu
           saldo disponible para proteger tus ahorros, sin crear gastos ficticios.
@@ -370,7 +370,7 @@ function alternarMenu(id) {
 
       <!-- Estado vacío cuando no hay metas -->
       <section v-else-if="metas.length === 0" class="card vacio vacio-accion">
-        <AppIcon name="savings" :size="48" color="var(--primary-base)" />
+        <AppIcon name="savings" :size="48" color="var(--color-accion)" />
         <h3>Aún no tienes metas de ahorro</h3>
         <p>Crea tu primera meta con un monto objetivo y fecha para empezar a apartar fondos.</p>
         <button class="btn btn-elevated" @click="abrirCrearMeta">
@@ -415,7 +415,7 @@ function alternarMenu(id) {
                 <button
                   class="menu-item"
                   role="menuitem"
-                  style="color: var(--error-dark)"
+                  style="color: var(--color-error)"
                   @click="dialogoEliminar = m; menuAbierto = null"
                 >
                   <AppIcon name="delete" :size="18" />
@@ -432,7 +432,7 @@ function alternarMenu(id) {
                 class="progreso-relleno"
                 :style="{
                   width: `${calcularPorcentajeMeta(m.monto_ahorrado, m.monto_objetivo)}%`,
-                  backgroundColor: m.cumplida ? 'var(--success-default)' : 'var(--primary-base)',
+                  backgroundColor: m.cumplida ? 'var(--color-exito-vivo)' : 'var(--color-accion)',
                 }"
               />
             </div>
@@ -443,7 +443,7 @@ function alternarMenu(id) {
               </span>
               <strong
                 class="porcentaje"
-                :style="{ color: m.cumplida ? 'var(--success-dark)' : 'var(--text-primary)' }"
+                :style="{ color: m.cumplida ? 'var(--color-exito)' : 'var(--color-texto)' }"
               >
                 {{ calcularPorcentajeMeta(m.monto_ahorrado, m.monto_objetivo) }}%
               </strong>
@@ -451,7 +451,7 @@ function alternarMenu(id) {
           </div>
 
           <div v-if="m.cumplida" class="badge-cumplida">
-            <AppIcon name="check_circle" :size="16" color="var(--success-dark)" />
+            <AppIcon name="check_circle" :size="16" color="var(--color-exito)" />
             <span>¡Meta completada con éxito!</span>
           </div>
 
@@ -659,7 +659,7 @@ function alternarMenu(id) {
 .metas-screen {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-m);
+  padding: var(--espacio-4);
 }
 
 /* Tarjeta de Balance y Saldos */
@@ -667,10 +667,10 @@ function alternarMenu(id) {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: var(--space-l);
-  margin-bottom: var(--space-m);
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
+  padding: var(--espacio-6);
+  margin-bottom: var(--espacio-4);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-gris-200);
   border-radius: 14px;
 }
 
@@ -685,7 +685,7 @@ function alternarMenu(id) {
 .balance-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-secondary, #64748b);
+  color: var(--color-texto-secundario);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -696,30 +696,30 @@ function alternarMenu(id) {
 }
 
 .valor-total {
-  color: var(--text-primary, #0f172a);
+  color: var(--color-texto);
 }
 
 .valor-reservado {
-  color: var(--primary-400);
+  color: var(--color-accion-hover);
 }
 
 .valor-disponible {
-  color: var(--success-dark, #15803d);
+  color: var(--color-exito);
 }
 
 .valor-disponible.alerta-bajo {
-  color: var(--error-dark);
+  color: var(--color-error);
 }
 
 .balance-sub {
   font-size: 12px;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--color-texto-secundario);
 }
 
 .balance-divisor {
   width: 1px;
   height: 48px;
-  background: var(--gray-200, #e2e8f0);
+  background: var(--color-gris-200);
 }
 
 /* Banner explicativo */
@@ -728,30 +728,30 @@ function alternarMenu(id) {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: color-mix(in srgb, var(--primary-base) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-base) 30%, transparent);
+  background: color-mix(in srgb, var(--color-accion) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accion) 30%, transparent);
   border-radius: 10px;
-  margin-bottom: var(--space-l);
+  margin-bottom: var(--espacio-6);
   font-size: 13px;
-  color: var(--primary-600);
+  color: var(--color-texto-sobre-accion-claro);
 }
 
 /* Grid de Metas */
 .grid-metas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: var(--space-m);
+  gap: var(--espacio-4);
 }
 
 .meta-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
-  padding: var(--space-l);
+  gap: var(--espacio-4);
+  padding: var(--espacio-6);
   border-radius: 14px;
-  background: var(--surface-card, #ffffff);
-  border: 1px solid var(--gray-200, #e2e8f0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-gris-200);
+  box-shadow: var(--sombra-suave);
 }
 
 .meta-header {
@@ -764,12 +764,12 @@ function alternarMenu(id) {
   margin: 0 0 4px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary, #0f172a);
+  color: var(--color-texto);
 }
 
 .meta-fecha {
   font-size: 12px;
-  color: var(--text-secondary, #64748b);
+  color: var(--color-texto-secundario);
 }
 
 /* Barra de progreso */
@@ -782,7 +782,7 @@ function alternarMenu(id) {
 .progreso-barra {
   width: 100%;
   height: 12px;
-  background: var(--gray-100, #f1f5f9);
+  background: var(--color-gris-100);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -797,7 +797,7 @@ function alternarMenu(id) {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: var(--text-secondary, #475569);
+  color: var(--color-texto-secundario);
 }
 
 .badge-cumplida {
@@ -805,19 +805,19 @@ function alternarMenu(id) {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: var(--success-light, #dcfce7);
+  background: var(--color-exito-claro);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--success-dark, #15803d);
+  color: var(--color-exito);
 }
 
 .meta-acciones {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding-top: var(--space-s);
-  border-top: 1px solid var(--gray-100, #f1f5f9);
+  padding-top: var(--espacio-2);
+  border-top: 1px solid var(--color-gris-100);
 }
 
 /* Diálogos y Modales */
@@ -825,15 +825,15 @@ function alternarMenu(id) {
   display: flex;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--gray-100, #f8fafc);
+  background: var(--color-gris-100);
   border-radius: 8px;
   font-size: 14px;
 }
 
 .error-banner {
   padding: 8px 12px;
-  background: var(--error-light, #fee2e2);
-  color: var(--error-dark, #b91c1c);
+  background: var(--color-error-claro);
+  color: var(--color-error);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
@@ -841,18 +841,18 @@ function alternarMenu(id) {
 
 .modal-acciones {
   justify-content: flex-end;
-  gap: var(--space-s);
-  margin-top: var(--space-m);
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-4);
 }
 
 .btn-danger {
-  background: var(--error-dark);
+  background: var(--color-error);
   color: white;
 }
 
 .aviso-liberacion {
   font-size: 13px;
-  color: var(--primary-500);
+  color: var(--color-accion-oscuro);
 }
 
 .menu-wrap {
@@ -862,7 +862,7 @@ function alternarMenu(id) {
 @media (max-width: 600px) {
   .balance-card {
     flex-direction: column;
-    gap: var(--space-m);
+    gap: var(--espacio-4);
   }
   .balance-divisor {
     display: none;
